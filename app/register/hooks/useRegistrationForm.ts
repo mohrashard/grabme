@@ -1,0 +1,317 @@
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../lib/supabase';
+import { getAdminContactAction } from '../../actions/getAdminContactAction'
+import { registerWorkerAction } from '../actions/registrationActions';
+import imageCompression from 'browser-image-compression';
+import { toast } from 'sonner';
+import { fileTypeFromBuffer } from 'file-type';
+
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/jpg', 
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif'
+];
+
+async function validateFileBuffer(
+  file: File,
+  fieldName: string
+): Promise<{ valid: boolean; error?: string }> {
+  try {
+    // Convert File to buffer for MIME check
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    
+    // Detect actual MIME from file magic bytes
+    const detected = await fileTypeFromBuffer(buffer);
+    
+    if (!detected) {
+      return { 
+        valid: false, 
+        error: `${fieldName}: Could not detect file type. Please upload a clear photo.` 
+      };
+    }
+    
+    if (!ALLOWED_IMAGE_TYPES.includes(detected.mime)) {
+      return { 
+        valid: false, 
+        error: `${fieldName}: Only JPG, PNG, or WebP images are accepted.` 
+      };
+    }
+    
+    return { valid: true };
+  } catch {
+    return { 
+      valid: false, 
+      error: `${fieldName}: File validation failed. Please try again.` 
+    };
+  }
+}
+
+export function useRegistrationForm() {
+    const router = useRouter();
+    const [step, setStep] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [uploading, setUploading] = useState<string | null>(null);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const [previews, setPreviews] = useState<Record<string, string>>({});
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+    
+    // Updated: Store bucket alongside file metadata
+    const [pendingFiles, setPendingFiles] = useState<{ file: File; type: string; path: string; bucket: string }[]>([]);
+
+    const [formData, setFormData] = useState({
+        fullName: '',
+        email: '',
+        password: '',
+        phone: '',
+        nicNumber: '',
+        dob: '',
+        address: '',
+        emergencyContact: '',
+        profilePhotoUrl: '',
+        nicFrontUrl: '',
+        nicBackUrl: '',
+        selfieUrl: '',
+        pastWorkPhotos: [] as string[],
+        certificateUrl: '',
+        tradeCategory: '',
+        subSkills: [] as string[],
+        yearsExperience: 0,
+        shortBio: '',
+        previousEmployer: '',
+        town: '',
+        homeDistrict: '',
+        districtsCovered: [] as string[],
+        referenceName: '',
+        referencePhone: '',
+        agreedConduct: false,
+        agreedTruth: false,
+        travelRadius: 25,
+    });
+
+    const previewsRef = useRef(previews);
+    useEffect(() => {
+        previewsRef.current = previews;
+    }, [previews]);
+
+    useEffect(() => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) router.push('/dashboard');
+        };
+        checkSession();
+
+        const handleScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            Object.values(previewsRef.current).forEach(url => URL.revokeObjectURL(url));
+        };
+    }, [router]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const toggleSubSkill = (skill: string) => {
+        setFormData(prev => ({
+            ...prev,
+            subSkills: prev.subSkills.includes(skill)
+                ? prev.subSkills.filter(s => s !== skill)
+                : [...prev.subSkills, skill]
+        }));
+    };
+
+    const toggleDistrictCovered = (district: string) => {
+        setFormData(prev => ({
+            ...prev,
+            districtsCovered: prev.districtsCovered.includes(district)
+                ? prev.districtsCovered.filter(d => d !== district)
+                : [...prev.districtsCovered, district]
+        }));
+    };
+
+    const handleFileUpload = async (rawFile: File, type: string) => {
+        if (!rawFile) return;
+        setUploading(type);
+        try {
+            const options = {
+                maxSizeMB: 0.3,
+                maxWidthOrHeight: 1024,
+                useWebWorker: true,
+            };
+            const compressedFile = await imageCompression(rawFile, options);
+
+            const fileExt = compressedFile.name.split('.').pop() || 'jpg';
+            const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().split('-')[0] : Math.random().toString(36).substring(2, 8);
+            const fileName = `${formData.nicNumber || 'anon'}_${type}_${Date.now()}_${uniqueId}.${fileExt}`;
+            const filePath = `workers/${fileName}`;
+
+            // Bucket strategy:
+            // → 'avatars' (PUBLIC) : profilePhotoUrl, pastWorkPhotos, certificateUrl
+            //   These are portfolio/display images — safe to serve publicly.
+            // → 'worker-documents' (PRIVATE) : nicFrontUrl, nicBackUrl, selfieUrl
+            //   Identity documents — must NEVER be publicly accessible.
+            const PRIVATE_TYPES = ['nicFrontUrl', 'nicBackUrl', 'selfieUrl'];
+            const bucket = PRIVATE_TYPES.includes(type) ? 'worker-documents' : 'avatars';
+
+            const previewKey = type === 'pastWorkPhotos' ? `pastWorkPhotos_${filePath}` : type;
+            
+            if (previews[previewKey]) {
+                URL.revokeObjectURL(previews[previewKey]);
+            }
+            
+            const previewUrl = URL.createObjectURL(compressedFile);
+            setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
+
+            setPendingFiles(prev => {
+                // If it's not a multi-photo field, remove any existing pending upload for this type
+                const filtered = type === 'pastWorkPhotos' 
+                    ? prev 
+                    : prev.filter(p => p.type !== type);
+                return [...filtered, { file: compressedFile, type, path: filePath, bucket }];
+            });
+
+            if (type === 'pastWorkPhotos') {
+                setFormData(prev => ({ ...prev, pastWorkPhotos: [...prev.pastWorkPhotos, filePath] }));
+            } else {
+                setFormData(prev => ({ ...prev, [type]: filePath }));
+            }
+        } catch (error: any) {
+            toast.error('Upload failed: ' + error.message);
+        } finally {
+            setUploading(null);
+        }
+    };
+
+    const canMoveToNext = (): boolean => {
+        if (step === 1) return !!(formData.fullName && formData.email && formData.password && formData.phone && formData.nicNumber && formData.emergencyContact);
+        if (step === 2) return !!(formData.profilePhotoUrl && formData.nicFrontUrl && formData.nicBackUrl);
+        if (step === 3) return !!(formData.tradeCategory && formData.yearsExperience >= 0);
+        if (step === 4) return !!(formData.homeDistrict && formData.town && formData.districtsCovered.length > 0);
+        if (step === 5) return !!(formData.referenceName && formData.referencePhone);
+        return true;
+    };
+
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
+    const submitForm = async () => {
+        if (loading) return; // Prevention: Multiple clicks
+        setLoading(true);
+        setFieldErrors({}); 
+        try {
+            // Create a copy of the current form data to populate with final paths
+            const finalFormData = { ...formData };
+            
+            // Rebuild the array fields to ensure only the final uploaded paths are included
+            finalFormData.pastWorkPhotos = [];
+            finalFormData.subSkills = [...formData.subSkills];
+            finalFormData.districtsCovered = [...formData.districtsCovered];
+
+            for (const { file, bucket, type } of pendingFiles) {
+                // 1. Double-check validation before touching storage
+                const validation = await validateFileBuffer(file, type);
+                if (!validation.valid) {
+                    throw new Error(validation.error);
+                }
+
+                // 2. Generate a TRULY unique path at the exact moment of upload
+                // This prevents "Resource already exists" on re-submissions
+                const fileExt = file.name.split('.').pop() || 'jpg';
+                const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
+                    ? crypto.randomUUID() 
+                    : `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+                
+                const finalPath = `workers/${uniqueId}.${fileExt}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from(bucket)
+                    .upload(finalPath, file, { upsert: false });
+                
+                if (uploadError) {
+                    console.error(`Upload error [${bucket}]:`, uploadError.message);
+                    throw new Error(`Upload to ${bucket} failed: ${uploadError.message}`);
+                }
+
+                // 3. Determine the value to store (Public URL vs Raw Path)
+                let finalValue = finalPath;
+                if (bucket === 'avatars') {
+                    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(finalPath);
+                    finalValue = publicUrl;
+                }
+
+                // 4. Update the specific field in our submission object
+                if (type === 'pastWorkPhotos') {
+                    finalFormData.pastWorkPhotos.push(finalValue);
+                } else if (type === 'profilePhotoUrl') {
+                    finalFormData.profilePhotoUrl = finalValue;
+                } else if (type === 'certificateUrl') {
+                    finalFormData.certificateUrl = finalValue;
+                } else {
+                    // Private document paths (NIC, Selfie)
+                    (finalFormData as any)[type] = finalValue;
+                }
+            }
+
+            const result = await registerWorkerAction(finalFormData);
+
+            if (!result.success) {
+                if (result.errors) {
+                    setFieldErrors(result.errors);
+                    const firstError = Object.values(result.errors)[0] as string;
+                    toast.error(firstError, { description: 'Please check the highlighted fields.' });
+                } else {
+                    toast.error('Registration Failure', { description: result.error });
+                }
+                return;
+            }
+
+            toast.success('Registration successful!', { description: 'Your profile is under review.' });
+            setPendingFiles([]);
+            setRegistrationSuccess(true);
+        } catch (error: any) {
+            toast.error('Critical Registration Error', { description: 'Please try again later: ' + error.message });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const triggerWhatsAppActivation = async () => {
+        try {
+            const message = `Activate my Grab Me account: ${formData.fullName} | ${formData.tradeCategory} | ${formData.homeDistrict}`;
+            const { url } = await getAdminContactAction(message);
+            window.location.href = url;
+        } catch {
+            toast.error('Could not open WhatsApp. Please contact support manually.');
+        }
+    };
+
+    return {
+        step,
+        setStep,
+        loading,
+        uploading,
+        mobileOpen,
+        setMobileOpen,
+        scrolled,
+        formData,
+        setFormData,
+        handleInputChange,
+        toggleSubSkill,
+        toggleDistrictCovered,
+        handleFileUpload,
+        canMoveToNext,
+        submitForm,
+        registrationSuccess,
+        triggerWhatsAppActivation,
+        previews,
+        fieldErrors
+    };
+}

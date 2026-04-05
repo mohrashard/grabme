@@ -1,0 +1,21 @@
+{
+  "name": "Grab Me",
+  "short_name": "Grab Me",
+  "description": "Sri Lanka's Verified Service Directory",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090A0F",
+  "theme_color": "#185FA5",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

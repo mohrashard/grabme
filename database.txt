@@ -1,0 +1,479 @@
+-- WORKERS
+CREATE TABLE workers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  nic_number TEXT NOT NULL UNIQUE,
+  phone TEXT NOT NULL UNIQUE,
+  address TEXT,
+  emergency_contact TEXT,
+
+  -- Media (Supabase Storage)
+  nic_front_url TEXT,
+  nic_back_url TEXT,
+  profile_photo_url TEXT,
+  selfie_url TEXT,
+  past_work_photos TEXT[],
+  certificate_url TEXT,
+
+  -- Qualifications
+  trade_category TEXT NOT NULL,
+  sub_skills TEXT[],
+  years_experience INTEGER,
+  short_bio TEXT,
+
+  -- Location
+  districts_covered TEXT[],
+
+  -- Social Proof
+  reference_name TEXT,
+  reference_phone TEXT,
+  previous_employer TEXT,
+
+  -- Accountability
+  agreed_to_code_of_conduct BOOLEAN DEFAULT FALSE,
+
+  -- Pipeline Status
+  account_status TEXT DEFAULT 'pending',
+  -- Values: 'pending' | 'whatsapp_pinged' |
+  --         'under_review' | 'active' |
+  --         'rejected' | 'suspended'
+
+  -- Trust Badges (manually flipped by founder)
+  is_identity_verified BOOLEAN DEFAULT FALSE,
+  is_reference_checked BOOLEAN DEFAULT FALSE,
+  is_certificate_verified BOOLEAN DEFAULT FALSE,
+
+  -- Timestamps
+  whatsapp_pinged_at TIMESTAMP WITH TIME ZONE,
+  activated_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- VERIFICATION LOG (founder's internal notes)
+CREATE TABLE verification_log (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  worker_id UUID REFERENCES workers(id),
+  action TEXT,
+  -- 'nic_checked' | 'reference_called' |
+  -- 'approved' | 'rejected' | 'suspended'
+  outcome TEXT,
+  -- 'pass' | 'fail' | 'no_answer' | 'suspicious'
+  admin_notes TEXT,
+  nic_checked BOOLEAN DEFAULT FALSE,
+  reference_called BOOLEAN DEFAULT FALSE,
+  checked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- CUSTOMERS
+CREATE TABLE customers (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  phone TEXT NOT NULL UNIQUE,
+  district TEXT,
+  registered_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- WHATSAPP CLICK TRACKING (traction proof)
+CREATE TABLE whatsapp_clicks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_id UUID REFERENCES customers(id),
+  worker_id UUID REFERENCES workers(id),
+  clicked_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add the new Worker location fields
+ALTER TABLE workers 
+ADD COLUMN specific_areas TEXT[],
+ADD COLUMN home_district TEXT;
+
+-- Add the new Customer location fields  
+ALTER TABLE customers
+ADD COLUMN lat DECIMAL(10,8),
+ADD COLUMN lng DECIMAL(11,8),
+ADD COLUMN area_name TEXT;
+
+-- 1. Enable RLS on the workers table (if not already enabled)
+ALTER TABLE workers ENABLE ROW LEVEL SECURITY;
+
+-- 2. Allow anyone (anonymous users) to submit a registration form
+CREATE POLICY "Allow public worker registration" 
+ON workers 
+FOR INSERT 
+TO anon, authenticated
+WITH CHECK (true);
+
+-- 3. (Optional) Allow admins/public to see their own data if needed later
+CREATE POLICY "Allow workers to see all profiles"
+ON workers
+FOR SELECT
+TO anon, authenticated
+USING (true);
+
+
+-- 1. Create a policy for the 'worker-documents' bucket to allow anonymous UPLOADS
+CREATE POLICY "Allow public uploads to worker-documents" 
+ON storage.objects 
+FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (bucket_id = 'worker-documents');
+
+-- 2. (Optional) Allow people to View the uploaded files
+CREATE POLICY "Allow public access to worker-documents"
+ON storage.objects
+FOR SELECT
+TO anon, authenticated
+USING (bucket_id = 'worker-documents');
+
+
+-- 1. Add the new credential columns to the workers table
+ALTER TABLE workers 
+ADD COLUMN email TEXT UNIQUE,
+ADD COLUMN password TEXT;
+
+-- 2. (Optional but Recommended) Add an index to speed up email lookups
+CREATE INDEX idx_workers_email ON workers(email);
+
+ALTER TABLE workers ADD COLUMN is_featured BOOLEAN DEFAULT FALSE;
+
+-- Only let the public see workers you have actually approved
+DROP POLICY "Allow workers to see all profiles" ON workers;
+CREATE POLICY "Public can only see active worker directory"
+ON workers
+FOR SELECT
+TO anon
+USING (account_status = 'active');
+
+-- 1. Drop the restrictive policy
+DROP POLICY "Public can only see active worker directory" ON workers;
+
+-- 2. Create a policy that allows lookup for login but protects private data
+-- This allows workers to log in even if they are 'pending'
+CREATE POLICY "Allow lookup for login and directory"
+ON workers
+FOR SELECT
+TO anon
+USING (true); 
+
+-- 1. Allow status updates (Activate/Reject/Suspend)
+CREATE POLICY "Allow admin updates to workers" 
+ON workers 
+FOR UPDATE 
+TO anon 
+USING (true) 
+WITH CHECK (true);
+
+-- 2. Allow the admin to save audit notes
+ALTER TABLE verification_log ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow admin to insert verification logs" 
+ON verification_log 
+FOR INSERT 
+TO anon 
+WITH CHECK (true);
+
+-- 3. (Optional) Let admin see logs
+CREATE POLICY "Allow admin to view verification logs" 
+ON verification_log 
+FOR SELECT 
+TO anon 
+USING (true);
+
+-- 1. Enable Row Level Security on the workers table (if not already enabled)
+ALTER TABLE workers ENABLE ROW LEVEL SECURITY;
+
+-- 2. Allow ANYONE to insert a new registration (Needed for your signup form)
+CREATE POLICY "Allow public registration" 
+ON workers FOR INSERT 
+TO public 
+WITH CHECK (true);
+
+-- 3. Allow ANYONE to read ONLY active workers (Needed for the upcoming /browse directory)
+CREATE POLICY "Allow public read of active workers" 
+ON workers FOR SELECT 
+TO public 
+USING (account_status = 'active');
+
+-- 4. CRITICAL: Completely block public updates and deletes. 
+-- (Your Admin Panel will bypass this by using the secure service_role key on the server)
+DROP POLICY IF EXISTS "Allow public updates" ON workers;
+DROP POLICY IF EXISTS "Allow public deletes" ON workers;
+
+-- 1. DESTROY THE DANGEROUS POLICIES YOU RAN
+DROP POLICY IF EXISTS "Allow admin updates to workers" ON workers;
+DROP POLICY IF EXISTS "Allow lookup for login and directory" ON workers;
+DROP POLICY IF EXISTS "Allow public access to worker-documents" ON storage.objects;
+DROP POLICY IF EXISTS "Allow admin to insert verification logs" ON verification_log;
+DROP POLICY IF EXISTS "Allow admin to view verification logs" ON verification_log;
+
+-- 2. RE-APPLY THE SECURE READ POLICY (Only active workers visible to public)
+CREATE POLICY "Public can only see active worker directory"
+ON workers
+FOR SELECT
+TO public
+USING (account_status = 'active');
+
+-- Notice we are NOT creating an UPDATE policy. 
+-- The public cannot update. Your Admin Panel will bypass this using the service_role key.
+
+-- 1. Secure the Customers table
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public to insert customers" 
+ON customers 
+FOR INSERT 
+TO public 
+WITH CHECK (true);
+
+-- 2. Secure the WhatsApp Clicks table
+ALTER TABLE whatsapp_clicks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow public to insert clicks" 
+ON whatsapp_clicks 
+FOR INSERT 
+TO public 
+WITH CHECK (true);
+
+-- Note: We are deliberately NOT creating SELECT, UPDATE, or DELETE policies.
+-- Only your Admin Panel (using the service_role key) will be able to view this data.
+
+-- 1. NUKE ANY LEAKY PUBLIC UPDATE/DELETE POLICIES
+DROP POLICY IF EXISTS "Allow admin updates to workers" ON workers;
+DROP POLICY IF EXISTS "Allow public updates" ON workers;
+DROP POLICY IF EXISTS "Allow public deletes" ON workers;
+
+-- 2. VERIFY THE ONLY POLICIES LEFT ARE THESE:
+-- INSERT for public (to register)
+-- SELECT for active workers (for the /browse directory)
+-- Everything else (Updates/Deletes) MUST be handled by your Next.js Server Actions using the `service_role` key.
+
+-- Allow public uploads to the avatars bucket
+CREATE POLICY "Allow public uploads to avatars" 
+ON storage.objects FOR INSERT TO public 
+WITH CHECK (bucket_id = 'avatars');
+
+-- 1. CLEAN UP OLD STORAGE POLICIES
+DROP POLICY IF EXISTS "Allow public uploads to avatars" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public uploads to worker-documents" ON storage.objects;
+DROP POLICY IF EXISTS "Public Avatar Uploads" ON storage.objects;
+DROP POLICY IF EXISTS "Public Avatar Updates" ON storage.objects;
+DROP POLICY IF EXISTS "Public Avatar SELECT" ON storage.objects;
+
+-- 2. SECURE AVATARS BUCKET (Public Access & Management)
+CREATE POLICY "Avatars: Public Insert" ON storage.objects FOR INSERT TO anon, authenticated WITH CHECK (bucket_id = 'avatars');
+CREATE POLICY "Avatars: Public Update" ON storage.objects FOR UPDATE TO anon, authenticated USING (bucket_id = 'avatars');
+CREATE POLICY "Avatars: Public Select" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'avatars');
+
+-- 3. SECURE WORKER-DOCUMENTS BUCKET (Private Uploads & Admin Selection)
+CREATE POLICY "Docs: Public Insert" ON storage.objects FOR INSERT TO anon, authenticated WITH CHECK (bucket_id = 'worker-documents');
+CREATE POLICY "Docs: Public Update" ON storage.objects FOR UPDATE TO anon, authenticated USING (bucket_id = 'worker-documents');
+CREATE POLICY "Docs: Public Select" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'worker-documents');
+
+-- 1. FIX THE FOREIGN KEYS (Add ON DELETE CASCADE)
+ALTER TABLE verification_log DROP CONSTRAINT IF EXISTS verification_log_worker_id_fkey;
+ALTER TABLE whatsapp_clicks DROP CONSTRAINT IF EXISTS whatsapp_clicks_worker_id_fkey;
+
+ALTER TABLE verification_log 
+ADD CONSTRAINT verification_log_worker_id_fkey 
+FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE CASCADE;
+
+ALTER TABLE whatsapp_clicks 
+ADD CONSTRAINT whatsapp_clicks_worker_id_fkey 
+FOREIGN KEY (worker_id) REFERENCES workers(id) ON DELETE CASCADE;
+
+-- 2. ADD PERFORMANCE INDEXES (So the app stays fast with 10,000+ workers)
+CREATE INDEX IF NOT EXISTS idx_workers_status ON workers(account_status);
+CREATE INDEX IF NOT EXISTS idx_workers_trade ON workers(trade_category);
+CREATE INDEX IF NOT EXISTS idx_workers_district ON workers(home_district);
+
+-- 3. STORAGE LOCKDOWN (Ensure public can ONLY Insert, NEVER Update)
+DROP POLICY IF EXISTS "Avatars: Public Update" ON storage.objects;
+DROP POLICY IF EXISTS "Docs: Public Update" ON storage.objects;
+-- (Assuming you already have the standard INSERT policies from earlier, this simply kills the dangerous update ones).
+
+ALTER TABLE customers DROP COLUMN IF EXISTS service_needed;
+
+-- Allow workers to overwrite their own uploads if they retry registration
+CREATE POLICY "Avatars: Public Update" ON storage.objects FOR UPDATE TO anon, authenticated USING (bucket_id = 'avatars');
+CREATE POLICY "Docs: Public Update" ON storage.objects FOR UPDATE TO anon, authenticated USING (bucket_id = 'worker-documents');
+
+-- REVERSING CURSOR'S MISTAKE: Deleting the insecure update policies
+DROP POLICY IF EXISTS "Avatars: Public Update" ON storage.objects;
+DROP POLICY IF EXISTS "Docs: Public Update" ON storage.objects;
+
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS service_needed TEXT;
+
+-- ================================================================
+-- GRAB ME — DEFINITIVE SECURITY FIX
+-- Run this entire block at once in SQL Editor
+-- ================================================================
+
+
+-- ================================================================
+-- BLOCK 1: NUKE ALL DANGEROUS STORAGE POLICIES
+-- (Your database.txt shows these were created and never cleaned up)
+-- ================================================================
+
+DROP POLICY IF EXISTS "Allow public access to worker-documents" ON storage.objects;
+DROP POLICY IF EXISTS "Docs: Public Select" ON storage.objects;
+DROP POLICY IF EXISTS "Docs: Public Update" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public uploads to worker-documents" ON storage.objects;
+DROP POLICY IF EXISTS "Docs: Public Insert" ON storage.objects;
+
+
+-- ================================================================
+-- BLOCK 2: REBUILD WORKER-DOCUMENTS CORRECTLY
+-- Workers can upload during registration (INSERT only)
+-- NOBODY can read/download (no SELECT policy at all)
+-- Admin uses service_role + signed URLs — bypasses RLS entirely
+-- ================================================================
+
+CREATE POLICY "Docs: Worker Upload Only"
+ON storage.objects
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (
+  bucket_id = 'worker-documents' AND 
+  lower(storage.extension(name)) IN ('png', 'jpg', 'jpeg')
+);
+
+-- ✓ That's the ONLY policy worker-documents needs.
+-- No SELECT. No UPDATE. No DELETE for anon/authenticated.
+
+
+-- ================================================================
+-- BLOCK 3: CONFIRM AVATARS IS CORRECT
+-- (Public bucket — workers upload, customers view. This is fine.)
+-- ================================================================
+
+DROP POLICY IF EXISTS "Avatars: Public Update" ON storage.objects;
+DROP POLICY IF EXISTS "Avatars: Public Insert" ON storage.objects;
+DROP POLICY IF EXISTS "Avatars: Public Select" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public uploads to avatars" ON storage.objects;
+
+-- Recreate avatars clean
+CREATE POLICY "Avatars: Insert" 
+ON storage.objects FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (
+  bucket_id = 'avatars' AND 
+  lower(storage.extension(name)) IN ('png', 'jpg', 'jpeg')
+);
+
+CREATE POLICY "Avatars: Select" 
+ON storage.objects FOR SELECT 
+TO anon, authenticated 
+USING (bucket_id = 'avatars');
+
+-- No UPDATE policy. If worker retries upload, they use a new filename.
+
+
+-- ================================================================
+-- BLOCK 4: LOCK DOWN WORKERS TABLE
+-- Trace from database.txt: multiple conflicting policies exist.
+-- Nuke all, rebuild clean.
+-- ================================================================
+
+DROP POLICY IF EXISTS "Allow public worker registration" ON workers;
+DROP POLICY IF EXISTS "Allow workers to see all profiles" ON workers;
+DROP POLICY IF EXISTS "Public can only see active worker directory" ON workers;
+DROP POLICY IF EXISTS "Allow lookup for login and directory" ON workers;
+DROP POLICY IF EXISTS "Allow admin updates to workers" ON workers;
+DROP POLICY IF EXISTS "Allow public registration" ON workers;
+DROP POLICY IF EXISTS "Allow public read of active workers" ON workers;
+DROP POLICY IF EXISTS "Allow public updates" ON workers;
+DROP POLICY IF EXISTS "Allow public deletes" ON workers;
+
+-- Rebuild workers policies — 2 policies only
+CREATE POLICY "Workers: Public Registration"
+ON workers
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+CREATE POLICY "Workers: Browse Active Only"
+ON workers
+FOR SELECT
+TO anon, authenticated
+USING (account_status = 'active');
+
+-- NO UPDATE policy for anon. Admin uses service_role key. Done.
+
+
+-- ================================================================
+-- BLOCK 5: LOCK DOWN VERIFICATION_LOG
+-- ================================================================
+
+DROP POLICY IF EXISTS "Allow admin to insert verification logs" ON verification_log;
+DROP POLICY IF EXISTS "Allow admin to view verification logs" ON verification_log;
+
+-- No policies at all for anon/authenticated.
+-- service_role bypasses RLS — your admin server actions already use this.
+-- verification_log is now invisible to everyone except your backend.
+
+
+-- ================================================================
+-- BLOCK 6: CONFIRM CUSTOMERS + CLICKS ARE LOCKED
+-- ================================================================
+
+DROP POLICY IF EXISTS "Allow public to insert customers" ON customers;
+DROP POLICY IF EXISTS "Allow public to insert clicks" ON whatsapp_clicks;
+
+-- Recreate clean
+CREATE POLICY "Customers: Insert Only"
+ON customers
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+CREATE POLICY "Clicks: Insert Only"
+ON whatsapp_clicks
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (true);
+
+-- No SELECT for anon on either. Admin reads via service_role.
+
+
+-- ================================================================
+-- BLOCK 7: VERIFY — Run this SELECT to see final state
+-- Every row returned should match the table below
+-- ================================================================
+
+SELECT 
+  tablename,
+  policyname,
+  cmd,
+  roles::text
+FROM pg_policies
+WHERE schemaname IN ('public', 'storage')
+ORDER BY tablename, cmd;
+
+-- 1. Drop the old insecure policies
+DROP POLICY IF EXISTS "Docs: Worker Upload Only" ON storage.objects;
+DROP POLICY IF EXISTS "Avatars: Insert" ON storage.objects;
+
+-- 2. Create the new secured Docs policy (with webp support)
+CREATE POLICY "Docs: Worker Upload Only"
+ON storage.objects
+FOR INSERT
+TO anon, authenticated
+WITH CHECK (
+  bucket_id = 'worker-documents' AND 
+  lower(storage.extension(name)) IN ('png', 'jpg', 'jpeg', 'webp')
+);
+
+-- 3. Create the new secured Avatars policy (with webp support)
+CREATE POLICY "Avatars: Insert" 
+ON storage.objects 
+FOR INSERT 
+TO anon, authenticated 
+WITH CHECK (
+  bucket_id = 'avatars' AND 
+  lower(storage.extension(name)) IN ('png', 'jpg', 'jpeg', 'webp')
+);
+
+ALTER TABLE verification_log 
+ADD COLUMN IF NOT EXISTS nic_checked BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS reference_called BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE workers 
+ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
