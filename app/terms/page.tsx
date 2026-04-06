@@ -1,6 +1,12 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: "Terms of Service | Grab Me Sri Lanka",
+  description: "Read our terms of service for using the Grab Me platform as a customer or worker in Sri Lanka.",
+}
 
 export default function TermsPage() {
   return (

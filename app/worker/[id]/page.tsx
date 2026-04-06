@@ -44,15 +44,22 @@ export async function generateMetadata({ params }: WorkerPageProps): Promise<Met
                 title,
                 description,
                 type: 'profile',
-                url: `https://grabme.lk/worker/${id}`,
+                url: `https://www.grabme.page/worker/${id}`,
                 images: worker.profile_photo_url ? [
                     {
                         url: worker.profile_photo_url,
-                        width: 800,
-                        height: 800,
+                        width: 1200,
+                        height: 630,
                         alt: worker.full_name,
                     }
-                ] : [],
+                ] : [
+                    {
+                        url: '/grabme.png',
+                        width: 1200,
+                        height: 630,
+                        alt: 'Grab Me Sri Lanka'
+                    }
+                ],
             },
             twitter: {
                 card: 'summary_large_image',
@@ -115,10 +122,38 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
         notFound();
     }
 
+    // Structured Data (JSON-LD) for Person and ProfessionalService
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": worker.full_name,
+        "jobTitle": worker.trade_category,
+        "address": {
+            "@type": "PostalAddress",
+            "addressLocality": worker.home_district,
+            "addressRegion": worker.home_district,
+            "addressCountry": "LK"
+        },
+        "description": worker.short_bio || `Professional ${worker.trade_category} in ${worker.home_district}`,
+        "image": worker.profile_photo_url || "https://www.grabme.page/grabme.png",
+        "hasCredential": [
+          {
+            "@type": "EducationalOccupationalCredential",
+            "credentialCategory": "Professional Verification"
+          }
+        ],
+        "mainEntityOfPage": {
+          "@type": "WebPage",
+          "@id": `https://www.grabme.page/worker/${id}`
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white font-sans selection:bg-indigo-500/30 overflow-x-hidden">
-            {/* Global Design System Styles */}
-            <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap'); * { font-family: 'Outfit', sans-serif; }`}</style>
+        <div className="min-h-screen bg-[#090A0F] text-white font-outfit selection:bg-indigo-500/30 overflow-x-hidden">
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                />
 
             {/* Back Button and Staff Preview */}
             <div className="max-w-2xl mx-auto px-6 pt-12 pb-6 flex items-center justify-between">

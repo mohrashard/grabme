@@ -4,12 +4,12 @@ import Image from 'next/image'
 import { Menu, X } from 'lucide-react'
 
 interface RegisterHeaderProps {
-    scrolled: boolean;
-    mobileOpen: boolean;
-    setMobileOpen: (open: boolean) => void;
+    scrolled?: boolean;
+    mobileOpen?: boolean;
+    setMobileOpen?: (open: boolean) => void;
 }
 
-export default function RegisterHeader({ scrolled, mobileOpen, setMobileOpen }: RegisterHeaderProps) {
+export default function RegisterHeader({ scrolled = false, mobileOpen = false, setMobileOpen }: RegisterHeaderProps) {
     return (
         <nav
             className="fixed top-0 w-full z-50 transition-all duration-500"
@@ -26,7 +26,10 @@ export default function RegisterHeader({ scrolled, mobileOpen, setMobileOpen }: 
                     </div>
                     <span className="text-white text-lg font-bold tracking-tight">Grab Me</span>
                 </Link>
-                <Link href="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-white/5 px-3 py-2 rounded-lg border border-white/5 transition-all">Back to Home</Link>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <Link href="/how-it-works" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-white/5 px-3 py-2 rounded-lg border border-white/5 transition-all">How It Works</Link>
+                    <Link href="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-white/5 px-3 py-2 rounded-lg border border-white/5 transition-all">Back to Home</Link>
+                </div>
             </div>
             {/* Mobile menu (optional, if needed for register) */}
         </nav>

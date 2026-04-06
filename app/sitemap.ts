@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next'
 import { supabaseAdmin } from './lib/supabaseServer'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://grabme.lk'
+  const baseUrl = 'https://www.grabme.page'
 
   // Fetch active workers for dynamic profile indexing
   const { data: workers } = await supabaseAdmin

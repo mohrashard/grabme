@@ -1,6 +1,12 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, HeartPulse } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: "Code of Conduct | Our Professional Standards | Grab Me",
+  description: "Learn about the professional and ethical standards we expect from every worker and customer on the Grab Me platform.",
+}
 
 export default function ConductPage() {
   return (

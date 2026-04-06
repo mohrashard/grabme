@@ -1,6 +1,12 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowLeft, ShieldCheck, Lock } from 'lucide-react'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | Grab Me Sri Lanka",
+  description: "Learn how we protect your data and identity on Grab Me.",
+}
 
 export default function PrivacyPage() {
   return (
