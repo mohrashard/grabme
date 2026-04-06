@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: 'How Grab Me Works — Sri Lanka Home Services',
         description: 'Step by step guide for customers and workers. NIC verified professionals. Direct WhatsApp contact. No commission.',
-        url: 'https://www.grabme.lk/how-it-works',
+        url: 'https://www.grabme.page/how-it-works',
         locale: 'en_LK',
     },
 }
