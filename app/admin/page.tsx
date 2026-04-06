@@ -2068,7 +2068,7 @@ export default function AdminPage() {
                                 ) : (
                                     <div className="grid grid-cols-1 gap-4">
                                         {/* Add New Service */}
-                                        <div className="bg-[#18181B] border border-indigo-500/20 rounded-[2rem] p-6 flex items-center gap-4">
+                                        <div className="bg-[#18181B] border border-indigo-500/20 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-6 flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4">
                                             <input
                                                 placeholder="Add new service (e.g. Solar Technician)..."
                                                 value={newServiceName}
@@ -2085,7 +2085,7 @@ export default function AdminPage() {
                                                         }
                                                     }
                                                 }}
-                                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
+                                                className="flex-1 w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-sm text-white outline-none focus:border-indigo-500 transition-all"
                                             />
                                             <button
                                                 onClick={async () => {
@@ -2099,7 +2099,7 @@ export default function AdminPage() {
                                                         toast.error(res?.error || 'Failed to add service');
                                                     }
                                                 }}
-                                                className="px-5 py-3 bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-400 transition-all flex items-center gap-2"
+                                                className="px-5 py-3 w-full md:w-auto justify-center bg-indigo-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-400 transition-all flex items-center gap-2 shrink-0"
                                             >
                                                 <Plus className="w-4 h-4" /> Add Service
                                             </button>
@@ -2116,29 +2116,29 @@ export default function AdminPage() {
                                                     {/* Service Header */}
                                                     <div
                                                         onClick={() => setSelectedServiceId(isExpanded ? null : svc.id)}
-                                                        className="w-full flex items-center justify-between p-6 hover:bg-white/5 transition-all cursor-pointer"
+                                                        className="w-full flex items-center justify-between p-4 md:p-6 hover:bg-white/5 transition-all cursor-pointer gap-2"
                                                     >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-center">
-                                                                <Briefcase className="w-5 h-5 text-indigo-400" />
+                                                        <div className="flex flex-row items-center gap-3 md:gap-4 min-w-0">
+                                                            <div className="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 rounded-xl flex items-center justify-center shrink-0">
+                                                                <Briefcase className="w-5 h-5 text-indigo-400 shrink-0" />
                                                             </div>
-                                                            <div className="text-left">
-                                                                <p className="text-white font-black text-sm">{svc.name}</p>
-                                                                <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest">
+                                                            <div className="text-left min-w-0 pr-2">
+                                                                <p className="text-white font-black text-sm truncate">{svc.name}</p>
+                                                                <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest truncate">
                                                                     {svcSkills.length} skills · {svcKeywords.length} keywords
                                                                 </p>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-2 md:gap-3 shrink-0">
                                                             <button
                                                                 onClick={async e => {
                                                                     e.stopPropagation();
                                                                     setTaxDeleting({ id: svc.id, name: svc.name, type: 'Service' });
                                                                 }}
-                                                                className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95"
+                                                                className="p-1.5 md:p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95"
                                                                 title="Delete service"
                                                             >
-                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                                             </button>
                                                             <ChevronRight className={`w-4 h-4 text-white/30 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                                                         </div>
