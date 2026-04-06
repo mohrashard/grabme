@@ -1857,27 +1857,27 @@ export default function AdminPage() {
                                                 No matches found
                                             </div>
                                         ) : filteredLeads.map(l => (
-                                            <m.div key={l.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#18181B] border border-white/5 rounded-[2rem] p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 group hover:border-indigo-500/30 transition-all shadow-lg hover:shadow-indigo-500/5 text-left">
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-16 h-16 bg-white/5 rounded-[1.5rem] flex items-center justify-center border border-white/5 shadow-inner">
+                                            <m.div key={l.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#18181B] border border-white/5 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-6 group hover:border-indigo-500/30 transition-all shadow-lg hover:shadow-indigo-500/5 text-left">
+                                                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 w-full md:w-auto overflow-hidden">
+                                                    <div className="hidden sm:flex w-16 h-16 bg-white/5 rounded-[1.5rem] items-center justify-center border border-white/5 shadow-inner shrink-0">
                                                         <User className="w-8 h-8 text-white/20" />
                                                     </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight">{l.full_name}</h3>
-                                                        <div className="flex items-center gap-3 mt-1.5 overflow-x-auto no-scrollbar">
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-xl md:text-2xl font-black text-white group-hover:text-indigo-400 transition-colors uppercase tracking-tight truncate">{l.full_name}</h3>
+                                                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                                             <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
-                                                                <Phone className="w-3.5 h-3.5 text-white/40" />
+                                                                <Phone className="w-3.5 h-3.5 text-white/40 shrink-0" />
                                                                 <span className="text-[11px] font-black text-white/60">{l.phone}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
-                                                                <MapPin className="w-3.5 h-3.5 text-white/40" />
-                                                                <span className="text-[11px] font-black text-white/60">{l.area_name || l.district}</span>
+                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5 min-w-0">
+                                                                <MapPin className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                                                                <span className="text-[11px] font-black text-white/60 truncate">{l.area_name || l.district}</span>
                                                                 {(l as any).lat && (l as any).lng && (
                                                                     <a 
                                                                         href={`https://www.google.com/maps?q=${(l as any).lat},${(l as any).lng}`}
                                                                         target="_blank"
                                                                         rel="noopener noreferrer"
-                                                                        className="ml-1 p-1 hover:bg-white/10 rounded transition-all"
+                                                                        className="ml-1 p-1 hover:bg-white/10 rounded transition-all shrink-0"
                                                                     >
                                                                         <ExternalLink className="w-3 h-3 text-indigo-400" />
                                                                     </a>
@@ -1886,8 +1886,8 @@ export default function AdminPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-col items-end gap-2 self-end md:self-center shrink-0">
-                                                    <div className="flex items-center gap-2">
+                                                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 shrink-0 self-stretch md:self-center w-full md:w-auto">
+                                                    <div className="flex items-center gap-2 flex-wrap justify-end">
                                                         <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl">
                                                             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.1em]">Target: {l.service_needed || 'General Baas'}</span>
                                                         </div>
@@ -1941,49 +1941,49 @@ export default function AdminPage() {
                                                 <p className="text-white/10 uppercase tracking-[0.2em] font-black italic">No records found</p>
                                             </div>
                                         ) : filteredClicks.map(c => (
-                                            <m.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#18181B] border border-white/10 rounded-[2rem] p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden group hover:border-green-500/30 transition-all shadow-xl text-left">
+                                            <m.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#18181B] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-6 relative overflow-hidden group hover:border-green-500/30 transition-all shadow-xl text-left">
                                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]" />
                                                 
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-14 h-14 bg-green-500/10 rounded-2xl flex items-center justify-center border border-green-500/20 shadow-inner">
+                                                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 w-full md:w-auto overflow-hidden">
+                                                    <div className="hidden sm:flex w-14 h-14 bg-green-500/10 rounded-2xl items-center justify-center border border-green-500/20 shadow-inner shrink-0">
                                                         <Zap className="w-7 h-7 text-green-400 fill-green-400/20" />
                                                     </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-black text-white uppercase tracking-tight">{c.customer?.full_name || 'Anonymous User'}</h3>
-                                                        <div className="flex items-center gap-3 mt-1.5 overflow-x-auto no-scrollbar">
-                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
-                                                                <Phone className="w-3.5 h-3.5 text-white/40" />
-                                                                <span className="text-[11px] font-black text-white/60">{c.customer?.phone || 'No Number'}</span>
+                                                    <div className="min-w-0">
+                                                        <h3 className="text-lg font-black text-white uppercase tracking-tight truncate">{c.customer?.full_name || 'Anonymous User'}</h3>
+                                                        <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5 min-w-0">
+                                                                <Phone className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                                                                <span className="text-[11px] font-black text-white/60 truncate">{c.customer?.phone || 'No Number'}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Clicked On:</span>
+                                                            <div className="flex items-center gap-2 min-w-0 mt-1 sm:mt-0">
+                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest hidden sm:inline shrink-0">Clicked On:</span>
                                                                 <button 
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         window.open(`/worker/${c.worker_id}`, '_blank');
                                                                     }}
-                                                                    className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/5 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all group/w"
+                                                                    className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5 hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all group/w shrink-0 max-w-[160px] sm:max-w-none"
                                                                     title="View Worker Profile"
                                                                 >
-                                                                    <ExternalLink className="w-3 h-3 text-white/30 group-hover/w:text-indigo-400" />
-                                                                    <span className="text-[10px] font-black text-indigo-400 group-hover:underline">{c.worker?.full_name || 'Worker'}</span>
+                                                                    <ExternalLink className="w-3 h-3 text-white/30 group-hover/w:text-indigo-400 shrink-0" />
+                                                                    <span className="text-[10px] font-black text-indigo-400 group-hover:underline truncate">{c.worker?.full_name || 'Worker'}</span>
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="flex-1 flex flex-col md:flex-row items-start md:items-center justify-end gap-10">
-                                                    <div className="space-y-1.5">
-                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest text-right">Customer Origin</p>
-                                                        <div className="flex items-center justify-end gap-2 text-xs font-bold text-white/60">
-                                                            <span>{c.customer?.area_name || c.customer?.district || 'Unknown'}</span>
+                                                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 self-stretch md:self-center w-full md:w-auto shrink-0">
+                                                    <div className="flex flex-col md:flex-col items-start md:items-end gap-1.5 md:space-y-1.5 overflow-hidden">
+                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest text-left md:text-right hidden md:block">Customer Origin</p>
+                                                        <div className="flex items-center justify-start md:justify-end gap-2 text-[10px] md:text-xs font-bold text-white/60 truncate max-w-[120px] md:max-w-none">
+                                                            <span className="truncate">{c.customer?.area_name || c.customer?.district || 'Unknown'}</span>
                                                             {c.customer?.lat && c.customer?.lng && (
                                                                 <a 
                                                                     href={`https://www.google.com/maps?q=${c.customer.lat},${c.customer.lng}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="p-1 hover:bg-white/10 rounded transition-all"
+                                                                    className="p-1 hover:bg-white/10 rounded transition-all shrink-0"
                                                                 >
                                                                     <MapPin className="w-3.5 h-3.5 text-green-400" />
                                                                 </a>
@@ -1991,22 +1991,22 @@ export default function AdminPage() {
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-col items-end gap-2">
+                                                    <div className="flex flex-col items-end gap-2 shrink-0">
                                                         <div className="flex items-center gap-2">
-                                                            <div className="px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-center">
-                                                                <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">{c.worker?.trade_category || 'Service'}</span>
+                                                            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-center shrink-0">
+                                                                <span className="text-[8px] md:text-[10px] font-black text-green-400 uppercase tracking-widest">{c.worker?.trade_category || 'Service'}</span>
                                                             </div>
                                                             {confirmingDeleteId === c.id ? (
                                                                 <div className="flex items-center gap-1.5">
                                                                     <button
                                                                         onClick={() => deleteClick(c.id)}
-                                                                        className="px-3 py-2 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95"
+                                                                        className="px-2 py-1.5 md:px-3 md:py-2 rounded-xl bg-red-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shrink-0"
                                                                     >
                                                                         Confirm
                                                                     </button>
                                                                     <button
                                                                         onClick={() => setConfirmingDeleteId(null)}
-                                                                        className="px-3 py-2 rounded-xl bg-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
+                                                                        className="px-2 py-1.5 md:px-3 md:py-2 rounded-xl bg-white/10 text-white/60 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 shrink-0"
                                                                     >
                                                                         Cancel
                                                                     </button>
@@ -2014,14 +2014,14 @@ export default function AdminPage() {
                                                             ) : (
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(c.id); }}
-                                                                    className="p-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95"
+                                                                    className="p-1.5 md:p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95 shrink-0"
                                                                     title="Delete matrix entry"
                                                                 >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        <p className="text-[9px] font-black text-white/10 uppercase tracking-widest mt-1">
+                                                        <p className="text-[8px] md:text-[9px] font-black text-white/10 uppercase tracking-widest mt-1 text-right">
                                                             {new Date(c.clicked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(c.clicked_at).toLocaleDateString()}
                                                         </p>
                                                     </div>
