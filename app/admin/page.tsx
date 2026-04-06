@@ -1598,9 +1598,9 @@ export default function AdminPage() {
                                         { label: 'Top Trade', value: stats.mostClickedTrade, icon: Briefcase, color: 'text-indigo-400' },
                                         { label: 'Top District', value: stats.mostClickedDistrict, icon: MapPin, color: 'text-indigo-400' },
                                     ].map((k, i) => (
-                                        <div key={i} className="bg-[#18181B] border border-white/5 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl group-hover:scale-150 transition-transform rounded-full" />
-                                            <div className="relative z-10 flex flex-col items-start gap-4">
+                                        <div key={i} className="bg-[#18181B] border border-white/5 rounded-[2rem] p-6 lg:p-8 shadow-2xl relative overflow-hidden group">
+                                            <div className="hidden sm:block absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl group-hover:scale-150 transition-transform rounded-full will-change-transform" />
+                                            <div className="relative z-10 flex flex-col items-start gap-3 lg:gap-4">
                                                 <div className={`p-3 rounded-2xl bg-white/5 border border-white/10 ${k.color}`}>
                                                     <k.icon className="w-6 h-6" />
                                                 </div>
