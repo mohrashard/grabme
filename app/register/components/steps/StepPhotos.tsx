@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { m } from 'framer-motion'
 import { Camera, Upload, Check, UserCheck, FileText, Image as ImageIcon } from 'lucide-react'
 
@@ -8,6 +9,18 @@ interface StepPhotosProps {
     uploading: string | null;
     previews?: Record<string, string>;
 }
+
+const ImagePreview = ({ src, alt }: { src: string, alt: string }) => {
+    const [error, setError] = useState(false);
+    return error ? (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/30 p-2">
+            <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+            <span className="text-[8px] font-bold uppercase tracking-widest text-center truncate w-full">Uploaded</span>
+        </div>
+    ) : (
+        <img src={src} alt={alt} className="w-full h-full object-cover" onError={() => setError(true)} />
+    );
+};
 
 export default function StepPhotos({ formData, handleFileUpload, uploading, previews = {} }: StepPhotosProps) {
     const categories = [
@@ -34,7 +47,7 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                 <div className="flex flex-col items-center justify-center gap-2">
                                     {previews[cat.id] ? (
                                         <div className="w-16 h-10 rounded-lg overflow-hidden border border-white/10">
-                                            <img src={previews[cat.id]} className="w-full h-full object-cover" alt="Preview" />
+                                            <ImagePreview src={previews[cat.id]} alt="Preview" />
                                         </div>
                                     ) : (
                                         <Check className="w-5 h-5 text-indigo-400" />
@@ -58,10 +71,17 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                 <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
                     {formData.pastWorkPhotos.map((url: string, idx: number) => {
                         // Use the path as a key to look up the local preview
-                        const preview = previews[`pastWorkPhotos_${url}`] || url;
+                        // If there isn't a preview, do not fall back to the bucket URL during registration
+                        const preview = previews[`pastWorkPhotos_${url}`];
                         return (
                             <div key={idx} className="aspect-square rounded-xl border border-white/10 overflow-hidden bg-white/5 shadow-xl relative group">
-                                <img src={preview} alt={`Work ${idx}`} className="w-full h-full object-cover" />
+                                {preview ? (
+                                    <ImagePreview src={preview} alt={`Work ${idx}`} />
+                                ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/30">
+                                        <Check className="w-6 h-6 mb-1 text-indigo-400" />
+                                    </div>
+                                )}
                             </div>
                         );
                     })}

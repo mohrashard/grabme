@@ -211,7 +211,11 @@ export function useRegistrationForm() {
                         });
                     }
                     
-                    const previewUrl = URL.createObjectURL(processedFile);
+                    const previewUrl = await new Promise<string>((resolve) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result as string);
+                        reader.readAsDataURL(processedFile);
+                    });
                     setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
 
                     setPendingFiles(prev => {
