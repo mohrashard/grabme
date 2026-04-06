@@ -1887,9 +1887,9 @@ export default function AdminPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 shrink-0 self-stretch md:self-center w-full md:w-auto">
-                                                    <div className="flex items-center gap-2 flex-wrap justify-end">
-                                                        <div className="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-xl">
-                                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.1em]">Target: {l.service_needed || 'General Baas'}</span>
+                                                    <div className="flex items-center gap-2 flex-wrap justify-end min-w-0">
+                                                        <div className="bg-indigo-500/10 border border-indigo-500/20 px-3 md:px-4 py-2 rounded-xl min-w-0 max-w-[150px] sm:max-w-none shrink-0">
+                                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.1em] truncate block">Target: {l.service_needed || 'General Baas'}</span>
                                                         </div>
 
                                                         {/* Notify Button */}
@@ -1991,10 +1991,10 @@ export default function AdminPage() {
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-col items-end gap-2 shrink-0">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-center shrink-0">
-                                                                <span className="text-[8px] md:text-[10px] font-black text-green-400 uppercase tracking-widest">{c.worker?.trade_category || 'Service'}</span>
+                                                    <div className="flex flex-col items-end gap-2 shrink-0 min-w-0">
+                                                        <div className="flex items-center gap-2 flex-wrap justify-end min-w-0">
+                                                            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-center shrink-0 min-w-0 max-w-[120px] sm:max-w-none">
+                                                                <span className="text-[8px] md:text-[10px] font-black text-green-400 uppercase tracking-widest truncate block">{c.worker?.trade_category || 'Service'}</span>
                                                             </div>
                                                             {confirmingDeleteId === c.id ? (
                                                                 <div className="flex items-center gap-1.5">
