@@ -227,7 +227,7 @@ export default function Home() {
             <a href="#services" className="hover:text-white transition-colors duration-300">Services</a>
             <a href="#how-it-works" className="hover:text-white transition-colors duration-300">How It Works</a>
             <a href="#about" className="hover:text-white transition-colors duration-300">About Us</a>
-            <Link href="/login" className="hover:text-white transition-colors duration-300">Login</Link>
+            <Link href="/login" className="hover:text-white transition-colors duration-300">Partner Login</Link>
             <Link href="/register" className="hover:text-white transition-colors duration-300">Join as Worker</Link>
           </div>
 
@@ -258,7 +258,7 @@ export default function Home() {
             <a href="#services" onClick={() => setMobileOpen(false)} className="hover:text-white transition-colors py-2 border-b border-white/5">Services</a>
             <a href="#how-it-works" onClick={() => setMobileOpen(false)} className="hover:text-white transition-colors py-2 border-b border-white/5">How It Works</a>
             <a href="#about" onClick={() => setMobileOpen(false)} className="hover:text-white transition-colors py-2 border-b border-white/5">About Us</a>
-            <Link href="/login" onClick={() => setMobileOpen(false)} className="hover:text-white transition-colors py-2 border-b border-white/5">Login</Link>
+            <Link href="/login" onClick={() => setMobileOpen(false)} className="hover:text-white transition-colors py-2 border-b border-white/5">Partner Login</Link>
             <Link href="/register" onClick={() => setMobileOpen(false)} className="hover:text-white transition-colors py-2 border-b border-white/5">Join as Worker</Link>
             <Link href="/browse" onClick={() => setMobileOpen(false)} className="mt-2 text-center text-white font-bold py-3 rounded-xl" style={{ background: '#4F46E5' }}>Find a Worker</Link>
           </m.div>
@@ -270,7 +270,7 @@ export default function Home() {
             ════════════════════════════════════════ */}
       <section
         ref={heroRef}
-        className="relative min-h-screen flex items-center overflow-hidden"
+        className="relative min-h-[90svh] flex items-center overflow-hidden"
         style={{ background: 'linear-gradient(135deg, #090A0F 0%, #0f0f1a 40%, #1a1025 70%, #090A0F 100%)' }}
       >
         {/* Background glow blobs */}
@@ -314,7 +314,7 @@ export default function Home() {
               {/* Headline */}
               <m.h1
                 variants={fadeUp}
-                className="text-5xl md:text-7xl lg:text-[5.5rem] font-black text-white"
+                className="text-[2.75rem] leading-[1.1] md:text-7xl lg:text-[5.5rem] font-black text-white"
               >
                 Find Verified
                 <br />
@@ -362,13 +362,13 @@ export default function Home() {
             </m.div>
 
             {/* ── Right: Orbit Visual ── */}
-            <m.div
-              initial={{ opacity: 0, scale: 0.85 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-              className="flex-1 relative flex items-center justify-center"
-              style={{ minHeight: 480 }}
-            >
+              <m.div
+                initial={{ opacity: 0, scale: 0.85 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+                className="flex-1 relative flex items-center justify-center scale-[0.65] sm:scale-75 md:scale-90 lg:scale-100"
+                style={{ minHeight: 380 }}
+              >
               {/* Outer orbit ring */}
               <OrbitRing radius={200} duration={28} services={orbitServices.slice(0, 3)} />
               {/* Inner orbit ring */}
@@ -385,14 +385,14 @@ export default function Home() {
 
               {/* Floating label chips */}
               <m.div
-                className="absolute bottom-8 left-4 bg-indigo-600 text-white text-sm font-semibold px-4 py-2 rounded-full shadow-xl"
+                className="absolute bottom-4 left-0 md:bottom-8 md:left-4 bg-indigo-600 text-white text-[10px] md:text-sm font-semibold px-4 py-2 rounded-full shadow-xl"
                 animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               >
                 ✓ NIC Checked
               </m.div>
               <m.div
-                className="absolute top-12 right-0 text-sm font-semibold px-4 py-2 rounded-full shadow-xl flex items-center gap-2"
+                className="absolute top-4 right-0 md:top-12 md:right-0 text-[10px] md:text-sm font-semibold px-4 py-2 rounded-full shadow-xl flex items-center gap-2"
                 style={{ background: '#1E293B', color: '#fff' }}
                 animate={{ y: [0, 8, 0] }}
                 transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}

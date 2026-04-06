@@ -26,6 +26,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://grabme.lk'),
   title: "Grab Me | Find Verified Professionals in Sri Lanka",
   description: "Find NIC-verified electricians, plumbers, and handymen in Sri Lanka. Connect directly on WhatsApp with zero commission. Fast. Safe. Locally Managed.",
+  icons: {
+    icon: "/grabme.png",
+    apple: "/grabme.png",
+  },
   manifest: "/manifest.json",
   openGraph: {
     title: "Grab Me | Sri Lanka's Verified Service Directory",
