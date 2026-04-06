@@ -19,8 +19,16 @@ export default function WhatsAppButton({ workerId, workerTrade }: WhatsAppButton
     const triggerWhatsApp = useCallback(async (customerId?: string) => {
         setIsRedirecting(true);
         try {
-            // 1. Log in background (don't await to keep UI fast)
-            logWhatsAppClickAction(workerId, customerId).catch(() => null);
+            // 1. Log engagement (Await for returning users to verify their ID is still valid)
+            const logResult = await logWhatsAppClickAction(workerId, customerId).catch(() => ({ success: false, error: 'TIMEOUT' }));
+
+            if (logResult.error === 'STALE_CUSTOMER_ID') {
+                // Orphaned ID found! Reset and show form
+                localStorage.removeItem('grabme_customer_profile');
+                setIsModalOpen(true);
+                setIsRedirecting(false);
+                return;
+            }
 
             // 2. Securely fetch URL from server
             const { url, error } = await getWorkerContactAction(workerId);

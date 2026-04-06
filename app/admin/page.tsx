@@ -1869,27 +1869,33 @@ export default function AdminPage() {
                                                                 <Phone className="w-3.5 h-3.5 text-white/40 shrink-0" />
                                                                 <span className="text-[11px] font-black text-white/60">{l.phone}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5 min-w-0">
-                                                                <MapPin className="w-3.5 h-3.5 text-white/40 shrink-0" />
-                                                                <span className="text-[11px] font-black text-white/60 truncate">{l.area_name || l.district}</span>
-                                                                {(l as any).lat && (l as any).lng && (
-                                                                    <a 
-                                                                        href={`https://www.google.com/maps?q=${(l as any).lat},${(l as any).lng}`}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="ml-1 p-1 hover:bg-white/10 rounded transition-all shrink-0"
-                                                                    >
-                                                                        <ExternalLink className="w-3 h-3 text-indigo-400" />
-                                                                    </a>
-                                                                )}
-                                                            </div>
+                                                            {l.lat && l.lng ? (
+                                                                <a 
+                                                                    href={`https://www.google.com/maps?q=${l.lat},${l.lng}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/10 hover:bg-indigo-500/20 rounded-lg border border-indigo-500/20 transition-all group/map"
+                                                                    title="View on Google Maps"
+                                                                >
+                                                                    <MapPin className="w-3.5 h-3.5 text-indigo-400 shrink-0 group-hover/map:scale-110 transition-transform" />
+                                                                    <span className="text-[11px] font-black text-white/60 truncate group-hover/map:text-indigo-300 transition-colors">{l.area_name || l.district}</span>
+                                                                </a>
+                                                            ) : (
+                                                                <div className="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-lg border border-white/5 min-w-0">
+                                                                    <MapPin className="w-3.5 h-3.5 text-white/40 shrink-0" />
+                                                                    <span className="text-[11px] font-black text-white/60 truncate">{l.area_name || l.district}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 shrink-0 self-stretch md:self-center w-full md:w-auto">
-                                                    <div className="flex items-center gap-2 flex-wrap justify-end min-w-0">
-                                                        <div className="bg-indigo-500/10 border border-indigo-500/20 px-3 md:px-4 py-2 rounded-xl min-w-0 max-w-[150px] sm:max-w-none shrink-0">
-                                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.1em] truncate block">Target: {l.service_needed || 'General Baas'}</span>
+                                                <div className="flex flex-col md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 shrink-0 self-stretch md:self-center w-full md:w-auto">
+                                                    <div className="flex items-center gap-2 flex-wrap justify-end w-full md:w-auto">
+                                                        <div className="bg-indigo-500/10 border border-indigo-500/20 px-3 md:px-4 py-2 rounded-xl min-w-0 shrink-0">
+                                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.1em] block">
+                                                                <span className="opacity-50 mr-1">Target:</span>
+                                                                {l.service_needed || 'General Baas'}
+                                                            </span>
                                                         </div>
 
                                                         {/* Notify Button */}
@@ -1897,23 +1903,23 @@ export default function AdminPage() {
                                                             href={`https://wa.me/${l.phone.replace(/^0/, '94')}?text=${encodeURIComponent(`Hi ${l.full_name}, we added your ${l.service_needed || 'requested'} service on Grab Me! Please visit here to hire the right worker: ${window.location.protocol}//${window.location.host}/browse?service=${encodeURIComponent(l.service_needed || '')}`)}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="p-2.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 hover:text-green-300 hover:bg-green-500/20 transition-all hover:scale-110 active:scale-95 flex items-center justify-center shadow-lg group/notify"
+                                                            className="p-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 hover:text-green-300 hover:bg-green-500/20 transition-all hover:scale-110 active:scale-95 flex items-center justify-center shadow-lg group/notify shrink-0"
                                                             title="Notify Customer on WhatsApp"
                                                         >
                                                             <Bell className="w-4 h-4 group-hover/notify:animate-bounce" />
                                                         </a>
 
                                                         {confirmingDeleteId === l.id ? (
-                                                            <div className="flex items-center gap-1.5">
+                                                            <div className="flex items-center gap-1.5 shrink-0">
                                                                 <button
                                                                     onClick={() => deleteCustomer(l.id)}
-                                                                    className="px-3 py-2 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95"
+                                                                    className="px-3 py-2.5 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95"
                                                                 >
                                                                     Confirm
                                                                 </button>
                                                                 <button
                                                                     onClick={() => setConfirmingDeleteId(null)}
-                                                                    className="px-3 py-2 rounded-xl bg-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
+                                                                    className="px-3 py-2.5 rounded-xl bg-white/10 text-white/60 text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95"
                                                                 >
                                                                     Cancel
                                                                 </button>
@@ -1921,14 +1927,14 @@ export default function AdminPage() {
                                                         ) : (
                                                             <button
                                                                 onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(l.id); }}
-                                                                className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95"
+                                                                className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95 shrink-0"
                                                                 title="Delete Lead"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
                                                         )}
                                                     </div>
-                                                    <p className="text-[9px] font-black text-white/10 uppercase tracking-widest">{new Date(l.registered_at).toLocaleDateString()}</p>
+                                                    <p className="text-[9px] font-black text-white/10 uppercase tracking-widest self-end">{new Date(l.registered_at).toLocaleDateString()}</p>
                                                 </div>
                                             </m.div>
                                         ))}
@@ -1973,40 +1979,44 @@ export default function AdminPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 self-stretch md:self-center w-full md:w-auto shrink-0">
-                                                    <div className="flex flex-col md:flex-col items-start md:items-end gap-1.5 md:space-y-1.5 overflow-hidden">
-                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest text-left md:text-right hidden md:block">Customer Origin</p>
-                                                        <div className="flex items-center justify-start md:justify-end gap-2 text-[10px] md:text-xs font-bold text-white/60 truncate max-w-[120px] md:max-w-none">
-                                                            <span className="truncate">{c.customer?.area_name || c.customer?.district || 'Unknown'}</span>
-                                                            {c.customer?.lat && c.customer?.lng && (
+                                                <div className="flex flex-col md:flex-col items-center md:items-end justify-between md:justify-end gap-3 mt-4 md:mt-0 pt-4 md:pt-0 border-t border-white/5 md:border-t-0 self-stretch md:self-center w-full md:w-auto shrink-0">
+                                                    <div className="flex flex-col items-start md:items-end gap-1.5 overflow-hidden w-full md:w-auto">
+                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest hidden md:block">Customer Origin</p>
+                                                        <div className="flex items-center justify-start md:justify-end gap-2 text-[10px] md:text-xs font-bold text-white/60 truncate w-full md:w-auto">
+                                                            {c.customer?.lat && c.customer?.lng ? (
                                                                 <a 
                                                                     href={`https://www.google.com/maps?q=${c.customer.lat},${c.customer.lng}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="p-1 hover:bg-white/10 rounded transition-all shrink-0"
+                                                                    className="flex items-center gap-2 px-2 py-1 bg-green-500/10 hover:bg-green-500/20 rounded-md border border-green-500/20 transition-all group/map shrink-0 min-w-0"
+                                                                    title="Open GPS Location"
                                                                 >
-                                                                    <MapPin className="w-3.5 h-3.5 text-green-400" />
+                                                                    <span className="truncate group-hover/map:text-green-300 transition-colors">{c.customer?.area_name || c.customer?.district || 'Unknown'}</span>
+                                                                    <MapPin className="w-3.5 h-3.5 text-green-400 shrink-0 group-hover/map:scale-110 transition-transform" />
+                                                                    <span className="text-[8px] font-black text-green-400 uppercase hidden sm:inline">GPS</span>
                                                                 </a>
+                                                            ) : (
+                                                                <span className="truncate flex-1 md:flex-none">{c.customer?.area_name || c.customer?.district || 'Unknown'}</span>
                                                             )}
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex flex-col items-end gap-2 shrink-0 min-w-0">
-                                                        <div className="flex items-center gap-2 flex-wrap justify-end min-w-0">
-                                                            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-center shrink-0 min-w-0 max-w-[120px] sm:max-w-none">
-                                                                <span className="text-[8px] md:text-[10px] font-black text-green-400 uppercase tracking-widest truncate block">{c.worker?.trade_category || 'Service'}</span>
+                                                    <div className="flex flex-col items-end gap-2 shrink-0 w-full md:w-auto">
+                                                        <div className="flex items-center gap-2 flex-wrap justify-end w-full md:w-auto">
+                                                            <div className="px-3 py-1.5 md:px-4 md:py-2 bg-green-500/10 border border-green-500/20 rounded-xl text-center shrink-0 min-w-0">
+                                                                <span className="text-[9px] md:text-[10px] font-black text-green-400 uppercase tracking-widest block">{c.worker?.trade_category || 'Service'}</span>
                                                             </div>
                                                             {confirmingDeleteId === c.id ? (
-                                                                <div className="flex items-center gap-1.5">
+                                                                <div className="flex items-center gap-1.5 shrink-0">
                                                                     <button
                                                                         onClick={() => deleteClick(c.id)}
-                                                                        className="px-2 py-1.5 md:px-3 md:py-2 rounded-xl bg-red-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shrink-0"
+                                                                        className="px-2.5 py-1.5 md:px-3 md:py-2 rounded-xl bg-red-500 text-white text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-red-600 transition-all active:scale-95 shrink-0"
                                                                     >
                                                                         Confirm
                                                                     </button>
                                                                     <button
                                                                         onClick={() => setConfirmingDeleteId(null)}
-                                                                        className="px-2 py-1.5 md:px-3 md:py-2 rounded-xl bg-white/10 text-white/60 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 shrink-0"
+                                                                        className="px-2.5 py-1.5 md:px-3 md:py-2 rounded-xl bg-white/10 text-white/60 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95 shrink-0"
                                                                     >
                                                                         Cancel
                                                                     </button>
@@ -2014,14 +2024,14 @@ export default function AdminPage() {
                                                             ) : (
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); setConfirmingDeleteId(c.id); }}
-                                                                    className="p-1.5 md:p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95 shrink-0"
+                                                                    className="p-2 md:p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:text-red-300 hover:bg-red-500/20 transition-all hover:scale-110 active:scale-95 shrink-0"
                                                                     title="Delete matrix entry"
                                                                 >
-                                                                    <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                                                    <Trash2 className="w-4 h-4 md:w-4 md:h-4" />
                                                                 </button>
                                                             )}
                                                         </div>
-                                                        <p className="text-[8px] md:text-[9px] font-black text-white/10 uppercase tracking-widest mt-1 text-right">
+                                                        <p className="text-[8px] md:text-[9px] font-black text-white/10 uppercase tracking-widest mt-1 text-right w-full">
                                                             {new Date(c.clicked_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · {new Date(c.clicked_at).toLocaleDateString()}
                                                         </p>
                                                     </div>

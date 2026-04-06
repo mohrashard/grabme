@@ -15,7 +15,13 @@ export async function logWhatsAppClickAction(workerId: string, customerId?: stri
                 customer_id: customerId 
             }]);
 
-        if (error) throw error;
+        if (error) {
+            // Postgres error code for foreign key violation
+            if (error.code === '23503') {
+                return { success: false, error: 'STALE_CUSTOMER_ID' };
+            }
+            throw error;
+        }
         return { success: true };
     } catch (err: any) {
         console.error('[logWhatsAppClickAction] error:', err);
