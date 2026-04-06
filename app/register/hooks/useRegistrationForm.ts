@@ -180,8 +180,17 @@ export function useRegistrationForm() {
                     let processedFile: File | Blob = file;
                     
                     // Cloud-sync placeholder / corrupted file check
+                    // Ghost files from Android/Google Photos have a valid size metadata but are unreadable
                     if (!file || file.size === 0) {
-                        toast.error(`"${file?.name || 'File'}" is empty or hasn't fully downloaded from iCloud/Google Photos. Please select a different image or use the "Browse" folder.`);
+                        toast.error(`"${file?.name || 'File'}" is empty or hasn't fully downloaded. Tap "Browse" to find it.`);
+                        continue;
+                    }
+
+                    try {
+                        // Quick check to see if the file bytes are actually physically present/readable on device
+                        await file.slice(0, 1).arrayBuffer();
+                    } catch (readError) {
+                        toast.error(`"${file.name}" is a cloud-only file and hasn't downloaded to your phone. Tap "Browse" at the top to select fully downloaded photos.`);
                         continue;
                     }
                     
@@ -217,11 +226,7 @@ export function useRegistrationForm() {
                         });
                     }
                     
-                    const previewUrl = await new Promise<string>((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result as string);
-                        reader.readAsDataURL(processedFile);
-                    });
+                    const previewUrl = URL.createObjectURL(processedFile);
                     setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
 
                     setPendingFiles(prev => {
