@@ -141,6 +141,7 @@ export async function fetchAdminDataAction() {
                 id, full_name, phone, email, nic_number,
                 trade_category, account_status, profile_photo_url,
                 nic_front_url, nic_back_url, selfie_url,
+                certificate_url, past_work_photos,
                 home_district, specific_areas, districts_covered,
                 short_bio, is_featured, is_identity_verified,
                 is_reference_checked, created_at, sub_skills,

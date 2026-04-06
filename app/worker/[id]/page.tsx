@@ -4,7 +4,9 @@ import Image from 'next/image'
 import { supabaseAdmin } from '../../lib/supabaseServer'
 import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
+import { cookies } from 'next/headers'
 import WhatsAppButton from './components/WhatsAppButton'
+import PortfolioGallery from './components/PortfolioGallery'
 
 interface WorkerPageProps {
     params: Promise<{ id: string }>;
@@ -16,11 +18,19 @@ interface WorkerPageProps {
 export async function generateMetadata({ params }: WorkerPageProps): Promise<Metadata> {
     try {
         const { id } = await params;
-        const { data: worker } = await supabaseAdmin
+        const cookieStore = await cookies();
+        const isAdmin = !!cookieStore.get('grabme_admin_token')?.value;
+
+        let query = supabaseAdmin
             .from('workers')
-            .select('full_name, trade_category, home_district, profile_photo_url')
-            .eq('id', id)
-            .single();
+            .select('full_name, trade_category, home_district, profile_photo_url, account_status')
+            .eq('id', id);
+        
+        if (!isAdmin) {
+            query = query.eq('account_status', 'active');
+        }
+
+        const { data: worker } = await query.single();
 
         if (!worker) return { title: 'Worker Profile | Grab Me' };
 
@@ -60,10 +70,13 @@ export async function generateMetadata({ params }: WorkerPageProps): Promise<Met
  */
 export default async function WorkerProfilePage({ params }: WorkerPageProps) {
     const { id } = await params;
+    const cookieStore = await cookies();
+    const isAdmin = !!cookieStore.get('grabme_admin_token')?.value;
+
     // SECURITY: Use admin client to bypass RLS (needed to fetch by ID + status filter),
     // but apply the approved public whitelist — NEVER include phone, nic_number, password,
     // email, nic_front_url, nic_back_url, selfie_url, reference_phone, emergency_contact, address.
-    const { data: worker, error } = await supabaseAdmin
+    let query = supabaseAdmin
         .from('workers')
         .select(`
             id,
@@ -84,9 +97,14 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             is_featured,
             account_status
         `)
-        .eq('id', id)
-        .eq('account_status', 'active')
-        .single();
+        .eq('id', id);
+
+    // If not admin, restrict to active profiles only
+    if (!isAdmin) {
+        query = query.eq('account_status', 'active');
+    }
+
+    const { data: worker, error } = await query.single();
 
     if (error || !worker) {
         notFound();
@@ -97,12 +115,19 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             {/* Global Design System Styles */}
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap'); * { font-family: 'Outfit', sans-serif; }`}</style>
 
-            {/* Back Button */}
-            <div className="max-w-2xl mx-auto px-6 pt-12 pb-6">
+            {/* Back Button and Staff Preview */}
+            <div className="max-w-2xl mx-auto px-6 pt-12 pb-6 flex items-center justify-between">
                 <Link href="/browse" className="inline-flex items-center gap-2 text-white/40 hover:text-white transition-all group">
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     <span className="text-xs font-bold uppercase tracking-widest">Back to Directory</span>
                 </Link>
+
+                {worker.account_status !== 'active' && (
+                    <div className="flex items-center gap-2 px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-full">
+                        <div className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Staff Preview</span>
+                    </div>
+                )}
             </div>
 
             <main className="max-w-2xl mx-auto px-6 pb-24">
@@ -173,6 +198,13 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             )}
                         </div>
                     </div>
+
+                    {/* PORTFOLIO & CERTIFICATES */}
+                    <PortfolioGallery 
+                        photos={worker.past_work_photos || []}
+                        certificateUrl={worker.certificate_url}
+                        isVerified={worker.is_certificate_verified}
+                    />
 
                     {/* Verification Badges */}
                     <div className="mt-12 flex flex-wrap gap-4 pt-8 border-t border-white/5">

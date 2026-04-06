@@ -40,7 +40,10 @@ type Worker = {
     account_status: string;
     profile_photo_url: string;
     nic_front_url: string;
+    nic_back_url: string;
     selfie_url: string;
+    certificate_url: string;
+    past_work_photos: string[];
     home_district: string;
     short_bio: string;
     is_featured: boolean;
@@ -49,6 +52,47 @@ type Worker = {
     created_at: string;
     sub_skills: string[];
 };
+
+const ImageModal = ({ isOpen, onClose, imageUrl, label }: { isOpen: boolean, onClose: () => void, imageUrl: string, label: string }) => (
+    <AnimatePresence>
+        {isOpen && (
+            <m.div 
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
+                onClick={onClose}
+            >
+                <m.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    className="relative max-w-5xl w-full max-h-[90vh] flex flex-col items-center gap-4"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="absolute top-0 right-0 -mt-12 group">
+                        <button 
+                            onClick={onClose}
+                            className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all border border-white/10 group-hover:rotate-90"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    <div className="w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl bg-[#18181B] flex items-center justify-center">
+                        <img 
+                            src={imageUrl} 
+                            alt={label} 
+                            className="max-w-full max-h-[80vh] object-contain"
+                        />
+                    </div>
+                    <div className="bg-black/40 backdrop-blur-md px-6 py-2 rounded-full border border-white/10">
+                        <p className="text-sm font-black text-white/80 uppercase tracking-[0.3em]">{label}</p>
+                    </div>
+                </m.div>
+            </m.div>
+        )}
+    </AnimatePresence>
+);
 
 type Lead = {
     id: string;
@@ -86,6 +130,7 @@ export default function AdminPage() {
     const [search, setSearch] = useState('');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [selectedWorker, setSelectedWorker] = useState<Worker | null>(null);
+    const [selectedImage, setSelectedImage] = useState<{ url: string; label: string; isLocked: boolean } | null>(null);
     const [auditNote, setAuditNote] = useState('');
     const [auditOutcome, setAuditOutcome] = useState('pass');
     const [stats, setStats] = useState({ 
@@ -167,6 +212,35 @@ export default function AdminPage() {
         } else {
             console.error('Failed to sign URL:', res.error);
         }
+    };
+
+    const openLightbox = async (path: string, label: string) => {
+        const isLocked = path.includes('worker-documents') || !path.startsWith('http');
+        
+        if (isLocked && !signedUrls[path]) {
+            const signed = await getSignedUrl(path);
+            if (signed) {
+                setSelectedImage({ url: signed, label, isLocked: true });
+            }
+        } else {
+            setSelectedImage({ 
+                url: signedUrls[path] || path, 
+                label, 
+                isLocked 
+            });
+        }
+    };
+
+    const getValidPhotos = (input: any): string[] => {
+        if (!input) return [];
+        if (Array.isArray(input)) return input.filter(p => !!p && typeof p === 'string');
+        if (typeof input === 'string') {
+            if (input.startsWith('{') && input.endsWith('}')) {
+                return input.slice(1, -1).split(',').map(s => s.trim().replace(/^"(.*)"$/, '$1')).filter(p => !!p);
+            }
+            return input.split(',').map(s => s.trim()).filter(p => !!p);
+        }
+        return [];
     };
 
     const updateStatus = async (id: string, status: string, worker?: Worker) => {
@@ -321,6 +395,12 @@ export default function AdminPage() {
 
     return (
         <div className="min-h-screen bg-[#090A0F] text-white font-sans flex">
+            <ImageModal 
+                isOpen={!!selectedImage} 
+                onClose={() => setSelectedImage(null)} 
+                imageUrl={selectedImage?.url || ''} 
+                label={selectedImage?.label || ''} 
+            />
             <Toaster position="top-right" theme="dark" richColors closeButton />
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap'); * { font-family: 'Inter', sans-serif; } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }`}</style>
 
@@ -459,70 +539,45 @@ export default function AdminPage() {
                                         className="bg-[#18181B] border border-white/5 rounded-2xl p-6 flex flex-col lg:flex-row gap-6"
                                     >
                                         {/* Photo comparison */}
-                                        <div className="flex gap-4 flex-shrink-0">
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-white/20">Profile</p>
-                                                {!w.profile_photo_url || imageErrors[w.profile_photo_url]
-                                                    ? (
-                                                        <div className="w-24 h-24 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center">
-                                                            <User className="w-8 h-8 text-white/20" />
-                                                        </div>
-                                                      )
-                                                    : (
-                                                        <div className="relative group overflow-hidden rounded-xl border border-white/10">
-                                                            <img 
-                                                                src={w.profile_photo_url} 
-                                                                alt="profile" 
-                                                                onError={() => setImageErrors(prev => ({ ...prev, [w.profile_photo_url]: true }))}
-                                                                className="w-24 h-24 object-cover" 
-                                                            />
-                                                        </div>
-                                                    )
-                                                }
-                                            </div>
-                                            <div className="space-y-1">
-                                                <p className="text-[8px] font-black uppercase tracking-widest text-white/20">NIC Front</p>
-                                                {w.nic_front_url
-                                                    ? (
-                                                        <div className="relative group">
-                                                            <img 
-                                                                src={signedUrls[w.nic_front_url] || w.nic_front_url} 
-                                                                alt="nic" 
-                                                                className="w-24 h-24 rounded-xl object-cover border border-white/10" 
-                                                            />
-                                                            {!signedUrls[w.nic_front_url] && (
-                                                                <button 
-                                                                    onClick={() => getSignedUrl(w.nic_front_url)}
-                                                                    className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
-                                                                >
-                                                                    <Lock className="w-4 h-4 text-white" />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )
-                                                    : <div className="w-24 h-24 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/10 text-xs">No NIC</div>
-                                                }
-                                            </div>
-                                            {w.selfie_url && (
-                                                <div className="space-y-1">
-                                                    <p className="text-[8px] font-black uppercase tracking-widest text-white/20">Selfie</p>
-                                                    <div className="relative group">
-                                                        <img 
-                                                            src={signedUrls[w.selfie_url] || w.selfie_url} 
-                                                            alt="selfie" 
-                                                            className="w-24 h-24 rounded-xl object-cover border border-white/10" 
-                                                        />
-                                                        {!signedUrls[w.selfie_url] && (
-                                                            <button 
-                                                                onClick={() => getSignedUrl(w.selfie_url)}
-                                                                className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl"
-                                                            >
-                                                                <Lock className="w-4 h-4 text-white" />
-                                                            </button>
+                                        <div className="flex flex-wrap gap-4 flex-shrink-0 w-full lg:w-[220px]">
+                                            {[
+                                                { label: 'Profile', url: w.profile_photo_url, bucket: 'avatars' },
+                                                { label: 'NIC Front', url: w.nic_front_url, bucket: 'worker-documents' },
+                                                { label: 'NIC Back', url: w.nic_back_url, bucket: 'worker-documents' },
+                                                { label: 'Selfie', url: w.selfie_url, bucket: 'worker-documents' },
+                                                { label: 'Cert', url: w.certificate_url, bucket: 'worker-documents' }
+                                            ].map((img, i) => (
+                                                <div key={i} className="space-y-1">
+                                                    <p className="text-[8px] font-black uppercase tracking-widest text-white/20">{img.label}</p>
+                                                    <div 
+                                                        className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 hover:border-indigo-500/50 transition-all"
+                                                        onClick={() => openLightbox(img.url, img.label)}
+                                                    >
+                                                        {!img.url || imageErrors[img.url] ? (
+                                                            <div className="w-20 h-20 bg-white/5 flex items-center justify-center">
+                                                                {img.label === 'Profile' ? <User className="w-6 h-6 text-white/10" /> : <Lock className="w-6 h-6 text-white/5" />}
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <img 
+                                                                    src={signedUrls[img.url] || img.url} 
+                                                                    alt={img.label}
+                                                                    onError={() => setImageErrors(prev => ({ ...prev, [img.url]: true }))}
+                                                                    className="w-20 h-20 object-cover" 
+                                                                />
+                                                                <div className="absolute inset-0 bg-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                    <Eye className="w-5 h-5 text-white" />
+                                                                </div>
+                                                                {img.bucket === 'worker-documents' && !signedUrls[img.url] && (
+                                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:hidden transition-all">
+                                                                        <Lock className="w-4 h-4 text-white/40" />
+                                                                    </div>
+                                                                )}
+                                                            </>
                                                         )}
                                                     </div>
                                                 </div>
-                                            )}
+                                            ))}
                                         </div>
 
                                         {/* Info */}
@@ -534,6 +589,31 @@ export default function AdminPage() {
                                                 </div>
                                                 <StatusBadge status={w.account_status} />
                                             </div>
+
+                                            {/* PAST WORK PHOTOS GRID */}
+                                            {getValidPhotos(w.past_work_photos).length > 0 && (
+                                                <div className="space-y-2">
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400/60">Portfolio / Past Work</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {getValidPhotos(w.past_work_photos).map((p, idx) => (
+                                                            <div 
+                                                                key={idx}
+                                                                className="relative group cursor-pointer w-20 h-20 rounded-xl overflow-hidden border border-white/5 hover:border-indigo-500/50 transition-all bg-white/5 shrink-0"
+                                                                onClick={() => openLightbox(p, `Work ${idx+1}`)}
+                                                            >
+                                                                <img 
+                                                                    src={p} 
+                                                                    alt={`work-${idx}`} 
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                                <div className="absolute inset-0 bg-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                    <Eye className="w-4 h-4 text-white" />
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                             
                                             {/* VERIFICATION CHECKLIST UI */}
                                             <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4 space-y-3">
@@ -606,6 +686,15 @@ export default function AdminPage() {
                                             >
                                                 <X className="w-4 h-4" /> Reject
                                             </button>
+
+                                            <a
+                                                href={`/worker/${w.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="mt-2 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-500/10 border border-indigo-500/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/20 transition-all"
+                                            >
+                                                <Eye className="w-4 h-4" /> Preview Profile
+                                            </a>
                                         </div>
                                     </m.div>
                                 ))}
@@ -622,21 +711,31 @@ export default function AdminPage() {
                                         {/* Avatar & Info Row (Mobile First) */}
                                         <div className="flex items-center gap-4 w-full lg:w-auto flex-1">
                                             {/* Avatar */}
-                                            {!w.profile_photo_url || imageErrors[w.profile_photo_url]
-                                                ? (
-                                                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 flex-shrink-0 font-black">
-                                                        {w.full_name?.[0]}
-                                                    </div>
-                                                  )
-                                                : (
-                                                    <img 
-                                                        src={signedUrls[w.profile_photo_url] || w.profile_photo_url} 
-                                                        alt="Avatar"
-                                                        onError={() => setImageErrors(prev => ({ ...prev, [w.profile_photo_url]: true }))}
-                                                        className="w-12 h-12 rounded-xl object-cover border border-white/10 flex-shrink-0" 
-                                                    />
-                                                  )
-                                            }
+                                            <div 
+                                                className="cursor-pointer relative group flex-shrink-0"
+                                                onClick={() => openLightbox(w.profile_photo_url, `${w.full_name} Profile`)}
+                                            >
+                                                {!w.profile_photo_url || imageErrors[w.profile_photo_url]
+                                                    ? (
+                                                        <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 font-black">
+                                                            {w.full_name?.[0]}
+                                                        </div>
+                                                    )
+                                                    : (
+                                                        <>
+                                                            <img 
+                                                                src={signedUrls[w.profile_photo_url] || w.profile_photo_url} 
+                                                                alt="Avatar"
+                                                                onError={() => setImageErrors(prev => ({ ...prev, [w.profile_photo_url]: true }))}
+                                                                className="w-12 h-12 rounded-xl object-cover border border-white/10 group-hover:border-indigo-500/50 transition-all" 
+                                                            />
+                                                            <div className="absolute inset-0 bg-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                                                                <Eye className="w-4 h-4 text-white" />
+                                                            </div>
+                                                        </>
+                                                    )
+                                                }
+                                            </div>
 
                                             {/* Info */}
                                             <div className="flex-1 min-w-0">
@@ -720,11 +819,20 @@ export default function AdminPage() {
                                                 </button>
                                                 <button
                                                     onClick={() => { setSelectedWorker(w); setTab('audit'); }}
-                                                    className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white/40 transition-all"
+                                                    className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white/40 transition-all font-bold"
                                                     title="Log Audit Note"
                                                 >
                                                     <ClipboardList className="w-4 h-4" />
                                                 </button>
+                                                <a
+                                                    href={`/worker/${w.id}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-indigo-400 hover:border-indigo-500/20 transition-all font-bold"
+                                                    title="View Public Profile"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
