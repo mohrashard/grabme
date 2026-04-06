@@ -26,7 +26,7 @@ export default function RegisterHeader({ scrolled, mobileOpen, setMobileOpen }: 
                     </div>
                     <span className="text-white text-lg font-bold tracking-tight">Grab Me</span>
                 </Link>
-                <Link href="/" className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 hover:text-white transition-all">Back to Home</Link>
+                <Link href="/" className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 hover:text-white hover:bg-white/5 px-3 py-2 rounded-lg border border-white/5 transition-all">Back to Home</Link>
             </div>
             {/* Mobile menu (optional, if needed for register) */}
         </nav>

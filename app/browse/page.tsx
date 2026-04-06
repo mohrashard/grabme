@@ -16,7 +16,8 @@ import {
     UserCheck,
     Bell,
     Navigation,
-    Loader2
+    Loader2,
+    ArrowLeft
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -219,13 +220,22 @@ function BrowsePageContent() {
                         </div>
                         <span className="text-white text-lg font-bold tracking-tight">Grab Me</span>
                     </Link>
-                    <div className="flex items-center gap-4">
-                        <Link href="/register" className="text-xs font-bold text-white/40 hover:text-white transition-colors uppercase tracking-widest hidden sm:block">Join as Partner</Link>
+                    <div className="flex items-center gap-3 md:gap-6">
+                        <Link href="/" className="text-[10px] font-black text-white/40 hover:text-indigo-400 transition-colors uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap">
+                            <ArrowLeft className="w-3 h-3" />
+                            <span>Home</span>
+                        </Link>
+                        <Link href="/register" className="text-[10px] font-black text-indigo-400 border border-indigo-500/20 bg-indigo-500/5 px-4 py-2 rounded-xl hover:bg-indigo-500/10 transition-colors uppercase tracking-widest whitespace-nowrap">Join</Link>
                     </div>
                 </div>
             </nav>
 
             <main className="pt-24 lg:pt-32 pb-24 px-4 lg:px-6 max-w-7xl mx-auto">
+                <Link href="/" className="inline-flex items-center gap-2 text-white/60 hover:text-indigo-400 transition-all mb-8 group bg-white/5 px-4 py-2 rounded-xl border border-white/5 self-start">
+                    <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">Back to Home</span>
+                </Link>
+
                 {/* Hero / Filter Section */}
                 <div className="space-y-10 mb-16">
                     <div className="space-y-4">
