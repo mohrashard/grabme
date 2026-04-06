@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { m } from 'framer-motion'
 import { Camera, Upload, Check, UserCheck, FileText, Image as ImageIcon } from 'lucide-react'
 
@@ -12,6 +12,9 @@ interface StepPhotosProps {
 
 const ImagePreview = ({ src, alt }: { src: string, alt: string }) => {
     const [error, setError] = useState(false);
+    React.useEffect(() => {
+        setError(false);
+    }, [src]);
     return error ? (
         <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 text-white/30 p-2">
             <ImageIcon className="w-6 h-6 mb-1 opacity-50" />

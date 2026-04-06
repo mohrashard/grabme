@@ -211,6 +211,11 @@ export function useRegistrationForm() {
                     const fileName = `${formData.nicNumber || 'anon'}_${type}_${Date.now()}_${uniqueId}.${fileExt}`;
                     const filePath = `workers/${fileName}`;
 
+                    // Ensure processed file has a valid MIME type, otherwise Android Chrome refuses to render the blob!
+                    const fileBlob = processedFile instanceof File && processedFile.type
+                        ? processedFile 
+                        : new File([processedFile], fileName, { type: file.type || 'image/jpeg' });
+
                     const PRIVATE_TYPES = ['nicFrontUrl', 'nicBackUrl', 'selfieUrl'];
                     const bucket = PRIVATE_TYPES.includes(type) ? 'worker-documents' : 'avatars';
 
@@ -226,18 +231,13 @@ export function useRegistrationForm() {
                         });
                     }
                     
-                    const previewUrl = URL.createObjectURL(processedFile);
+                    const previewUrl = URL.createObjectURL(fileBlob);
                     setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
 
                     setPendingFiles(prev => {
                         const filtered = type === 'pastWorkPhotos' 
                             ? prev 
                             : prev.filter(p => p.type !== type);
-                        
-                        // Treat Blob as File to avoid TS errors
-                        const fileBlob = processedFile instanceof File 
-                            ? processedFile 
-                            : new File([processedFile], fileName, { type: file.type || 'image/jpeg' });
                         
                         return [...filtered, { file: fileBlob, type, path: filePath, bucket }];
                     });
