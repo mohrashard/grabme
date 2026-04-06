@@ -28,6 +28,7 @@ export default function WorkerRegistration() {
         formData, setFormData, handleInputChange, toggleSubSkill, toggleDistrictCovered,
         setSubSkills, setDistrictsCovered,
         handleFileUpload,
+        handleFileRemove,
         canMoveToNext, submitForm, registrationSuccess, triggerWhatsAppActivation, previews, fieldErrors
     } = useRegistrationForm();
 
@@ -121,7 +122,7 @@ export default function WorkerRegistration() {
                     <div className="px-6 lg:px-16 pb-12 md:pb-16">
                         <AnimatePresence mode="wait">
                             {step === 1 && <StepIdentity formData={formData} handleInputChange={handleInputChange} fieldErrors={fieldErrors} />}
-                            {step === 2 && <StepPhotos formData={formData} handleFileUpload={handleFileUpload} uploading={uploading} previews={previews} />}
+                            {step === 2 && <StepPhotos formData={formData} handleFileUpload={handleFileUpload} handleFileRemove={handleFileRemove} uploading={uploading} previews={previews} />}
                             {step === 3 && <StepExperience formData={formData} handleInputChange={handleInputChange} toggleSubSkill={toggleSubSkill} setSubSkills={setSubSkills} fieldErrors={fieldErrors} />}
                             {step === 4 && <StepLocation formData={formData} handleInputChange={handleInputChange} toggleDistrictCovered={toggleDistrictCovered} setDistrictsCovered={setDistrictsCovered} />}
                             {step === 5 && <StepReference formData={formData} handleInputChange={handleInputChange} fieldErrors={fieldErrors} />}

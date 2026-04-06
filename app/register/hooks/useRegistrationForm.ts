@@ -285,6 +285,30 @@ export function useRegistrationForm() {
         }
     };
 
+    const handleFileRemove = (type: string, path?: string) => {
+        const previewKey = type === 'pastWorkPhotos' ? `pastWorkPhotos_${path}` : type;
+        const previewUrl = previews[previewKey];
+        
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviews(prev => {
+                const next = { ...prev };
+                delete next[previewKey];
+                return next;
+            });
+        }
+
+        const targetPath = path || (formData as any)[type];
+        setPendingFiles(prev => prev.filter(p => p.path !== targetPath));
+
+        setFormData(prev => {
+            if (type === 'pastWorkPhotos') {
+                return { ...prev, pastWorkPhotos: prev.pastWorkPhotos.filter(p => p !== path) };
+            }
+            return { ...prev, [type]: '' };
+        });
+    };
+
     const canMoveToNext = (): boolean => {
         if (step === 1) return !!(formData.fullName && formData.email && formData.password && formData.phone && formData.nicNumber && formData.emergencyContact);
         if (step === 2) return !!(formData.profilePhotoUrl && formData.nicFrontUrl && formData.nicBackUrl);
@@ -406,6 +430,7 @@ export function useRegistrationForm() {
         setSubSkills,
         setDistrictsCovered,
         handleFileUpload,
+        handleFileRemove,
         canMoveToNext,
         submitForm,
         registrationSuccess,

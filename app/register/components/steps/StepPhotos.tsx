@@ -1,11 +1,13 @@
 'use client'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { m } from 'framer-motion'
-import { Camera, Upload, Check, UserCheck, FileText, Image as ImageIcon, Smartphone } from 'lucide-react'
+import { Camera, Upload, Check, UserCheck, FileText, Image as ImageIcon, Smartphone, X } from 'lucide-react'
+import CameraModal from '../CameraModal'
 
 interface StepPhotosProps {
     formData: any;
     handleFileUpload: (files: File | File[], type: string) => void;
+    handleFileRemove: (type: string, path?: string) => void;
     uploading: string | null;
     previews?: Record<string, string>;
 }
@@ -25,7 +27,7 @@ const ImagePreview = ({ src, alt }: { src: string, alt: string }) => {
     );
 };
 
-export default function StepPhotos({ formData, handleFileUpload, uploading, previews = {} }: StepPhotosProps) {
+export default function StepPhotos({ formData, handleFileUpload, handleFileRemove, uploading, previews = {} }: StepPhotosProps) {
     const categories = [
         { id: 'profilePhotoUrl', label: 'Profile Photo', icon: Camera, capture: 'user' },
         { id: 'selfieUrl', label: 'Selfie with NIC', icon: UserCheck, capture: 'user' },
@@ -36,6 +38,30 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
 
     const captureInputs = useRef<Record<string, HTMLInputElement | null>>({});
     const uploadInputs = useRef<Record<string, HTMLInputElement | null>>({});
+    const [cameraModal, setCameraModal] = useState<{ isOpen: boolean; field: string; title: string }>({
+        isOpen: false,
+        field: '',
+        title: ''
+    });
+
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        setIsMobile(('ontouchstart' in window) || (navigator.maxTouchPoints > 0));
+    }, []);
+
+    const handleCaptureTrigger = (catId: string) => {
+        if (isMobile) {
+            captureInputs.current[catId]?.click();
+        } else {
+            const cat = categories.find(c => c.id === catId);
+            setCameraModal({
+                isOpen: true,
+                field: catId,
+                title: cat?.label || 'Capture'
+            });
+        }
+    };
 
     return (
         <m.div key="2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
@@ -46,19 +72,33 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {categories.map((cat) => (
-                    <div key={cat.id} className="space-y-2">
+                    <div key={cat.id} className="space-y-2 text-center md:text-left">
                         <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">{cat.label}</label>
-                        <div className={`relative border border-dashed rounded-2xl transition-all h-[120px] flex flex-col items-center justify-center gap-3 ${formData[cat.id] ? 'border-indigo-500 bg-indigo-500/5' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
+                        <div className={`relative border border-dashed rounded-2xl transition-all h-[120px] flex flex-col items-center justify-center gap-3 ${formData[cat.id] ? 'border-indigo-500/50 bg-indigo-500/5 shadow-inner' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
                             {formData[cat.id] ? (
-                                <div className="flex flex-col items-center justify-center gap-2">
-                                    {previews[cat.id] ? (
-                                        <div className="w-20 h-14 rounded-lg overflow-hidden border border-white/10 shadow-lg">
-                                            <ImagePreview src={previews[cat.id]} alt="Preview" />
+                                <div className="flex flex-col items-center justify-center gap-3 px-4 w-full">
+                                    <div className="flex items-center gap-3 w-full">
+                                        <div className="w-16 h-12 rounded-lg overflow-hidden border border-white/10 shadow-lg shrink-0">
+                                            {previews[cat.id] ? (
+                                                <ImagePreview src={previews[cat.id]} alt="Preview" />
+                                            ) : (
+                                                <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                                                    <Check className="w-4 h-4 text-indigo-400" />
+                                                </div>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <Check className="w-6 h-6 text-indigo-400" />
-                                    )}
-                                    <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Uploaded Successfuly</span>
+                                        <div className="flex flex-col items-start overflow-hidden">
+                                            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest truncate w-full">Successful</span>
+                                            <span className="text-[8px] font-bold text-white/20 uppercase tracking-tighter truncate w-full">{formData[cat.id]}</span>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleFileRemove(cat.id)}
+                                            className="ml-auto p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all active:scale-95 group"
+                                            title="Remove Photo"
+                                        >
+                                            <X className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                        </button>
+                                    </div>
                                 </div>
                             ) : (
                                 <>
@@ -69,9 +109,8 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                         </div>
                                     ) : (
                                         <div className="flex w-full h-full p-2 gap-2">
-                                            {/* Camera Option */}
                                             <button 
-                                                onClick={() => captureInputs.current[cat.id]?.click()}
+                                                onClick={() => handleCaptureTrigger(cat.id)}
                                                 className="flex-1 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] flex flex-col items-center justify-center gap-2 transition-all group"
                                             >
                                                 <Camera className="w-5 h-5 text-white/40 group-hover:text-indigo-400 transition-colors" />
@@ -80,7 +119,6 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                             
                                             <div className="w-[1px] h-full bg-white/5 my-2" />
 
-                                            {/* Gallery Option */}
                                             <button 
                                                 onClick={() => uploadInputs.current[cat.id]?.click()}
                                                 className="flex-1 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] flex flex-col items-center justify-center gap-2 transition-all group"
@@ -93,7 +131,6 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                 </>
                             )}
                             
-                            {/* Hidden Inputs */}
                             <input 
                                 type="file" 
                                 accept="image/*" 
@@ -119,11 +156,11 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Past Work (Max 5 photos)</label>
                     <span className="text-[10px] font-bold text-indigo-400/50 uppercase">{formData.pastWorkPhotos.length}/5</span>
                 </div>
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
-                    {formData.pastWorkPhotos.map((url: string, idx: number) => {
-                        const preview = previews[`pastWorkPhotos_${url}`];
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                    {formData.pastWorkPhotos.map((path: string, idx: number) => {
+                        const preview = previews[`pastWorkPhotos_${path}`];
                         return (
-                            <div key={idx} className="aspect-square rounded-xl border border-white/10 overflow-hidden bg-white/5 shadow-xl relative group">
+                            <div key={path} className="aspect-square rounded-xl border border-white/10 overflow-hidden bg-white/5 shadow-xl relative group">
                                 {preview ? (
                                     <ImagePreview src={preview} alt={`Work ${idx}`} />
                                 ) : (
@@ -131,6 +168,22 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                         <Check className="w-6 h-6 mb-1 text-indigo-400" />
                                     </div>
                                 )}
+                                <m.button 
+                                    initial={{ opacity: 0 }}
+                                    whileHover={{ opacity: 1 }}
+                                    onClick={() => handleFileRemove('pastWorkPhotos', path)}
+                                    className="absolute inset-0 bg-red-500/60 backdrop-blur-sm flex flex-col items-center justify-center gap-1 transition-all opacity-0 md:opacity-0 group-hover:opacity-100"
+                                >
+                                    <X className="w-6 h-6 text-white" />
+                                    <span className="text-[8px] font-black uppercase text-white tracking-widest">Remove</span>
+                                </m.button>
+                                {/* Mobile Remove Trigger */}
+                                <button 
+                                    onClick={() => handleFileRemove('pastWorkPhotos', path)}
+                                    className="absolute top-1 right-1 w-6 h-6 rounded-lg bg-red-500 text-white flex items-center justify-center md:hidden shadow-lg"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
                             </div>
                         );
                     })}
@@ -138,12 +191,12 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                         <div className="aspect-square rounded-xl border border-dashed border-white/10 overflow-hidden bg-white/[0.02] hover:bg-white/[0.05] transition-all flex flex-col divide-y divide-white/5">
                             {uploading === 'pastWorkPhotos' ? (
                                 <div className="w-full h-full flex items-center justify-center">
-                                    <div className="w-4 h-4 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                                 </div>
                             ) : (
                                 <>
                                     <button 
-                                        onClick={() => captureInputs.current['pastWorkPhotos']?.click()}
+                                        onClick={() => handleCaptureTrigger('pastWorkPhotos')}
                                         className="flex-1 w-full flex items-center justify-center hover:bg-white/[0.05] transition-colors group"
                                     >
                                         <Camera className="w-5 h-5 text-white/20 group-hover:text-indigo-400" />
@@ -157,7 +210,6 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                 </>
                             )}
                             
-                            {/* Hidden Inputs for Past Work */}
                             <input 
                                 type="file" 
                                 accept="image/*" 
@@ -186,7 +238,16 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                     )}
                 </div>
             </div>
+
+            <CameraModal 
+                isOpen={cameraModal.isOpen}
+                title={cameraModal.title}
+                onClose={() => setCameraModal(prev => ({ ...prev, isOpen: false }))}
+                onCapture={(file) => handleFileUpload(file, cameraModal.field)}
+            />
         </m.div>
     );
 }
+
+
 
