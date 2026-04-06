@@ -179,6 +179,12 @@ export function useRegistrationForm() {
                 try {
                     let processedFile: File | Blob = file;
                     
+                    // Cloud-sync placeholder / corrupted file check
+                    if (!file || file.size === 0) {
+                        toast.error(`"${file?.name || 'File'}" is empty or hasn't fully downloaded from iCloud/Google Photos. Please select a different image or use the "Browse" folder.`);
+                        continue;
+                    }
+                    
                     // Only compress if the file is larger than our target AND size is accessible
                     if (file && file.size && file.size > TARGET_SIZE_MB * 1024 * 1024) {
                         try {
