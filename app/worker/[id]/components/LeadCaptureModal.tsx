@@ -9,17 +9,74 @@ import { toast } from 'sonner';
 
 interface LeadCaptureModalProps {
     isOpen: boolean;
+    workerTrade: string;
     onClose: () => void;
     onSuccess: (customer: { id: string; full_name: string; phone: string; district: string }) => void;
 }
 
-export default function LeadCaptureModal({ isOpen, onClose, onSuccess }: LeadCaptureModalProps) {
+export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSuccess }: LeadCaptureModalProps) {
     const [loading, setLoading] = useState(false);
+    const [detecting, setDetecting] = useState(false);
     const [formData, setFormData] = useState({
         full_name: '',
         phone: '',
-        district: 'Colombo'
+        district: 'Colombo',
+        lat: undefined as number | undefined,
+        lng: undefined as number | undefined,
+        area_name: '',
+        service_needed: workerTrade
     });
+
+    const detectDistrict = () => {
+        if (!navigator.geolocation) {
+            toast.error('Location not supported by your browser')
+            return
+        }
+        setDetecting(true)
+        const toastId = toast.loading('Detecting your location...')
+
+        navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+                try {
+                    const { latitude, longitude } = pos.coords
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+                    )
+                    const data = await res.json()
+                    if (data.address) {
+                        const raw = data.address.state_district || data.address.county || ''
+                        const cleaned = raw.replace(' District', '').trim()
+                        const matched = DISTRICTS.find(d =>
+                            cleaned.toLowerCase().includes(d.toLowerCase())
+                        )
+                        if (matched) {
+                            setFormData(prev => ({ 
+                                ...prev, 
+                                district: matched,
+                                lat: latitude,
+                                lng: longitude,
+                                area_name: cleaned 
+                            }))
+                            toast.success(`Location set tracking ${cleaned}`, { id: toastId })
+                        } else {
+                            toast.error('Located, but district not in our service range. Please select manually.', { id: toastId })
+                        }
+                    } else {
+                        toast.error('Could not resolve location. Please select manually.', { id: toastId })
+                    }
+                } catch {
+                    toast.error('Location lookup failed. Please select manually.', { id: toastId })
+                } finally {
+                    setDetecting(false)
+                }
+            },
+            () => {
+                setDetecting(false)
+                toast.error('Location access denied. Please select your district manually.', { id: toastId })
+            },
+            { timeout: 10000 }
+        )
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -125,16 +182,31 @@ export default function LeadCaptureModal({ isOpen, onClose, onSuccess }: LeadCap
 
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 ml-2">Your District</label>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                        <select 
-                                            required
-                                            value={formData.district}
-                                            onChange={(e) => setFormData({...formData, district: e.target.value})}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white focus:border-indigo-500/50 outline-none transition-all font-bold appearance-none [color-scheme:dark]"
+                                    <div className="flex gap-3 items-center">
+                                        <div className="relative flex-1">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <select 
+                                                required
+                                                value={formData.district}
+                                                onChange={(e) => setFormData({...formData, district: e.target.value})}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white focus:border-indigo-500/50 outline-none transition-all font-bold appearance-none [color-scheme:dark]"
+                                            >
+                                                {DISTRICTS.map(d => <option key={d}>{d}</option>)}
+                                            </select>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={detectDistrict}
+                                            disabled={detecting}
+                                            title="Auto-detect my district"
+                                            className="flex-shrink-0 w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/30 hover:text-indigo-400 hover:border-indigo-500/40 transition-all disabled:opacity-30 group"
                                         >
-                                            {DISTRICTS.map(d => <option key={d}>{d}</option>)}
-                                        </select>
+                                            {detecting ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <MapPin className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
 

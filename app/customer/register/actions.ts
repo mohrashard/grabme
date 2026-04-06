@@ -10,6 +10,10 @@ const CustomerSchema = z.object({
     full_name: z.string().min(2, 'Name is too short').max(100),
     phone: z.string().regex(/^0\d{9}$/, 'Invalid SL phone number (e.g. 0771234567)'),
     district: z.string().min(2, 'Please select a district'),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+    area_name: z.string().optional(),
+    service_needed: z.string().optional(),
 });
 
 export type CustomerData = z.infer<typeof CustomerSchema>;
@@ -48,6 +52,10 @@ export async function registerCustomerAction(formData: CustomerData) {
                     full_name: validated.data.full_name,
                     phone: validated.data.phone,
                     district: validated.data.district,
+                    lat: validated.data.lat,
+                    lng: validated.data.lng,
+                    area_name: validated.data.area_name,
+                    service_needed: validated.data.service_needed,
                 }
             ], { onConflict: 'phone' })
             .select('id')

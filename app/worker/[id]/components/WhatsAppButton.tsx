@@ -9,9 +9,10 @@ import { toast } from 'sonner'
 
 interface WhatsAppButtonProps {
     workerId: string;
+    workerTrade: string;
 }
 
-export default function WhatsAppButton({ workerId }: WhatsAppButtonProps) {
+export default function WhatsAppButton({ workerId, workerTrade }: WhatsAppButtonProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isRedirecting, setIsRedirecting] = useState(false);
 
@@ -78,6 +79,7 @@ export default function WhatsAppButton({ workerId }: WhatsAppButtonProps) {
 
             <LeadCaptureModal 
                 isOpen={isModalOpen}
+                workerTrade={workerTrade}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={(customer) => {
                     setIsModalOpen(false);

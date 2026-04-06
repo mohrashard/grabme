@@ -275,7 +275,7 @@ function BrowsePageContent() {
                                 </div>
                                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
                                     <Link 
-                                        href="/customer/register"
+                                        href={`/customer/register?service=${selectedTrade === 'All Services' ? 'General' : encodeURIComponent(selectedTrade)}&district=${selectedDistrict === 'All Districts' ? 'Colombo' : encodeURIComponent(selectedDistrict)}`}
                                         className="w-full sm:w-auto px-10 py-5 bg-indigo-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:scale-105 active:scale-95 shadow-xl shadow-indigo-500/20 text-center"
                                     >
                                         Notify me when available

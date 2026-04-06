@@ -90,7 +90,8 @@ ADD COLUMN home_district TEXT;
 ALTER TABLE customers
 ADD COLUMN lat DECIMAL(10,8),
 ADD COLUMN lng DECIMAL(11,8),
-ADD COLUMN area_name TEXT;
+ADD COLUMN area_name TEXT,
+ADD COLUMN service_needed TEXT;
 
 -- 1. Enable RLS on the workers table (if not already enabled)
 ALTER TABLE workers ENABLE ROW LEVEL SECURITY;
@@ -477,3 +478,5 @@ ADD COLUMN IF NOT EXISTS reference_called BOOLEAN DEFAULT FALSE;
 
 ALTER TABLE workers 
 ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE customers ADD COLUMN IF NOT EXISTS service_needed TEXT;

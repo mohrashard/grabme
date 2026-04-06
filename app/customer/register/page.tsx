@@ -1,6 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { m, AnimatePresence } from 'framer-motion'
 import {
     User, Phone, MapPin, Navigation, Loader2,
@@ -8,15 +9,27 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { DISTRICTS } from '@/app/register/constants'
+import { DISTRICTS, TRADE_SUB_SKILLS } from '@/app/register/constants'
 import { registerCustomerAction } from './actions'
 import { toast } from 'sonner'
 
-export default function CustomerRegisterPage() {
+const TRADES = Object.keys(TRADE_SUB_SKILLS);
+
+function RegisterForm() {
+    const searchParams = useSearchParams()
+    
+    // Attempt to grab search params default values
+    const urlService = searchParams.get('service') || 'General'
+    const urlDistrict = searchParams.get('district') || 'Colombo'
+
     const [formData, setFormData] = useState({
         full_name: '',
         phone: '',
-        district: 'Colombo',
+        district: urlDistrict,
+        lat: undefined as number | undefined,
+        lng: undefined as number | undefined,
+        area_name: '',
+        service_needed: TRADES.includes(urlService) ? urlService : 'General',
     })
     const [detecting, setDetecting] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -47,8 +60,14 @@ export default function CustomerRegisterPage() {
                             cleaned.toLowerCase().includes(d.toLowerCase())
                         )
                         if (matched) {
-                            setFormData(prev => ({ ...prev, district: matched }))
-                            toast.success(`District set to ${matched}`, { id: toastId })
+                            setFormData(prev => ({ 
+                                ...prev, 
+                                district: matched,
+                                lat: latitude,
+                                lng: longitude,
+                                area_name: cleaned 
+                            }))
+                            toast.success(`Location set tracking ${cleaned}`, { id: toastId })
                         } else {
                             toast.error('Located, but district not in our service range. Please select manually.', { id: toastId })
                         }
@@ -91,6 +110,10 @@ export default function CustomerRegisterPage() {
                 full_name: formData.full_name.trim(),
                 phone: formData.phone.trim(),
                 district: formData.district,
+                lat: formData.lat,
+                lng: formData.lng,
+                area_name: formData.area_name,
+                service_needed: formData.service_needed,
             })
 
             if (result.success) {
@@ -267,6 +290,26 @@ export default function CustomerRegisterPage() {
                                 )}
                             </div>
 
+                            {/* Service Needed */}
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                                    Service Needed
+                                </label>
+                                <div className="relative group">
+                                    <select
+                                        required
+                                        value={formData.service_needed}
+                                        onChange={e => setFormData(p => ({ ...p, service_needed: e.target.value }))}
+                                        className="w-full pl-5 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] focus:outline-none text-sm transition-all text-white font-medium [color-scheme:dark] appearance-none"
+                                    >
+                                        <option value="General" className="bg-[#18181B]">General Handyman</option>
+                                        {TRADES.map(t => (
+                                            <option key={t} value={t} className="bg-[#18181B]">{t}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
                             {/* District + GPS */}
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
@@ -344,5 +387,13 @@ export default function CustomerRegisterPage() {
                 </m.div>
             </div>
         </div>
+    )
+}
+
+export default function CustomerRegisterPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#090A0F] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /></div>}>
+            <RegisterForm />
+        </Suspense>
     )
 }

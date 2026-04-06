@@ -191,6 +191,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                 <div className="mt-8">
                     <WhatsAppButton 
                         workerId={worker.id} 
+                        workerTrade={worker.trade_category}
                     />
                     <p className="text-center mt-6 text-[10px] font-black uppercase tracking-widest text-white/20 px-12 leading-relaxed">
                         By contacting this worker, you agree to our 

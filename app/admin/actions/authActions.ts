@@ -167,6 +167,14 @@ export async function fetchAdminDataAction() {
 
         if (clickError) throw clickError;
 
+        // 2.5 Fetch Customer Leads
+        const { data: leads, error: leadsError } = await supabaseAdmin
+            .from('customers')
+            .select('*')
+            .order('registered_at', { ascending: false });
+
+        if (leadsError) throw leadsError;
+
         // 3. Time-based Click Stats
         const now = new Date();
         const startOfToday = new Date(now.setHours(0,0,0,0)).getTime();
@@ -215,7 +223,7 @@ export async function fetchAdminDataAction() {
             totalClicks: clicks.length
         };
 
-        return { success: true, workers, stats };
+        return { success: true, workers, leads, stats };
     } catch (err: any) {
         console.error('[fetchAdminDataAction] error:', err);
         return { success: false, error: 'Something went wrong. Please try again.' };

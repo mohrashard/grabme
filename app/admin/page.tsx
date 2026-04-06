@@ -50,7 +50,19 @@ type Worker = {
     sub_skills: string[];
 };
 
-type Tab = 'pipeline' | 'directory' | 'analytics' | 'audit';
+type Lead = {
+    id: string;
+    full_name: string;
+    phone: string;
+    district: string;
+    lat?: number;
+    lng?: number;
+    area_name?: string;
+    service_needed?: string;
+    registered_at: string;
+};
+
+type Tab = 'pipeline' | 'directory' | 'leads' | 'analytics' | 'audit';
 
 function StatusBadge({ status }: { status: string }) {
     const map: Record<string, { color: string; label: string }> = {
@@ -69,6 +81,7 @@ export default function AdminPage() {
     const router = useRouter();
     const [tab, setTab] = useState<Tab>('pipeline');
     const [workers, setWorkers] = useState<Worker[]>([]);
+    const [leads, setLeads] = useState<Lead[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -105,11 +118,12 @@ export default function AdminPage() {
 
     const fetchWorkers = useCallback(async () => {
         setLoading(true);
-        const { success, workers: data, stats: newStats, error } = await fetchAdminDataAction();
+        const { success, workers: data, leads: leadData, stats: newStats, error } = await fetchAdminDataAction();
         
         if (success && data && newStats) {
             const workerList = data as Worker[];
             setWorkers(workerList);
+            if (leadData) setLeads(leadData as Lead[]);
             setStats(newStats);
 
             // AUTO-SIGN: Proactively sign all PRIVATE images
@@ -300,6 +314,7 @@ export default function AdminPage() {
     const TABS = [
         { id: 'pipeline', label: 'Pipeline', icon: ShieldCheck, count: stats.pending },
         { id: 'directory', label: 'Directory', icon: Users, count: stats.total },
+        { id: 'leads', label: 'Customer Leads', icon: UserCheck, count: leads.length },
         { id: 'analytics', label: 'Analytics', icon: BarChart3, count: null },
         { id: 'audit', label: 'Trust Audit', icon: ClipboardList, count: null },
     ] as const;
@@ -310,7 +325,7 @@ export default function AdminPage() {
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap'); * { font-family: 'Inter', sans-serif; } ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }`}</style>
 
             {/* ── Sidebar ── */}
-            <aside className="w-64 bg-[#18181B] border-r border-white/5 flex flex-col fixed h-full z-30">
+            <aside className="hidden lg:flex w-64 bg-[#18181B] border-r border-white/5 flex-col fixed h-full z-30">
                 {/* Logo */}
                 <div className="p-7 border-b border-white/5">
                     <div className="flex items-center gap-3">
@@ -360,19 +375,43 @@ export default function AdminPage() {
                 </div>
             </aside>
 
+            {/* ── Mobile Bottom Nav ── */}
+            <nav className="fixed bottom-0 w-full bg-[#18181B]/95 backdrop-blur-xl border-t border-white/10 z-50 lg:hidden px-2 pb-safe pt-2">
+                <div className="flex items-center justify-around pb-2">
+                    {TABS.map(t => (
+                        <button
+                            key={t.id}
+                            onClick={() => setTab(t.id as Tab)}
+                            className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all relative ${tab === t.id ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
+                        >
+                            <t.icon className="w-5 h-5" />
+                            <span className="text-[8px] font-black uppercase tracking-widest">{t.label.split(' ')[0]}</span>
+                            {t.count !== null && t.count > 0 && (
+                                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-[#18181B]" />
+                            )}
+                        </button>
+                    ))}
+                    <button onClick={logout} className="flex flex-col items-center gap-1 p-2 rounded-xl text-red-500/50 hover:text-red-400 transition-all">
+                        <LogOut className="w-5 h-5" />
+                        <span className="text-[8px] font-black uppercase tracking-widest">Exit</span>
+                    </button>
+                </div>
+            </nav>
+
             {/* ── Main Content ── */}
-            <main className="flex-1 ml-64 overflow-y-auto">
+            <main className="flex-1 lg:ml-64 pb-24 lg:pb-0 overflow-y-auto">
                 {/* Topbar */}
-                <header className="h-16 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 bg-[#090A0F]/80 backdrop-blur-xl z-20">
-                    <div>
-                        <h1 className="text-sm font-black uppercase tracking-widest text-white">
+                <header className="h-16 border-b border-white/5 flex items-center justify-between px-4 lg:px-8 sticky top-0 bg-[#090A0F]/80 backdrop-blur-xl z-20 gap-4">
+                    <div className="flex-1 min-w-0">
+                        <h1 className="text-[10px] lg:text-sm font-black uppercase tracking-widest text-white truncate">
                             {tab === 'pipeline' && 'Gatekeeper — Approval Pipeline'}
                             {tab === 'directory' && 'Baas Manager — Full Directory'}
+                            {tab === 'leads' && 'Customer Leads — Notify Me Queue'}
                             {tab === 'analytics' && 'Traction Pulse — Analytics'}
                             {tab === 'audit' && 'Trust Audit — Verification Logs'}
                         </h1>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 lg:gap-3 flex-shrink-0">
                         <button onClick={fetchWorkers} className="p-2 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
                             <RefreshCw className="w-4 h-4 text-white/40" />
                         </button>
@@ -381,14 +420,14 @@ export default function AdminPage() {
                             <input
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                placeholder="Search workers..."
-                                className="pl-9 pr-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs text-white placeholder:text-white/20 outline-none focus:border-white/10 w-52 transition-all"
+                                placeholder="Search..."
+                                className="pl-9 pr-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs text-white placeholder:text-white/20 outline-none focus:border-white/10 w-32 lg:w-52 transition-all"
                             />
                         </div>
                     </div>
                 </header>
 
-                <div className="p-8 max-w-6xl mx-auto">
+                <div className="p-4 lg:p-8 max-w-6xl mx-auto">
                     <AnimatePresence mode="wait">
 
                         {/* ══ PIPELINE TAB ══ */}
@@ -910,6 +949,62 @@ export default function AdminPage() {
                                         {actionLoading === 'audit' ? 'Saving...' : 'Save Audit Note'}
                                     </button>
                                 </div>
+                            </m.div>
+                        )}
+
+                        {/* ══ LEADS TAB ══ */}
+                        {tab === 'leads' && (
+                            <m.div key="leads" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+                                {loading ? (
+                                    <div className="text-center py-20 text-white/20 text-sm">Loading leads...</div>
+                                ) : leads.length === 0 ? (
+                                    <div className="text-center py-20 text-white/20 text-sm">No customers in the waitlist.</div>
+                                ) : (
+                                    <div className="grid gap-3">
+                                        {leads.map(lead => (
+                                            <div key={lead.id} className="bg-[#18181B] border border-white/5 rounded-2xl p-5 flex items-center gap-5 hover:border-white/10 transition-colors">
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <h3 className="text-sm font-black text-white truncate">{lead.full_name}</h3>
+                                                        <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-white/40 uppercase tracking-widest border border-white/5">
+                                                            {lead.service_needed || 'General'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-[11px] text-white/30 truncate mt-1 flex gap-2 items-center">
+                                                        <MapPin className="w-3 h-3 text-indigo-400/80" /> {lead.area_name ? `${lead.area_name}, ` : ''}{lead.district}
+                                                        <span className="text-white/10">•</span>
+                                                        <Phone className="w-3 h-3 text-indigo-400/80" /> {lead.phone}
+                                                    </div>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                    <a
+                                                        href={`https://wa.me/${lead.phone}?text=${encodeURIComponent(`Hi ${lead.full_name}! ✅ Good news from Grab Me. A verified ${lead.service_needed || 'Handyman'} is now available in ${lead.district}! Are you still looking for help?`)}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                                                        title="WhatsApp Notify"
+                                                    >
+                                                        <MessageSquare className="w-3 h-3" /> Notify
+                                                    </a>
+                                                    {lead.lat && lead.lng && (
+                                                        <a
+                                                            href={`https://www.google.com/maps?q=${lead.lat},${lead.lng}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-indigo-400 hover:border-indigo-500/20 transition-all font-bold"
+                                                            title="View on Map"
+                                                        >
+                                                            <MapPin className="w-4 h-4" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </m.div>
                         )}
 
