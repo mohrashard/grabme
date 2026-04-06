@@ -35,11 +35,11 @@ export async function deleteWorkerAction(id: string) {
             worker.nic_back_url,
             worker.selfie_url,
             worker.certificate_url
-        ].filter((url: string | null): url is string => !!url).map(url => url.split('/').pop()!); // Extract filename from URL
+        ].filter((url: string | null): url is string => !!url).map((url: string) => url.split('/').pop()!); // Extract filename from URL
 
-        const avatarFiles = [worker.profile_photo_url].filter((url: string | null): url is string => !!url).map(url => url.split('/').pop()!);
+        const avatarFiles = [worker.profile_photo_url].filter((url: string | null): url is string => !!url).map((url: string) => url.split('/').pop()!);
 
-        const portfolioFiles = (worker.past_work_photos || []).filter((url: string | null): url is string => !!url).map(url => url.split('/').pop()!);
+        const portfolioFiles = (worker.past_work_photos || []).filter((url: string | null): url is string => !!url).map((url: string) => url.split('/').pop()!);
 
         if (documentFiles.length > 0) {
             await supabaseAdmin.storage.from('worker-documents').remove(documentFiles);

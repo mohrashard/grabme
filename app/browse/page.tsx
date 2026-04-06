@@ -23,6 +23,7 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
+import { CustomSelect } from '../components/ui/CustomSelect'
 import { DISTRICTS } from '../register/constants'
 import { fetchTaxonomyAction, type TaxonomyData } from '@/app/lib/taxonomyActions'
 
@@ -48,6 +49,7 @@ function BrowsePageContent() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedTrade, setSelectedTrade] = useState(searchParams.get('service') || 'All Services');
+    const [selectedSkill, setSelectedSkill] = useState(searchParams.get('skill') || 'All Skills');
     const [selectedDistrict, setSelectedDistrict] = useState(searchParams.get('district') || 'All Districts');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
@@ -59,6 +61,26 @@ function BrowsePageContent() {
     }, []);
 
     const TRADES = taxonomy?.services?.map(s => s.name) ?? [];
+    
+    // Build options with keywords for the service dropdown
+    const tradesOptions: import('../components/ui/CustomSelect').SelectOption[] = [
+        "All Services",
+        ...(taxonomy?.services?.map(s => {
+            const serviceKeywords = taxonomy.keywordMap 
+                ? Object.keys(taxonomy.keywordMap).filter(kw => taxonomy.keywordMap[kw].includes(s.name))
+                : [];
+            return {
+                label: s.name,
+                value: s.name,
+                keywords: serviceKeywords
+            };
+        }) ?? [])
+    ];
+
+    // Build skills based on selected trade
+    const availableSkills = selectedTrade !== 'All Services' && taxonomy?.skillsByService?.[selectedTrade]
+        ? taxonomy.skillsByService[selectedTrade].map(sk => sk.name)
+        : [];
 
     const fetchWorkers = useCallback(async () => {
         setLoading(true);
@@ -92,6 +114,9 @@ function BrowsePageContent() {
 
         if (selectedTrade !== 'All Services') {
             query = query.eq('trade_category', selectedTrade);
+        }
+        if (selectedSkill !== 'All Skills') {
+            query = query.contains('sub_skills', [selectedSkill]);
         }
         if (selectedDistrict !== 'All Districts') {
             query = query.eq('home_district', selectedDistrict);
@@ -221,31 +246,46 @@ function BrowsePageContent() {
                             />
                         </div>
                         <div className="flex flex-col md:flex-row gap-3 w-full lg:w-auto">
-                            <select 
-                                value={selectedTrade}
-                                onChange={(e) => {
-                                    const newTrade = e.target.value;
-                                    setSelectedTrade(newTrade);
-                                    router.replace(`/browse?service=${newTrade}&district=${selectedDistrict}`, { scroll: false });
+                            <CustomSelect 
+                                value={selectedTrade !== 'All Services' ? selectedTrade : 'All Services'}
+                                placeholder="All Services"
+                                searchPlaceholder="Search services or keywords..."
+                                onChange={(newTrade) => {
+                                    const val = newTrade;
+                                    setSelectedTrade(val);
+                                    setSelectedSkill('All Skills'); // Reset skill when service changes
+                                    router.replace(`/browse?service=${val}&skill=All Skills&district=${selectedDistrict}`, { scroll: false });
                                 }}
-                                className="w-full md:w-48 bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm outline-none [color-scheme:dark] hover:border-white/20 transition-all font-bold"
-                            >
-                                <option>All Services</option>
-                                {TRADES.map(t => <option key={t}>{t}</option>)}
-                            </select>
-                            <div className="flex gap-3 w-full md:w-auto">
-                                <select 
-                                    value={selectedDistrict}
-                                    onChange={(e) => {
-                                        const newDistrict = e.target.value;
-                                        setSelectedDistrict(newDistrict);
-                                        router.replace(`/browse?service=${selectedTrade}&district=${newDistrict}`, { scroll: false });
+                                options={tradesOptions}
+                                className="w-full md:w-64 z-50"
+                            />
+                            {availableSkills.length > 0 && selectedTrade !== 'All Services' && (
+                                <CustomSelect 
+                                    value={selectedSkill !== 'All Skills' ? selectedSkill : 'All Skills'}
+                                    placeholder="All Skills"
+                                    searchPlaceholder="Search skills..."
+                                    onChange={(newSkill) => {
+                                        const val = newSkill || 'All Skills';
+                                        setSelectedSkill(val);
+                                        router.replace(`/browse?service=${selectedTrade}&skill=${val}&district=${selectedDistrict}`, { scroll: false });
                                     }}
-                                    className="flex-1 md:w-48 bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm outline-none [color-scheme:dark] hover:border-white/20 transition-all font-bold"
-                                >
-                                    <option>All Districts</option>
-                                    {DISTRICTS.map(d => <option key={d}>{d}</option>)}
-                                </select>
+                                    options={["All Skills", ...availableSkills]}
+                                    className="w-full md:w-56 z-40"
+                                />
+                            )}
+                            <div className="flex gap-3 w-full md:w-auto">
+                                <CustomSelect 
+                                    value={selectedDistrict !== 'All Districts' ? selectedDistrict : 'All Districts'}
+                                    placeholder="All Districts"
+                                    searchPlaceholder="Search districts..."
+                                    onChange={(newDistrict) => {
+                                        const val = newDistrict;
+                                        setSelectedDistrict(val);
+                                        router.replace(`/browse?service=${selectedTrade}&district=${val}`, { scroll: false });
+                                    }}
+                                    options={["All Districts", ...DISTRICTS]}
+                                    className="flex-1 md:w-48 z-30"
+                                />
                                 <button 
                                     onClick={detectLocation}
                                     disabled={detecting}
