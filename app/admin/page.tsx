@@ -1088,7 +1088,7 @@ export default function AdminPage() {
         { id: 'leads', label: 'Customer Leads', icon: UserCheck, count: leads.length },
         { id: 'analytics', label: 'Analytics', icon: BarChart3, count: null },
         { id: 'audit', label: 'Trust Audit', icon: ClipboardList, count: null },
-        { id: 'taxonomy', label: 'Services', icon: Briefcase, count: null },
+        { id: 'taxonomy', label: 'Services', icon: Briefcase, count: taxonomy?.services?.length || 0 },
     ] as const;
 
     return (
