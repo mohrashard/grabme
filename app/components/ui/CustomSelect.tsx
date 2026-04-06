@@ -7,12 +7,13 @@ import { m, AnimatePresence } from 'framer-motion'
 export type SelectOption = string | { label: string; value: string; keywords?: string[] }
 
 interface CustomSelectProps {
-    value: string
-    onChange: (value: string) => void
+    value: string | string[]
+    onChange: (value: any) => void
     options: SelectOption[]
     placeholder?: string
     searchPlaceholder?: string
     className?: string
+    isMulti?: boolean
 }
 
 export function CustomSelect({
@@ -21,7 +22,8 @@ export function CustomSelect({
     options,
     placeholder = 'Select an option',
     searchPlaceholder = 'Search...',
-    className = ''
+    className = '',
+    isMulti = false
 }: CustomSelectProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -52,9 +54,45 @@ export function CustomSelect({
         )
     })
 
-    // Find the current label to display
-    const currentOption = normalizedOptions.find(o => o.value === value)
-    const displayLabel = currentOption ? currentOption.label : (value || placeholder)
+    // Handle selection logic
+    const handleSelect = (optionValue: string) => {
+        if (isMulti) {
+            const currentValues = Array.isArray(value) ? value : []
+            if (currentValues.includes(optionValue)) {
+                onChange(currentValues.filter(v => v !== optionValue))
+            } else {
+                onChange([...currentValues, optionValue])
+            }
+            // Don't close for multi-select
+        } else {
+            onChange(optionValue)
+            setIsOpen(false)
+            setSearchQuery('')
+        }
+    }
+
+    const isSelected = (optionValue: string) => {
+        if (isMulti) {
+            return Array.isArray(value) && value.includes(optionValue)
+        }
+        return value === optionValue
+    }
+
+    // Determine display label
+    let displayLabel = placeholder
+    if (isMulti) {
+        if (Array.isArray(value) && value.length > 0) {
+            if (value.length === 1) {
+                const opt = normalizedOptions.find(o => o.value === value[0])
+                displayLabel = opt ? opt.label : value[0]
+            } else {
+                displayLabel = `${value.length} items selected`
+            }
+        }
+    } else if (value && typeof value === 'string') {
+        const opt = normalizedOptions.find(o => o.value === value)
+        displayLabel = opt ? opt.label : value
+    }
 
     return (
         <div className={`relative ${className}`} ref={dropdownRef}>
@@ -65,7 +103,14 @@ export function CustomSelect({
                 className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-left font-bold focus:outline-none hover:border-white/20 transition-all text-white shadow-sm"
             >
                 <span className="truncate pr-4">{displayLabel}</span>
-                <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <div className="flex items-center gap-2">
+                    {isMulti && Array.isArray(value) && value.length > 0 && (
+                        <div className="bg-indigo-500 text-[10px] px-1.5 py-0.5 rounded-full font-black">
+                            {value.length}
+                        </div>
+                    )}
+                    <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                </div>
             </button>
 
             {/* Dropdown Panel */}
@@ -106,20 +151,20 @@ export function CustomSelect({
                                     <button
                                         key={option.value}
                                         type="button"
-                                        onClick={() => {
-                                            onChange(option.value)
-                                            setIsOpen(false)
-                                            setSearchQuery('')
-                                        }}
+                                        onClick={() => handleSelect(option.value)}
                                         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all mb-1 last:mb-0
-                                            ${value === option.value 
+                                            ${isSelected(option.value)
                                                 ? 'bg-indigo-500/20 text-indigo-400' 
                                                 : 'text-white/70 hover:bg-white/5 hover:text-white'
                                             }
                                         `}
                                     >
                                         <span className="truncate">{option.label}</span>
-                                        {value === option.value && <Check className="w-4 h-4" />}
+                                        {isSelected(option.value) && (
+                                            <div className="flex items-center justify-center w-5 h-5 bg-indigo-500 rounded-lg">
+                                                <Check className="w-3.5 h-3.5 text-white" />
+                                            </div>
+                                        )}
                                     </button>
                                 ))
                             )}

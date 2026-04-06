@@ -25,7 +25,9 @@ const StepConfirmation = dynamic(() => import('./components/steps/StepConfirmati
 export default function WorkerRegistration() {
     const {
         step, setStep, loading, uploading, mobileOpen, setMobileOpen, scrolled,
-        formData, setFormData, handleInputChange, toggleSubSkill, toggleDistrictCovered, handleFileUpload,
+        formData, setFormData, handleInputChange, toggleSubSkill, toggleDistrictCovered,
+        setSubSkills, setDistrictsCovered,
+        handleFileUpload,
         canMoveToNext, submitForm, registrationSuccess, triggerWhatsAppActivation, previews, fieldErrors
     } = useRegistrationForm();
 
@@ -120,8 +122,8 @@ export default function WorkerRegistration() {
                         <AnimatePresence mode="wait">
                             {step === 1 && <StepIdentity formData={formData} handleInputChange={handleInputChange} fieldErrors={fieldErrors} />}
                             {step === 2 && <StepPhotos formData={formData} handleFileUpload={handleFileUpload} uploading={uploading} previews={previews} />}
-                            {step === 3 && <StepExperience formData={formData} handleInputChange={handleInputChange} toggleSubSkill={toggleSubSkill} fieldErrors={fieldErrors} />}
-                            {step === 4 && <StepLocation formData={formData} handleInputChange={handleInputChange} toggleDistrictCovered={toggleDistrictCovered} />}
+                            {step === 3 && <StepExperience formData={formData} handleInputChange={handleInputChange} toggleSubSkill={toggleSubSkill} setSubSkills={setSubSkills} fieldErrors={fieldErrors} />}
+                            {step === 4 && <StepLocation formData={formData} handleInputChange={handleInputChange} toggleDistrictCovered={toggleDistrictCovered} setDistrictsCovered={setDistrictsCovered} />}
                             {step === 5 && <StepReference formData={formData} handleInputChange={handleInputChange} fieldErrors={fieldErrors} />}
                             {step === 6 && <StepConfirmation formData={formData} setFormData={setFormData} />}
                         </AnimatePresence>

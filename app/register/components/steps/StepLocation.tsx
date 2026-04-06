@@ -2,16 +2,18 @@
 import { useState } from 'react'
 import { m } from 'framer-motion'
 import { DISTRICTS } from '../../constants'
-import { Check, MapPin, Navigation } from 'lucide-react'
+import { Check, MapPin, Navigation, X } from 'lucide-react'
 import { toast } from 'sonner'
+import { CustomSelect } from '@/app/components/ui/CustomSelect'
 
 interface StepLocationProps {
     formData: any;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     toggleDistrictCovered: (district: string) => void;
+    setDistrictsCovered: (districts: string[]) => void;
 }
 
-export default function StepLocation({ formData, handleInputChange, toggleDistrictCovered }: StepLocationProps) {
+export default function StepLocation({ formData, handleInputChange, toggleDistrictCovered, setDistrictsCovered }: StepLocationProps) {
     const [detecting, setDetecting] = useState(false);
 
     const detectLocation = () => {
@@ -90,33 +92,41 @@ export default function StepLocation({ formData, handleInputChange, toggleDistri
                 </div>
                 <div className="space-y-3">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Home District</label>
-                    <select name="homeDistrict" value={formData.homeDistrict} onChange={handleInputChange} className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] outline-none text-sm [color-scheme:dark]">
-                        <option value="" className="bg-[#18181B]">Select District</option>
-                        {DISTRICTS.map(d => <option key={d} value={d} className="bg-[#18181B]">{d}</option>)}
-                    </select>
+                    <CustomSelect
+                        options={DISTRICTS}
+                        value={formData.homeDistrict}
+                        onChange={(val: string) => handleInputChange({ target: { name: 'homeDistrict', value: val } } as any)}
+                        placeholder="Search and select district..."
+                    />
                 </div>
             </div>
 
             <div className="space-y-4 pt-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center px-1">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Districts Covered (Multi-select)</label>
-                    <span className="text-indigo-400 font-black text-xs uppercase tracking-widest">{formData.districtsCovered.length} Selected</span>
                 </div>
-                <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                    {DISTRICTS.map(d => (
-                        <button
-                            key={d}
-                            onClick={() => toggleDistrictCovered(d)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border flex items-center gap-2 ${formData.districtsCovered.includes(d)
-                                ? 'bg-[#4F46E5] border-[#4F46E5] text-white shadow-lg shadow-indigo-500/20'
-                                : 'bg-white/5 border-white/5 text-white/40 hover:border-white/10'
-                            }`}
-                        >
-                            {formData.districtsCovered.includes(d) && <Check className="w-3 h-3 text-white" />}
-                            {d}
-                        </button>
-                    ))}
-                </div>
+                
+                <CustomSelect
+                    isMulti
+                    options={DISTRICTS}
+                    value={formData.districtsCovered}
+                    onChange={(vals: string[]) => setDistrictsCovered(vals)}
+                    placeholder="Search and select districts..."
+                />
+
+                {formData.districtsCovered.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                        {formData.districtsCovered.map((d: string) => (
+                            <button
+                                key={d}
+                                onClick={() => toggleDistrictCovered(d)}
+                                className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all border bg-indigo-500/10 border-indigo-500/30 text-indigo-400 flex items-center gap-2 group hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400"
+                            >
+                                {d} <X className="w-3 h-3 opacity-40 group-hover:opacity-100" />
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="space-y-4 pt-2">

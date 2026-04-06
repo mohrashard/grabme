@@ -138,6 +138,14 @@ export function useRegistrationForm() {
         }));
     };
 
+    const setSubSkills = (skills: string[]) => {
+        setFormData(prev => ({ ...prev, subSkills: skills }));
+    };
+
+    const setDistrictsCovered = (districts: string[]) => {
+        setFormData(prev => ({ ...prev, districtsCovered: districts }));
+    };
+
     const handleFileUpload = async (filesOrEvent: any, type: string) => {
         // Fallback checks just in case the input passes the React SyntheticEvent
         let files: File[] = [];
@@ -395,6 +403,8 @@ export function useRegistrationForm() {
         handleInputChange,
         toggleSubSkill,
         toggleDistrictCovered,
+        setSubSkills,
+        setDistrictsCovered,
         handleFileUpload,
         canMoveToNext,
         submitForm,
