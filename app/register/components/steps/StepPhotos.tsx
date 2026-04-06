@@ -4,7 +4,7 @@ import { Camera, Upload, Check, UserCheck, FileText, Image as ImageIcon } from '
 
 interface StepPhotosProps {
     formData: any;
-    handleFileUpload: (file: File, type: string) => void;
+    handleFileUpload: (files: File | File[], type: string) => void;
     uploading: string | null;
     previews?: Record<string, string>;
 }
@@ -55,7 +55,7 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
 
             <div className="space-y-4 pt-4 border-t border-white/5">
                 <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Past Work (Max 5 photos)</label>
-                <div className="grid grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 md:grid-cols-5 gap-3">
                     {formData.pastWorkPhotos.map((url: string, idx: number) => {
                         // Use the path as a key to look up the local preview
                         const preview = previews[`pastWorkPhotos_${url}`] || url;
@@ -72,7 +72,17 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                             ) : (
                                 <ImageIcon className="w-5 h-5 text-white/20" />
                             )}
-                            <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'pastWorkPhotos')} className="absolute inset-0 opacity-0 cursor-pointer" />
+                            <input 
+                                type="file" 
+                                accept="image/*" 
+                                multiple
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files.length > 0) {
+                                        handleFileUpload(Array.from(e.target.files), 'pastWorkPhotos');
+                                    }
+                                }} 
+                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                            />
                         </div>
                     )}
                 </div>

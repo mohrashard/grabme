@@ -138,54 +138,115 @@ export function useRegistrationForm() {
         }));
     };
 
-    const handleFileUpload = async (rawFile: File, type: string) => {
-        if (!rawFile) return;
+    const handleFileUpload = async (filesOrEvent: any, type: string) => {
+        // Fallback checks just in case the input passes the React SyntheticEvent
+        let files: File[] = [];
+        
+        if (filesOrEvent && filesOrEvent.target && filesOrEvent.target.files) {
+            files = Array.from(filesOrEvent.target.files);
+        } else if (Array.isArray(filesOrEvent)) {
+            files = filesOrEvent;
+        } else if (filesOrEvent instanceof File) {
+            files = [filesOrEvent];
+        }
+
+        if (files.length === 0) return;
+
+        // Synchronous check for max photos before starting
+        if (type === 'pastWorkPhotos') {
+            const currentCount = formData.pastWorkPhotos.length;
+            if (currentCount >= 5) {
+                toast.error('Maximum 5 photos allowed for past work.');
+                return;
+            }
+            if (currentCount + files.length > 5) {
+                const allowedCount = 5 - currentCount;
+                toast.warning(`Only ${allowedCount} more photos allowed. Some files will be skipped.`);
+                files = files.slice(0, allowedCount);
+            }
+        }
+
         setUploading(type);
         try {
+            const TARGET_SIZE_MB = 0.3;
             const options = {
-                maxSizeMB: 0.3,
+                maxSizeMB: TARGET_SIZE_MB,
                 maxWidthOrHeight: 1024,
-                useWebWorker: true,
+                useWebWorker: false, // Turbopack/Next.js 16 often has issues resolving worker scripts
             };
-            const compressedFile = await imageCompression(rawFile, options);
 
-            const fileExt = compressedFile.name.split('.').pop() || 'jpg';
-            const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().split('-')[0] : Math.random().toString(36).substring(2, 8);
-            const fileName = `${formData.nicNumber || 'anon'}_${type}_${Date.now()}_${uniqueId}.${fileExt}`;
-            const filePath = `workers/${fileName}`;
+            for (const file of files) {
+                try {
+                    let processedFile: File | Blob = file;
+                    
+                    // Only compress if the file is larger than our target AND size is accessible
+                    if (file && file.size && file.size > TARGET_SIZE_MB * 1024 * 1024) {
+                        try {
+                            processedFile = await imageCompression(file, options);
+                        } catch (compressionError) {
+                            console.warn("Compression failed, using uncompressed file", compressionError);
+                            processedFile = file; // Fallback to raw file if compression fails
+                        }
+                    }
 
-            // Bucket strategy:
-            // → 'avatars' (PUBLIC) : profilePhotoUrl, pastWorkPhotos, certificateUrl
-            //   These are portfolio/display images — safe to serve publicly.
-            // → 'worker-documents' (PRIVATE) : nicFrontUrl, nicBackUrl, selfieUrl
-            //   Identity documents — must NEVER be publicly accessible.
-            const PRIVATE_TYPES = ['nicFrontUrl', 'nicBackUrl', 'selfieUrl'];
-            const bucket = PRIVATE_TYPES.includes(type) ? 'worker-documents' : 'avatars';
+                    const fallbackExt = file?.type?.split('/')?.[1] || 'jpg';
+                    const fileExt = file?.name?.split('.')?.pop() || fallbackExt;
+                    
+                    const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().split('-')[0] : Math.random().toString(36).substring(2, 8);
+                    const fileName = `${formData.nicNumber || 'anon'}_${type}_${Date.now()}_${uniqueId}.${fileExt}`;
+                    const filePath = `workers/${fileName}`;
 
-            const previewKey = type === 'pastWorkPhotos' ? `pastWorkPhotos_${filePath}` : type;
-            
-            if (previews[previewKey]) {
-                URL.revokeObjectURL(previews[previewKey]);
-            }
-            
-            const previewUrl = URL.createObjectURL(compressedFile);
-            setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
+                    const PRIVATE_TYPES = ['nicFrontUrl', 'nicBackUrl', 'selfieUrl'];
+                    const bucket = PRIVATE_TYPES.includes(type) ? 'worker-documents' : 'avatars';
 
-            setPendingFiles(prev => {
-                // If it's not a multi-photo field, remove any existing pending upload for this type
-                const filtered = type === 'pastWorkPhotos' 
-                    ? prev 
-                    : prev.filter(p => p.type !== type);
-                return [...filtered, { file: compressedFile, type, path: filePath, bucket }];
-            });
+                    const previewKey = type === 'pastWorkPhotos' ? `pastWorkPhotos_${filePath}` : type;
+                    
+                    // For single-upload fields, revoke the previous preview if it exists
+                    if (type !== 'pastWorkPhotos') {
+                        setPreviews(prev => {
+                            if (prev[type]) {
+                                try { URL.revokeObjectURL(prev[type]); } catch(e) {}
+                            }
+                            return prev;
+                        });
+                    }
+                    
+                    const previewUrl = URL.createObjectURL(processedFile);
+                    setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
 
-            if (type === 'pastWorkPhotos') {
-                setFormData(prev => ({ ...prev, pastWorkPhotos: [...prev.pastWorkPhotos, filePath] }));
-            } else {
-                setFormData(prev => ({ ...prev, [type]: filePath }));
+                    setPendingFiles(prev => {
+                        const filtered = type === 'pastWorkPhotos' 
+                            ? prev 
+                            : prev.filter(p => p.type !== type);
+                        
+                        // Treat Blob as File to avoid TS errors
+                        const fileBlob = processedFile instanceof File 
+                            ? processedFile 
+                            : new File([processedFile], fileName, { type: file.type || 'image/jpeg' });
+                        
+                        return [...filtered, { file: fileBlob, type, path: filePath, bucket }];
+                    });
+
+                    setFormData(prev => {
+                        if (type === 'pastWorkPhotos') {
+                            if (prev.pastWorkPhotos.length >= 5) return prev;
+                            return { ...prev, pastWorkPhotos: [...prev.pastWorkPhotos, filePath] };
+                        }
+                        return { ...prev, [type]: filePath };
+                    });
+                } catch (fileError: any) {
+                    console.error('File Error [Raw]:', fileError);
+                    let errorMessage = 'Image processing error';
+                    try {
+                        errorMessage = String(fileError) || errorMessage;
+                    } catch (e) {}
+                    
+                    toast.error(`Error processing file. Try a different format. ${errorMessage}`);
+                }
             }
         } catch (error: any) {
-            toast.error('Upload failed: ' + error.message);
+            console.error('Batch Process Error:', error);
+            toast.error('Upload process failed.');
         } finally {
             setUploading(null);
         }

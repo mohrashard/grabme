@@ -68,7 +68,7 @@ export default function StepLocation({ formData, handleInputChange, toggleDistri
 
     return (
         <m.div key="4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
                 <div className="space-y-1">
                     <h2 className="text-xl font-bold text-white">Service Area</h2>
                     <p className="text-sm text-white/30">Where do you work?</p>
@@ -76,7 +76,7 @@ export default function StepLocation({ formData, handleInputChange, toggleDistri
                 <button 
                     onClick={detectLocation}
                     disabled={detecting}
-                    className="flex items-center gap-2 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/20 transition-all disabled:opacity-50 active:scale-95"
+                    className="w-full md:w-auto flex items-center justify-center gap-2 px-4 py-3 md:py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:bg-indigo-500/20 transition-all disabled:opacity-50 active:scale-95"
                 >
                     <Navigation className={`w-3 h-3 ${detecting ? 'animate-pulse' : ''}`} />
                     {detecting ? 'Detecting...' : 'Detect My District'}

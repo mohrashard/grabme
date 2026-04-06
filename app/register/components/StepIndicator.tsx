@@ -17,14 +17,14 @@ const STEPS = [
 
 export default function StepIndicator({ step, setStep }: StepIndicatorProps) {
     return (
-        <div className="flex justify-between items-start mb-12 px-2 max-w-2xl mx-auto gap-4 lg:gap-8 pb-4">
+        <div className="flex justify-between items-start mb-8 md:mb-12 px-1 lg:px-2 max-w-2xl mx-auto gap-1 sm:gap-2 lg:gap-8 pb-4">
             {STEPS.map((it) => (
                 <button 
                     key={it.id} 
                     onClick={() => setStep(it.id)}
-                    className="flex flex-col items-center gap-3 relative flex-1 group transition-all"
+                    className="flex flex-col items-center gap-2 md:gap-3 relative flex-1 group transition-all"
                 >
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black transition-all duration-500 ${step === it.id
+                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-[0.8rem] md:rounded-2xl flex items-center justify-center text-xs md:text-sm font-black transition-all duration-500 ${step === it.id
                         ? 'bg-[#4F46E5] text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] scale-110 ring-4 ring-indigo-500/10'
                         : step > it.id
                             ? 'bg-white/10 text-white/40 group-hover:bg-white/20'

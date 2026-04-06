@@ -169,7 +169,7 @@ function BrowsePageContent() {
                 </div>
             </nav>
 
-            <main className="pt-32 pb-24 px-6 max-w-7xl mx-auto">
+            <main className="pt-24 lg:pt-32 pb-24 px-4 lg:px-6 max-w-7xl mx-auto">
                 {/* Hero / Filter Section */}
                 <div className="space-y-10 mb-16">
                     <div className="space-y-4">
@@ -178,7 +178,7 @@ function BrowsePageContent() {
                     </div>
 
                     {/* Filter Bar */}
-                    <div className="flex flex-col lg:flex-row gap-4 items-center bg-[#18181B] p-4 rounded-[2rem] border border-white/5 shadow-2xl">
+                    <div className="flex flex-col lg:flex-row gap-3 lg:gap-4 items-center bg-[#18181B] p-3 md:p-4 rounded-3xl md:rounded-[2rem] border border-white/5 shadow-2xl">
                         <div className="flex-1 w-full relative">
                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                             <input 
@@ -189,7 +189,7 @@ function BrowsePageContent() {
                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm outline-none focus:border-indigo-500 transition-all font-medium"
                             />
                         </div>
-                        <div className="flex flex-wrap gap-3 w-full lg:w-auto">
+                        <div className="flex flex-col md:flex-row gap-3 w-full lg:w-auto">
                             <select 
                                 value={selectedTrade}
                                 onChange={(e) => {
@@ -197,35 +197,37 @@ function BrowsePageContent() {
                                     setSelectedTrade(newTrade);
                                     router.replace(`/browse?service=${newTrade}&district=${selectedDistrict}`, { scroll: false });
                                 }}
-                                className="flex-1 lg:w-48 bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm outline-none [color-scheme:dark] hover:border-white/20 transition-all font-bold"
+                                className="w-full md:w-48 bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm outline-none [color-scheme:dark] hover:border-white/20 transition-all font-bold"
                             >
                                 <option>All Services</option>
                                 {TRADES.map(t => <option key={t}>{t}</option>)}
                             </select>
-                            <select 
-                                value={selectedDistrict}
-                                onChange={(e) => {
-                                    const newDistrict = e.target.value;
-                                    setSelectedDistrict(newDistrict);
-                                    router.replace(`/browse?service=${selectedTrade}&district=${newDistrict}`, { scroll: false });
-                                }}
-                                className="flex-1 lg:w-48 bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm outline-none [color-scheme:dark] hover:border-white/20 transition-all font-bold"
-                            >
-                                <option>All Districts</option>
-                                {DISTRICTS.map(d => <option key={d}>{d}</option>)}
-                            </select>
-                            <button 
-                                onClick={detectLocation}
-                                disabled={detecting}
-                                className="lg:w-16 bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-center text-white/40 hover:text-indigo-400 hover:border-indigo-500/50 transition-all disabled:opacity-30 group"
-                                title="Auto-detect my district"
-                            >
-                                {detecting ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    <Navigation className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                )}
-                            </button>
+                            <div className="flex gap-3 w-full md:w-auto">
+                                <select 
+                                    value={selectedDistrict}
+                                    onChange={(e) => {
+                                        const newDistrict = e.target.value;
+                                        setSelectedDistrict(newDistrict);
+                                        router.replace(`/browse?service=${selectedTrade}&district=${newDistrict}`, { scroll: false });
+                                    }}
+                                    className="flex-1 md:w-48 bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm outline-none [color-scheme:dark] hover:border-white/20 transition-all font-bold"
+                                >
+                                    <option>All Districts</option>
+                                    {DISTRICTS.map(d => <option key={d}>{d}</option>)}
+                                </select>
+                                <button 
+                                    onClick={detectLocation}
+                                    disabled={detecting}
+                                    className="w-16 bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-center text-white/40 hover:text-indigo-400 hover:border-indigo-500/50 transition-all disabled:opacity-30 group flex-shrink-0"
+                                    title="Auto-detect my district"
+                                >
+                                    {detecting ? (
+                                        <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                        <Navigation className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -296,8 +298,8 @@ function BrowsePageContent() {
                                 transition={{ delay: i * 0.05 }}
                                 className={`group bg-[#18181B] border transition-all duration-500 hover:shadow-2xl relative overflow-hidden ${
                                     viewMode === 'grid' 
-                                    ? "rounded-[2.5rem] p-8 flex flex-col justify-between" 
-                                    : "rounded-3xl p-6 flex items-center gap-6"
+                                    ? "rounded-[2.5rem] p-6 md:p-8 flex flex-col justify-between" 
+                                    : "rounded-3xl p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-6"
                                 } ${w.is_featured ? 'border-amber-500/20 shadow-[0_0_40px_rgba(245,158,11,0.05)]' : 'border-white/5'}`}
                             >
                                 {w.is_featured && (
@@ -308,7 +310,7 @@ function BrowsePageContent() {
                                     </div>
                                 )}
 
-                                <div className={viewMode === 'grid' ? "space-y-6" : "flex items-center gap-6 flex-1 min-w-0"}>
+                                <div className={viewMode === 'grid' ? "space-y-6" : "flex items-center gap-4 md:gap-6 w-full md:flex-1 min-w-0"}>
                                     {/* Photo & Badge Grid Section */}
                                     <div className={viewMode === 'grid' ? "relative" : "flex-shrink-0"}>
                                         <div className={`${viewMode === 'grid' ? "w-20 h-20" : "w-16 h-16"} rounded-2xl overflow-hidden border border-white/10 bg-white/5 relative`}>
@@ -358,7 +360,7 @@ function BrowsePageContent() {
                                 )}
 
                                 {/* Location & Action */}
-                                <div className={viewMode === 'grid' ? "space-y-6" : "flex items-center gap-4"}>
+                                <div className={viewMode === 'grid' ? "space-y-6" : "flex flex-col md:flex-row items-start md:items-center gap-4 w-full md:w-auto mt-4 md:mt-0"}>
                                     <div className="flex items-center gap-4 text-xs font-bold text-white/20">
                                         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
                                             <MapPin className="w-3 h-3" />

@@ -115,7 +115,7 @@ export default function DashboardPage() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
                 {/* Header */}
                 <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 lg:px-12 bg-[#090A0F]/50 backdrop-blur-xl sticky top-0 z-20">
                     <div className="flex items-center gap-4">
@@ -270,6 +270,22 @@ export default function DashboardPage() {
                     <span>v1.0.4 - Alpha</span>
                 </div>
             </main>
+
+            {/* Mobile Bottom Navigation Bar */}
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#090A0F]/90 backdrop-blur-2xl border-t border-white/10 flex justify-around items-center h-20 z-50 px-4 pb-safe shadow-2xl">
+                <Link href="/dashboard" className="flex flex-col items-center gap-1.5 p-3 text-[#4F46E5] transition-all">
+                    <LayoutDashboard className="w-6 h-6" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
+                </Link>
+                <Link href="/dashboard/profile" className="flex flex-col items-center gap-1.5 p-3 text-white/40 hover:text-white transition-all">
+                    <User className="w-6 h-6" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Profile</span>
+                </Link>
+                <button onClick={handleLogout} className="flex flex-col items-center gap-1.5 p-3 text-red-500/60 hover:text-red-500 transition-all">
+                    <LogOut className="w-6 h-6" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
+                </button>
+            </nav>
         </div>
     );
 }
