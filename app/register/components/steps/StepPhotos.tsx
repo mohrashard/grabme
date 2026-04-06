@@ -63,7 +63,7 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                                     <span className="text-[10px] font-bold text-white/20 uppercase">{uploading === cat.id ? 'Uploading...' : 'Upload'}</span>
                                 </div>
                             )}
-                            <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], cat.id)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], cat.id)} className="absolute inset-0 opacity-0 cursor-pointer" />
                         </div>
                     </div>
                 ))}
@@ -97,7 +97,7 @@ export default function StepPhotos({ formData, handleFileUpload, uploading, prev
                             )}
                             <input 
                                 type="file" 
-                                accept="image/*" 
+                                accept="image/jpeg,image/png,image/webp" 
                                 multiple
                                 onChange={(e) => {
                                     if (e.target.files && e.target.files.length > 0) {

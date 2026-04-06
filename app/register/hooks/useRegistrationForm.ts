@@ -204,8 +204,18 @@ export function useRegistrationForm() {
                         }
                     }
 
-                    const fallbackExt = file?.type?.split('/')?.[1] || 'jpg';
-                    const fileExt = file?.name?.split('.')?.pop() || fallbackExt;
+                    let fallbackExt = file?.type?.split('/')?.[1] || 'jpg';
+                    if (fallbackExt === 'jpeg') fallbackExt = 'jpg';
+                    
+                    let fileExt = (file?.name?.split('.')?.pop()?.toLowerCase()) || fallbackExt;
+                    if (fileExt === 'jpeg') fileExt = 'jpg';
+
+                    // Strict whitelist to match RLS policies exactly
+                    const allowedExts = ['png', 'jpg', 'webp'];
+                    if (!allowedExts.includes(fileExt)) {
+                        toast.error(`"${file.name}" is an unsupported format (${fileExt}). Please use standard JPEG, PNG, or WebP images.`);
+                        continue;
+                    }
                     
                     const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID().split('-')[0] : Math.random().toString(36).substring(2, 8);
                     const fileName = `${formData.nicNumber || 'anon'}_${type}_${Date.now()}_${uniqueId}.${fileExt}`;
@@ -291,7 +301,7 @@ export function useRegistrationForm() {
             finalFormData.subSkills = [...formData.subSkills];
             finalFormData.districtsCovered = [...formData.districtsCovered];
 
-            for (const { file, bucket, type } of pendingFiles) {
+            for (const { file, bucket, type, path } of pendingFiles) {
                 // 1. Double-check validation before touching storage
                 const validation = await validateFileBuffer(file, type);
                 if (!validation.valid) {
@@ -300,7 +310,10 @@ export function useRegistrationForm() {
 
                 // 2. Generate a TRULY unique path at the exact moment of upload
                 // This prevents "Resource already exists" on re-submissions
-                const fileExt = file.name.split('.').pop() || 'jpg';
+                // Extracting the extension safely from the previously sanitized `path`, NOT the raw `file.name`
+                let fileExt = path?.split('.')?.pop()?.toLowerCase() || 'jpg';
+                if (fileExt === 'jpeg') fileExt = 'jpg';
+                
                 const uniqueId = typeof crypto !== 'undefined' && crypto.randomUUID 
                     ? crypto.randomUUID() 
                     : `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
