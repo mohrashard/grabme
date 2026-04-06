@@ -87,7 +87,7 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
             if (formData.full_name.length < 2) throw new Error('Name is too short');
             if (!/^0\d{9}$/.test(formData.phone)) throw new Error('Invalid SL phone (e.g. 0771234567)');
 
-            const result = await registerCustomerAction(formData);
+            const result = await registerCustomerAction({ ...formData, source: 'whatsapp_click' });
 
             if (result.success && result.id) {
                 const customer = { ...formData, id: result.id };

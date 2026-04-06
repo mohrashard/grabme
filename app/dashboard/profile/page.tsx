@@ -14,14 +14,19 @@ import {
     CheckCircle2,
     Clock,
     AlertCircle,
+    Eye,
+    Award,
     Star,
-    ChevronLeft,
+    Globe,
+    Music,
+    Save,
     Share2,
     Calendar,
     BriefcaseIcon,
-    Award,
-    Eye
+    ChevronLeft
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { updateWorkerSocialsAction } from '../actions/updateWorkerSocialsAction'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -33,6 +38,12 @@ export default function WorkerProfilePage() {
     const [user, setUser] = useState<any>(null);
     const [fullProfile, setFullProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [savingSocials, setSavingSocials] = useState(false);
+    const [socialLinks, setSocialLinks] = useState({
+        instagram_url: '',
+        tiktok_url: '',
+        facebook_url: ''
+    });
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -79,13 +90,21 @@ export default function WorkerProfilePage() {
   agreed_to_code_of_conduct,
   whatsapp_pinged_at,
   activated_at,
-  created_at
+  created_at,
+  instagram_url,
+  tiktok_url,
+  facebook_url
 `)
                 .eq('id', localUser.id)
                 .maybeSingle();
 
             if (data) {
                 setFullProfile(data);
+                setSocialLinks({
+                    instagram_url: data.instagram_url || '',
+                    tiktok_url: data.tiktok_url || '',
+                    facebook_url: data.facebook_url || ''
+                });
                 // Sync session just in case
                 localStorage.setItem('grabme_user', JSON.stringify({ ...localUser, ...data }));
             }
@@ -99,6 +118,30 @@ export default function WorkerProfilePage() {
         await supabase.auth.signOut();
         localStorage.removeItem('grabme_user');
         router.push('/login');
+    };
+
+    const handleSocialSave = async () => {
+        if (!fullProfile?.id) return;
+        setSavingSocials(true);
+        const toastId = toast.loading('Updating social profiles...');
+
+        try {
+            const res = await updateWorkerSocialsAction({
+                workerId: fullProfile.id,
+                ...socialLinks
+            });
+
+            if (res.success) {
+                toast.success('Social profiles updated!', { id: toastId });
+                setFullProfile((prev: any) => ({ ...prev, ...socialLinks }));
+            } else {
+                toast.error(res.error || 'Failed to update', { id: toastId });
+            }
+        } catch (err) {
+            toast.error('Connection error', { id: toastId });
+        } finally {
+            setSavingSocials(false);
+        }
     };
 
     const getStatusStyles = (status: string) => {
@@ -253,6 +296,52 @@ export default function WorkerProfilePage() {
                                         <p className="text-xs font-black uppercase tracking-[0.2em] text-white/20 mb-1">NIC Number</p>
                                         <p className="text-sm font-bold text-white">{fullProfile?.nic_number}</p>
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* SOCIAL MEDIA HUB */}
+                            <div className="bg-[#18181B] border border-white/5 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl group-hover:scale-150 transition-transform" />
+                                
+                                <div className="flex items-center justify-between relative z-10">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-[#4F46E5] flex items-center gap-2">
+                                        <Share2 className="w-4 h-4" /> Digital Footprint
+                                    </h3>
+                                    <button 
+                                        onClick={handleSocialSave}
+                                        disabled={savingSocials}
+                                        className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                        <Save className="w-3.5 h-3.5" /> {savingSocials ? 'Saving...' : 'Save Links'}
+                                    </button>
+                                </div>
+
+                                {/* Trust Booster Nudge */}
+                                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl relative z-10">
+                                    <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider leading-relaxed">
+                                        💡 Tip: Partners with social links are <span className="text-white">70% more likely</span> to be hired. It builds instant trust!
+                                    </p>
+                                </div>
+
+                                <div className="space-y-5 relative z-10">
+                                    {[
+                                        { id: 'instagram_url', icon: Globe, label: 'Instagram URL', placeholder: 'https://instagram.com/work...' },
+                                        { id: 'tiktok_url', icon: Music, label: 'TikTok URL', placeholder: 'https://tiktok.com/@yourname...' },
+                                        { id: 'facebook_url', icon: Share2, label: 'Facebook URL', placeholder: 'https://facebook.com/page...' },
+                                    ].map((social) => (
+                                        <div key={social.id} className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">
+                                                <social.icon className="w-3 h-3 text-indigo-400" /> {social.label}
+                                            </label>
+                                            <input 
+                                                type="url"
+                                                value={(socialLinks as any)[social.id]}
+                                                onChange={(e) => setSocialLinks((prev: any) => ({ ...prev, [social.id]: e.target.value }))}
+                                                placeholder={social.placeholder}
+                                                className="w-full bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3 text-xs font-bold text-white placeholder:text-white/10 focus:outline-none focus:border-indigo-500/50 transition-all"
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>

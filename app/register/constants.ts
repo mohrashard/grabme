@@ -103,3 +103,42 @@ export const TRADE_SUB_SKILLS: Record<string, string[]> = {
 export const TRADES = Object.keys(TRADE_SUB_SKILLS);
 
 export const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+/**
+ * SMART SEARCH ALIASES
+ * Maps common search "angles" to canonical trades/categories.
+ * This handles overlapping skills (e.g. windows can be wood, aluminium, or cleaning).
+ */
+export const SEARCH_ALIASES: Record<string, string[]> = {
+    "window": ["Cleaner / Helper", "Carpenter (වඩු බාස්)", "Aluminium & Glass (ඇලුමිනියම් / වීදුරු වැඩ)"],
+    "glass": ["Aluminium & Glass (ඇලුමිනියම් / වීදුරු වැඩ)"],
+    "leak": ["Plumber (බට බාස් / ප්ලම්බර්)", "AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)", "Painter (පේන්ට් බාස්)"],
+    "water": ["Plumber (බට බාස් / ප්ලම්බර්)", "Electrician (වයරින් බාස්)"], // Water motors / tanks
+    "wiring": ["Electrician (වයරින් බාස්)"],
+    "motor": ["Electrician (වයරින් බාස්)", "Plumber (බට බාස් / ප්ලම්බර්)"],
+    "pump": ["Plumber (බට බාස් / ප්ලම්බර්)"],
+    "gate": ["Welder (වැල්ඩින් / යකඩ වැඩ)", "Painter (පේන්ට් බාස්)"],
+    "grill": ["Welder (වැල්ඩින් / යකඩ වැඩ)", "Painter (පේන්ට් බාස්)"],
+    "roof": ["Carpenter (වඩු බාස්)", "Welder (වැල්ඩින් / යකඩ වැඩ)", "Painter (පේන්ට් බාස්)"],
+    "bathroom": ["Plumber (බට බාස් / ප්ලම්බර්)", "Mason (මේසන් බාස්)", "Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)"],
+    "toilet": ["Plumber (බට බාස් / ප්ලම්බර්)", "Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)"],
+    "garden": ["Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)"],
+    "grass": ["Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)"],
+    "tree": ["Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)"],
+    "tile": ["Mason (මේසන් බාස්)"],
+    "concrete": ["Mason (මේසන් බාස්)"],
+    "slab": ["Mason (මේසන් බාස්)"],
+    "pantry": ["Carpenter (වඩු බාස්)", "Aluminium & Glass (ඇලුමිනියම් / වීදුරු වැඩ)"],
+    "furniture": ["Carpenter (වඩු බාස්)", "Handyman (සුළු අලුත්වැඩියා වැඩ)"],
+    "lock": ["Handyman (සුළු අලුත්වැඩියා වැඩ)", "Carpenter (වඩු බාස්)"],
+    "drill": ["Handyman (සුළු අලුත්වැඩියා වැඩ)"],
+    "light": ["Electrician (වයරින් බාස්)", "Handyman (සුළු අලුත්වැඩියා වැඩ)"],
+    "fan": ["Electrician (වයරින් බාස්)"],
+    "ac": ["AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)", "Vehicle Mechanic (වාහන මිකැනික්)"],
+    "fridge": ["AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)"],
+    "washing machine": ["AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)"],
+    "car": ["Vehicle Mechanic (වාහන මිකැනික්)"],
+    "bike": ["Vehicle Mechanic (වාහන මිකැනික්)"],
+    "engine": ["Vehicle Mechanic (වාහන මිකැනික්)"],
+    "tinkering": ["Vehicle Mechanic (වාහන මිකැනික්)"]
+};

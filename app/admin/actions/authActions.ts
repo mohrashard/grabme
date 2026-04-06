@@ -144,7 +144,9 @@ export async function fetchAdminDataAction() {
                 certificate_url, past_work_photos,
                 home_district, specific_areas, districts_covered,
                 short_bio, is_featured, is_identity_verified,
-                is_reference_checked, created_at, sub_skills,
+                is_reference_checked, is_certificate_verified, 
+                is_experience_verified,
+                admin_notes, created_at, sub_skills,
                 years_experience, whatsapp_pinged_at, activated_at,
                 reference_name, reference_phone, address,
                 emergency_contact, agreed_to_code_of_conduct
@@ -153,7 +155,7 @@ export async function fetchAdminDataAction() {
 
         if (workerError) throw workerError;
 
-        // 2. Fetch Clicks for Analytics (with joined worker info)
+        // 2. Fetch Clicks for Analytics (with joined worker & customer info)
         const { data: clicks, error: clickError } = await supabaseAdmin
             .from('whatsapp_clicks')
             .select(`
@@ -161,18 +163,30 @@ export async function fetchAdminDataAction() {
                 worker_id,
                 clicked_at,
                 worker:workers (
+                    full_name,
                     trade_category,
                     home_district
+                ),
+                customer:customers (
+                    full_name,
+                    phone,
+                    district,
+                    area_name,
+                    lat,
+                    lng
                 )
-            `);
+            `)
+            .order('clicked_at', { ascending: false });
 
         if (clickError) throw clickError;
 
-        // 2.5 Fetch Customer Leads
+        // 2.5 Fetch Customer Leads (Notify-Me registrations ONLY)
         const { data: leads, error: leadsError } = await supabaseAdmin
             .from('customers')
             .select('*')
+            .eq('source', 'notify_me')
             .order('registered_at', { ascending: false });
+
 
         if (leadsError) throw leadsError;
 
@@ -224,7 +238,7 @@ export async function fetchAdminDataAction() {
             totalClicks: clicks.length
         };
 
-        return { success: true, workers, leads, stats };
+        return { success: true, workers, leads, clicks, stats };
     } catch (err: any) {
         console.error('[fetchAdminDataAction] error:', err);
         return { success: false, error: 'Something went wrong. Please try again.' };
@@ -323,7 +337,9 @@ export async function updateStatusWithLogAction(workerId: string, status: string
                 admin_notes: logData.admin_notes,
                 // Additional fields for the new checklist
                 nic_checked: logData.nic_checked,
-                reference_called: logData.reference_called
+                reference_called: logData.reference_called,
+                certificate_checked: logData.certificate_checked,
+                experience_checked: logData.experience_checked
             }]);
 
         if (logError) throw logError;

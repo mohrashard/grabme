@@ -1,8 +1,8 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { m } from 'framer-motion'
-import { TRADE_SUB_SKILLS, TRADES } from '../../constants'
-import { Plus, X, GraduationCap, Briefcase } from 'lucide-react'
+import { Plus, X, GraduationCap, Briefcase, Loader2 } from 'lucide-react'
+import { fetchTaxonomyAction, type TaxonomyData } from '@/app/lib/taxonomyActions'
 
 interface StepExperienceProps {
     formData: any;
@@ -19,8 +19,20 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
             </p>
         </div>
     );
+
     const [customSkill, setCustomSkill] = useState('');
-    const availableSubSkills = TRADE_SUB_SKILLS[formData.tradeCategory] || [];
+    const [taxonomy, setTaxonomy] = useState<TaxonomyData | null>(null);
+    const [loadingTaxonomy, setLoadingTaxonomy] = useState(true);
+
+    useEffect(() => {
+        fetchTaxonomyAction().then(data => {
+            setTaxonomy(data);
+            setLoadingTaxonomy(false);
+        });
+    }, []);
+
+    const services = taxonomy?.services ?? [];
+    const availableSubSkills = taxonomy?.skillsByService?.[formData.tradeCategory]?.map(sk => sk.name) ?? [];
 
     const handleAddCustom = () => {
         if (customSkill.trim()) {
@@ -39,15 +51,22 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
             <div className="space-y-6">
                 <div className="space-y-3">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Primary Trade</label>
-                    <select name="tradeCategory" value={formData.tradeCategory} onChange={handleInputChange} className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] outline-none text-sm [color-scheme:dark]">
-                        <option value="" className="bg-[#18181B]">Select Trade</option>
-                        {TRADES.map(t => <option key={t} value={t} className="bg-[#18181B]">{t}</option>)}
-                    </select>
+                    {loadingTaxonomy ? (
+                        <div className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-3 text-white/30 text-sm">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Loading services...
+                        </div>
+                    ) : (
+                        <select name="tradeCategory" value={formData.tradeCategory} onChange={handleInputChange} className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] outline-none text-sm [color-scheme:dark]">
+                            <option value="" className="bg-[#18181B]">Select Trade</option>
+                            {services.map(s => <option key={s.id} value={s.name} className="bg-[#18181B]">{s.name}</option>)}
+                        </select>
+                    )}
                 </div>
 
                 {formData.tradeCategory && (
                     <div className="space-y-4">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Specific Skills (Suggesting for {formData.tradeCategory})</label>
+                        <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">Specific Skills (Suggestions for {formData.tradeCategory})</label>
                         <div className="flex flex-wrap gap-2">
                             {availableSubSkills.map(skill => (
                                 <button

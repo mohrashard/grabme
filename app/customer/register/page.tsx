@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { m, AnimatePresence } from 'framer-motion'
 import {
@@ -9,16 +9,15 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { DISTRICTS, TRADE_SUB_SKILLS } from '@/app/register/constants'
+import { DISTRICTS } from '@/app/register/constants'
 import { registerCustomerAction } from './actions'
 import { toast } from 'sonner'
+import { fetchTaxonomyAction } from '@/app/lib/taxonomyActions'
 
-const TRADES = Object.keys(TRADE_SUB_SKILLS);
 
 function RegisterForm() {
     const searchParams = useSearchParams()
     
-    // Attempt to grab search params default values
     const urlService = searchParams.get('service') || 'General'
     const urlDistrict = searchParams.get('district') || 'Colombo'
 
@@ -29,12 +28,24 @@ function RegisterForm() {
         lat: undefined as number | undefined,
         lng: undefined as number | undefined,
         area_name: '',
-        service_needed: TRADES.includes(urlService) ? urlService : 'General',
+        service_needed: urlService,
     })
     const [detecting, setDetecting] = useState(false)
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+    const [services, setServices] = useState<string[]>([])
+
+    useEffect(() => {
+        fetchTaxonomyAction().then(data => {
+            const names = data.services.map(s => s.name);
+            setServices(names);
+            // Validate the URL service against actual services
+            if (urlService && !names.includes(urlService) && urlService !== 'General') {
+                setFormData(p => ({ ...p, service_needed: 'General' }));
+            }
+        });
+    }, []);
 
     // GPS auto-detect district
     const detectDistrict = () => {
@@ -303,7 +314,7 @@ function RegisterForm() {
                                         className="w-full pl-5 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] focus:outline-none text-sm transition-all text-white font-medium [color-scheme:dark] appearance-none"
                                     >
                                         <option value="General" className="bg-[#18181B]">General Handyman</option>
-                                        {TRADES.map(t => (
+                                        {services.map(t => (
                                             <option key={t} value={t} className="bg-[#18181B]">{t}</option>
                                         ))}
                                     </select>

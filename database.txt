@@ -23,6 +23,11 @@ CREATE TABLE workers (
 
   -- Location
   districts_covered TEXT[],
+  
+  -- Social Presence (Mini-LinkedIn)
+  facebook_url TEXT,
+  instagram_url TEXT,
+  tiktok_url TEXT,
 
   -- Social Proof
   reference_name TEXT,
@@ -480,3 +485,393 @@ ALTER TABLE workers
 ADD COLUMN IF NOT EXISTS is_featured BOOLEAN DEFAULT FALSE;
 
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS service_needed TEXT;
+
+-- SOCIAL MEDIA HUB (Mini-LinkedIn)
+ALTER TABLE workers 
+ADD COLUMN IF NOT EXISTS instagram_url TEXT,
+ADD COLUMN IF NOT EXISTS tiktok_url TEXT,
+ADD COLUMN IF NOT EXISTS facebook_url TEXT;
+
+-- 1. Add persistence for Admin notes directly on the worker record
+ALTER TABLE workers 
+ADD COLUMN IF NOT EXISTS admin_notes TEXT;
+
+-- 2. Add checklist persistence for certificates in the audit logs
+ALTER TABLE verification_log 
+ADD COLUMN IF NOT EXISTS certificate_checked BOOLEAN DEFAULT FALSE;
+
+-- 3. Ensure all verification flags exist on the workers table
+ALTER TABLE workers 
+ADD COLUMN IF NOT EXISTS is_identity_verified BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS is_reference_checked BOOLEAN DEFAULT FALSE,
+ADD COLUMN IF NOT EXISTS is_certificate_verified BOOLEAN DEFAULT FALSE;
+
+-- 1. Add Experience Verification to workers table
+ALTER TABLE workers 
+ADD COLUMN IF NOT EXISTS is_experience_verified BOOLEAN DEFAULT FALSE;
+
+-- 2. Add Experience Check to verification log
+ALTER TABLE verification_log
+ADD COLUMN IF NOT EXISTS experience_checked BOOLEAN DEFAULT FALSE;
+
+ALTER TABLE verification_log
+DROP CONSTRAINT IF EXISTS verification_log_worker_id_fkey,
+ADD CONSTRAINT verification_log_worker_id_fkey 
+  FOREIGN KEY (worker_id) 
+  REFERENCES workers(id) 
+  ON DELETE CASCADE;
+
+ALTER TABLE whatsapp_clicks
+DROP CONSTRAINT IF EXISTS whatsapp_clicks_worker_id_fkey,
+ADD CONSTRAINT whatsapp_clicks_worker_id_fkey 
+  FOREIGN KEY (worker_id) 
+  REFERENCES workers(id) 
+  ON DELETE CASCADE;
+
+  -- 1. Add source column
+ALTER TABLE customers 
+ADD COLUMN IF NOT EXISTS source TEXT DEFAULT 'whatsapp_click';
+
+-- 2. Retroactively tag existing Notify-Me customers
+UPDATE customers
+SET source = 'notify_me'
+WHERE id NOT IN (
+    SELECT DISTINCT customer_id 
+    FROM whatsapp_clicks 
+    WHERE customer_id IS NOT NULL
+);
+
+-- ================================================
+-- GRAB ME — Dynamic Taxonomy Migration
+-- Run this entire block in Supabase SQL Editor
+-- ================================================
+
+-- ================================================
+-- STEP 1: Create the `services` table (e.g. Electrician, Plumber)
+-- ================================================
+CREATE TABLE IF NOT EXISTS services (
+    id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name        TEXT NOT NULL UNIQUE,          -- "Electrician (වයරින් බාස්)"
+    is_active   BOOLEAN DEFAULT TRUE,
+    sort_order  INTEGER DEFAULT 0,
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ================================================
+-- STEP 2: Create the `skills` table (e.g. House Wiring, Fixing Leaks)
+-- ================================================
+CREATE TABLE IF NOT EXISTS skills (
+    id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    service_id  UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    name        TEXT NOT NULL,                -- "House Wiring (ගෙවල් වයරින්)"
+    is_active   BOOLEAN DEFAULT TRUE,
+    sort_order  INTEGER DEFAULT 0,
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ================================================
+-- STEP 3: Create the `search_keywords` table
+-- Maps natural-language search terms to services
+-- e.g. "bike", "broken" → Vehicle Mechanic
+-- ================================================
+CREATE TABLE IF NOT EXISTS search_keywords (
+    id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    service_id  UUID NOT NULL REFERENCES services(id) ON DELETE CASCADE,
+    keyword     TEXT NOT NULL,
+    created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_skills_service_id ON skills(service_id);
+CREATE INDEX IF NOT EXISTS idx_keywords_service_id ON search_keywords(service_id);
+CREATE INDEX IF NOT EXISTS idx_keywords_keyword ON search_keywords(keyword);
+
+-- ================================================
+-- STEP 4: RLS Policies
+-- Public can read (for registration, browse dropdowns)
+-- Only service_role (admin) can write
+-- ================================================
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE search_keywords ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Services: Public Read" ON services FOR SELECT TO anon, authenticated USING (is_active = TRUE);
+CREATE POLICY "Skills: Public Read" ON skills FOR SELECT TO anon, authenticated USING (is_active = TRUE);
+CREATE POLICY "Keywords: Public Read" ON search_keywords FOR SELECT TO anon, authenticated USING (TRUE);
+
+-- ================================================
+-- STEP 5: Seed all data from constants.ts
+-- ================================================
+
+-- Insert services first
+INSERT INTO services (name, sort_order) VALUES
+    ('Electrician (වයරින් බාස්)', 1),
+    ('Plumber (බට බාස් / ප්ලම්බර්)', 2),
+    ('AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)', 3),
+    ('Carpenter (වඩු බාස්)', 4),
+    ('Mason (මේසන් බාස්)', 5),
+    ('Painter (පේන්ට් බාස්)', 6),
+    ('Aluminium & Glass (ඇලුමිනියම් / වීදුරු වැඩ)', 7),
+    ('Welder (වැල්ඩින් / යකඩ වැඩ)', 8),
+    ('Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)', 9),
+    ('Handyman (සුළු අලුත්වැඩියා වැඩ)', 10),
+    ('Vehicle Mechanic (වාහන මිකැනික්)', 11),
+    ('Other (වෙනත්)', 99)
+ON CONFLICT (name) DO NOTHING;
+
+-- Insert skills per service
+-- Helper: use a sub-select to find the service_id
+
+-- Electrician
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('House Wiring (ගෙවල් වයරින්)', 1),
+    ('DB Board & Trip Switch Fixing (ඩීබී බෝඩ් / ට්‍රිප් ස්විච් හයිකිරීම)', 2),
+    ('Water Motor Repair (වතුර මෝටර් හැදීම)', 3),
+    ('Three Phase Wiring (ත්‍රී ෆේස් වයරින්)', 4),
+    ('CCTV Installation (CCTV කැමරා සවිකිරීම)', 5),
+    ('Solar Panel Fixing (සෝලර් පැනල් හයිකිරීම)', 6),
+    ('Fan / Oven Repair (ෆෑන් / අවන් හැදීම)', 7)
+) AS v(name, ord)
+WHERE s.name = 'Electrician (වයරින් බාස්)';
+
+-- Plumber
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('Pipe Leaks & Tap Fixing (වතුර ලීක් හැදීම / ටැප් හයිකිරීම)', 1),
+    ('Water Motor & Pump Installation (මෝටර් / පොම්ප හයිකිරීම)', 2),
+    ('Drain & Gully Block Clearing (ගලි / කාණු බ්ලොක් ඇරීම)', 3),
+    ('Water Tank Cleaning (වතුර ටැංකි සුද්ද කිරීම)', 4),
+    ('Gutter Fixing (වැහි පීලි / ගටර් ගැසීම)', 5),
+    ('Bathroom Fittings (බාත්රූම් ෆිටින්ස් හයිකිරීම)', 6),
+    ('Septic Tank / Gully Bowser (ගලි බවුසර් / සෙප්ටික් ටැංකි හිස් කිරීම)', 7)
+) AS v(name, ord)
+WHERE s.name = 'Plumber (බට බාස් / ප්ලම්බර්)';
+
+-- AC & Fridge Repair
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('A/C Full Service (A/C සර්විස් කිරීම)', 1),
+    ('Gas Refilling (ගෑස් ගැසීම)', 2),
+    ('Water Leak Fix (වතුර ලීක් හැදීම)', 3),
+    ('A/C Installation (A/C හයිකිරීම)', 4),
+    ('Fridge / Freezer Repair (ෆ්‍රිජ් / ඩීප් ෆ්‍රීසර් හැදීම)', 5),
+    ('Washing Machine Repair (වොෂින් මැෂින් හැදීම)', 6)
+) AS v(name, ord)
+WHERE s.name = 'AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)';
+
+-- Carpenter
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('Roof Work (වහලේ වැඩ)', 1),
+    ('Pantry Cupboards (පැන්ට්‍රි කබඩ් වැඩ)', 2),
+    ('Door & Window Fixing (දොර ජනෙල් හයිකිරීම)', 3),
+    ('Furniture Repair (ලී බඩු හැදීම)', 4),
+    ('Wood Polishing (ලී පොලිෂ් කිරීම)', 5),
+    ('Ceiling Fixing (සිවිලිම් ගැසීම)', 6)
+) AS v(name, ord)
+WHERE s.name = 'Carpenter (වඩු බාස්)';
+
+-- Mason
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('Brick Work (බිත්ති බැඳීම)', 1),
+    ('Plastering (කපරාරු කිරීම)', 2),
+    ('Tile Laying (ටයිල් ඇල්ලීම)', 3),
+    ('Concrete / Slab Work (කොන්ක්‍රීට් / ස්ලැබ් දැමීම)', 4),
+    ('Interlock Paving (ඉන්ටර්ලොක් ඇල්ලීම)', 5),
+    ('Granite / Marble Work (ග්‍රැනයිට් / මාර්බල් වැඩ)', 6)
+) AS v(name, ord)
+WHERE s.name = 'Mason (මේසන් බාස්)';
+
+-- Painter
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('House Painting (ගෙවල් පේන්ට් කිරීම)', 1),
+    ('Wall Putty / Skimming (වෝල් පුට්ටි / ස්කිමිං ගෑම)', 2),
+    ('Waterproofing (වෝටර්ප්‍රූෆින් වැඩ)', 3),
+    ('Wood Polish & Varnish (ලී පොලිෂ් / වාර්නිෂ් කිරීම)', 4),
+    ('Gate & Grill Painting (ගේට්ටු / ග්‍රිල් පේන්ට් කිරීම)', 5)
+) AS v(name, ord)
+WHERE s.name = 'Painter (පේන්ට් බාස්)';
+
+-- Aluminium & Glass
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('Aluminium Doors & Windows (ඇලුමිනියම් දොර / ජනෙල්)', 1),
+    ('Office Partitions (ඔෆිස් පාර්ටිෂන්)', 2),
+    ('Pantry Cupboards (ඇලුමිනියම් පැන්ට්‍රි කබඩ්)', 3),
+    ('Glass Fixing / Replacement (වීදුරු දැමීම / මාරු කිරීම)', 4)
+) AS v(name, ord)
+WHERE s.name = 'Aluminium & Glass (ඇලුමිනියම් / වීදුරු වැඩ)';
+
+-- Welder
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('Gate & Grills (ගේට්ටු සහ ග්‍රිල් වැඩ)', 1),
+    ('Roof Truss / Shed Work (යකඩ වහල / ෂෙඩ් ගැසීම)', 2),
+    ('Iron Welding (යකඩ වැල්ඩින්)', 3),
+    ('Stainless Steel Work (ස්ටේන්ලස් ස්ටීල් වැඩ)', 4)
+) AS v(name, ord)
+WHERE s.name = 'Welder (වැල්ඩින් / යකඩ වැඩ)';
+
+-- Cleaner / Helper
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('House Cleaning (ගෙවල් සුද්ද කිරීම)', 1),
+    ('Grass Cutting (තණකොළ කැපීම)', 2),
+    ('Sofa & Carpet Cleaning (සෝෆා සහ කාපට් සේදීම)', 3),
+    ('Tree Cutting (ගස් කැපීම)', 4),
+    ('Construction Cleanup (ඉදිකිරීම් භූමි සුද්ද කිරීම)', 5)
+) AS v(name, ord)
+WHERE s.name = 'Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)';
+
+-- Handyman
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('General Repairs (සාමාන්‍ය අලුත්වැඩියාවන්)', 1),
+    ('Drilling & Hanging (ඩ්‍රිල් කරලා හයි කිරීම)', 2),
+    ('Furniture Assembly (ෆර්නිචර් සෙට් කිරීම)', 3),
+    ('Door Lock Changing (දොරේ ලොක් මාරු කිරීම)', 4)
+) AS v(name, ord)
+WHERE s.name = 'Handyman (සුළු අලුත්වැඩියා වැඩ)';
+
+-- Vehicle Mechanic
+INSERT INTO skills (service_id, name, sort_order)
+SELECT s.id, v.name, v.ord FROM services s, (VALUES
+    ('Tinkering & Painting (ටින්කරින් සහ පේන්ට් වැඩ)', 1),
+    ('Engine Repair (එන්ජින් අලුත්වැඩියාව)', 2),
+    ('Vehicle A/C Repair (වාහන A/C වැඩ)', 3),
+    ('Auto Electrical (ඔටෝ ඉලෙක්ට්‍රිකල් වැඩ)', 4)
+) AS v(name, ord)
+WHERE s.name = 'Vehicle Mechanic (වාහන මිකැනික්)';
+
+-- ================================================
+-- STEP 6: Seed Search Keywords (Natural Language Smart Search)
+-- ================================================
+
+-- Electrician keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('wiring'), ('wire'), ('electric'), ('electricity'), ('light'), ('fan'),
+    ('socket'), ('fuse'), ('switch'), ('motor'), ('cctv'), ('solar'),
+    ('oven'), ('power'), ('trip'), ('db board'), ('earth leakage')
+) AS v(kw)
+WHERE s.name = 'Electrician (වයරින් බාස්)';
+
+-- Plumber keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('plumb'), ('pipe'), ('water'), ('leak'), ('tap'), ('drain'),
+    ('gully'), ('sewer'), ('tank'), ('pump'), ('motor'), ('toilet'),
+    ('bathroom'), ('gutter'), ('flush'), ('septic'), ('bowser')
+) AS v(kw)
+WHERE s.name = 'Plumber (බට බාස් / ප්ලම්බර්)';
+
+-- AC & Fridge keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('ac'), ('air con'), ('air condition'), ('fridge'), ('refrigerator'),
+    ('freezer'), ('cooling'), ('gas'), ('cold'), ('washing machine'),
+    ('dryer'), ('heat'), ('compressor')
+) AS v(kw)
+WHERE s.name = 'AC & Fridge Repair (ඒසී / ෆ්‍රිජ් වැඩ)';
+
+-- Carpenter keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('wood'), ('carpenter'), ('door'), ('window'), ('furniture'),
+    ('cupboard'), ('cabinet'), ('pantry'), ('roof'), ('ceiling'),
+    ('polish'), ('timber'), ('wardrobe'), ('bed'), ('table'), ('chair')
+) AS v(kw)
+WHERE s.name = 'Carpenter (වඩු බාස්)';
+
+-- Mason keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('mason'), ('tile'), ('tiling'), ('brick'), ('concrete'),
+    ('plaster'), ('slab'), ('cement'), ('interlock'), ('granite'),
+    ('marble'), ('floor'), ('wall'), ('build'), ('construction'), ('paving')
+) AS v(kw)
+WHERE s.name = 'Mason (මේසන් බාස්)';
+
+-- Painter keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('paint'), ('painter'), ('colour'), ('color'), ('wall'),
+    ('putty'), ('skim'), ('waterproof'), ('varnish'), ('polish'),
+    ('gate'), ('grill'), ('brush'), ('roller')
+) AS v(kw)
+WHERE s.name = 'Painter (පේන්ට් බාස්)';
+
+-- Aluminium & Glass keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('aluminium'), ('aluminum'), ('glass'), ('window'), ('partition'),
+    ('pantry'), ('sliding'), ('frame'), ('curtain wall'), ('shower')
+) AS v(kw)
+WHERE s.name = 'Aluminium & Glass (ඇලුමිනියම් / වීදුරු වැඩ)';
+
+-- Welder keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('weld'), ('steel'), ('iron'), ('metal'), ('gate'), ('grill'),
+    ('fence'), ('shed'), ('truss'), ('fabricat'), ('stainless'),
+    ('railing'), ('grille')
+) AS v(kw)
+WHERE s.name = 'Welder (වැල්ඩින් / යකඩ වැඩ)';
+
+-- Cleaner / Helper keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('clean'), ('cleaning'), ('sweep'), ('mop'), ('wash'), ('sofa'),
+    ('carpet'), ('grass'), ('garden'), ('tree'), ('cut'), ('trim'),
+    ('rubbish'), ('garbage'), ('helper'), ('window'), ('dust')
+) AS v(kw)
+WHERE s.name = 'Cleaner / Helper (ක්ලීනර් / අත් උදව්කරුවන්)';
+
+-- Handyman keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('handyman'), ('repair'), ('fix'), ('hang'), ('drill'), ('bolt'),
+    ('shelf'), ('handle'), ('lock'), ('furniture'), ('assemble'),
+    ('odd job'), ('general'), ('minor')
+) AS v(kw)
+WHERE s.name = 'Handyman (සුළු අලුත්වැඩියා වැඩ)';
+
+-- Vehicle Mechanic keywords
+INSERT INTO search_keywords (service_id, keyword)
+SELECT s.id, v.kw FROM services s, (VALUES
+    ('car'), ('vehicle'), ('bike'), ('motorcycle'), ('van'), ('lorry'),
+    ('engine'), ('mechanic'), ('brake'), ('tyre'), ('gear'), ('oil'),
+    ('body'), ('tinkering'), ('paint'), ('repair'), ('broken'), ('service'),
+    ('auto'), ('electrical'), ('battery'), ('radiator')
+) AS v(kw)
+WHERE s.name = 'Vehicle Mechanic (වාහන මිකැනික්)';
+
+-- ================================================
+-- DONE! Verify with:
+-- SELECT s.name as service, sk.name as skill 
+-- FROM services s JOIN skills sk ON sk.service_id = s.id
+-- ORDER BY s.sort_order, sk.sort_order;
+-- ================================================
+
+-- STEP 1: Add Localized Columns & Constraints
+ALTER TABLE public.services ADD COLUMN IF NOT EXISTS name_si TEXT;
+ALTER TABLE public.services ADD COLUMN IF NOT EXISTS name_en TEXT;
+ALTER TABLE public.skills ADD COLUMN IF NOT EXISTS name_si TEXT;
+ALTER TABLE public.skills ADD COLUMN IF NOT EXISTS name_en TEXT;
+
+-- Drop constraints if they exist to avoid errors
+ALTER TABLE public.services DROP CONSTRAINT IF EXISTS services_name_en_unique;
+
+-- Make name_en UNIQUE for reliable upserts
+ALTER TABLE public.services ADD CONSTRAINT services_name_en_unique UNIQUE (name_en);
+
+-- Make (service_id, name_en) UNIQUE for skills
+ALTER TABLE public.skills DROP CONSTRAINT IF EXISTS skills_service_id_name_en_key;
+ALTER TABLE public.skills ADD CONSTRAINT skills_service_id_name_en_key UNIQUE (service_id, name_en);
+
+-- Fix the Keywords table unique constraint
+ALTER TABLE public.search_keywords DROP CONSTRAINT IF EXISTS search_keywords_service_id_keyword_key;
+ALTER TABLE public.search_keywords ADD CONSTRAINT search_keywords_service_id_keyword_key UNIQUE (service_id, keyword);

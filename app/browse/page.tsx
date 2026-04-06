@@ -23,9 +23,8 @@ import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '../lib/supabase'
 import { toast } from 'sonner'
-import { DISTRICTS, TRADE_SUB_SKILLS } from '../register/constants'
-
-const TRADES = Object.keys(TRADE_SUB_SKILLS);
+import { DISTRICTS } from '../register/constants'
+import { fetchTaxonomyAction, type TaxonomyData } from '@/app/lib/taxonomyActions'
 
 type Worker = {
     id: string;
@@ -53,6 +52,13 @@ function BrowsePageContent() {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
     const [detecting, setDetecting] = useState(false);
+    const [taxonomy, setTaxonomy] = useState<TaxonomyData | null>(null);
+
+    useEffect(() => {
+        fetchTaxonomyAction().then(data => setTaxonomy(data));
+    }, []);
+
+    const TRADES = taxonomy?.services?.map(s => s.name) ?? [];
 
     const fetchWorkers = useCallback(async () => {
         setLoading(true);
@@ -146,11 +152,36 @@ function BrowsePageContent() {
         fetchWorkers();
     }, [fetchWorkers]);
 
-    const filteredWorkers = workers.filter(w => 
-        w.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.trade_category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (w.specific_areas && w.specific_areas.some(a => a.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
+    const filteredWorkers = workers.filter(w => {
+        const s = searchQuery.toLowerCase().trim();
+        if (!s) return true;
+
+        // 1. Direct field matches (Name, Trade, Skills, Area)
+        const directMatch = (
+            w.full_name.toLowerCase().includes(s) ||
+            w.trade_category.toLowerCase().includes(s) ||
+            (w.specific_areas && w.specific_areas.some(a => a.toLowerCase().includes(s))) ||
+            ((w as any).sub_skills && (w as any).sub_skills.some((sk: string) => sk.toLowerCase().includes(s)))
+        );
+        if (directMatch) return true;
+
+        // 2. DB-powered Smart Keyword Expansion
+        // e.g. "my bike is broken" -> tokens: [my, bike, is, broken] -> bike -> Vehicle Mechanic
+        if (taxonomy?.keywordMap) {
+            const tokens = s.split(/\s+/);
+            const matchedServices = new Set<string>();
+            tokens.forEach(token => {
+                Object.entries(taxonomy.keywordMap).forEach(([kw, serviceNames]) => {
+                    if (kw.includes(token) || token.includes(kw)) {
+                        serviceNames.forEach(sn => matchedServices.add(sn.toLowerCase()));
+                    }
+                });
+            });
+            if (matchedServices.size > 0 && matchedServices.has(w.trade_category.toLowerCase())) return true;
+        }
+
+        return false;
+    });
 
     return (
         <div className="min-h-screen bg-[#090A0F] text-white font-sans">

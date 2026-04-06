@@ -14,6 +14,7 @@ const CustomerSchema = z.object({
     lng: z.number().optional(),
     area_name: z.string().optional(),
     service_needed: z.string().optional(),
+    source: z.enum(['notify_me', 'whatsapp_click']).optional(),
 });
 
 export type CustomerData = z.infer<typeof CustomerSchema>;
@@ -56,6 +57,7 @@ export async function registerCustomerAction(formData: CustomerData) {
                     lng: validated.data.lng,
                     area_name: validated.data.area_name,
                     service_needed: validated.data.service_needed,
+                    source: validated.data.source || 'notify_me',
                 }
             ], { onConflict: 'phone' })
             .select('id')

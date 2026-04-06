@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { supabaseAdmin } from '../../lib/supabaseServer'
-import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft } from 'lucide-react'
+import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft, Globe, Music, Share2, Award, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import WhatsAppButton from './components/WhatsAppButton'
@@ -94,8 +94,13 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             is_identity_verified,
             is_reference_checked,
             is_certificate_verified,
+            is_experience_verified,
             is_featured,
-            account_status
+            account_status,
+            facebook_url,
+            instagram_url,
+            tiktok_url,
+            created_at
         `)
         .eq('id', id);
 
@@ -158,18 +163,57 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         <div className="flex-1 text-center md:text-left space-y-4">
                             <div className="space-y-1">
                                 <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">{worker.full_name}</h1>
-                                <p className="text-indigo-400 font-black text-sm uppercase tracking-[0.2em]">{worker.trade_category}</p>
-                            </div>
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-y-2 gap-x-6">
+                                    <p className="flex items-center gap-2 text-white/40 text-sm font-bold uppercase tracking-widest leading-none">
+                                        <Briefcase className="w-4 h-4" /> {worker.trade_category}
+                                    </p>
+                                    <p className="flex items-center gap-2 text-white/40 text-sm font-bold uppercase tracking-widest leading-none">
+                                        <MapPin className="w-4 h-4" /> {worker.home_district}
+                                    </p>
+                                    <p className="flex items-center gap-2 text-indigo-400 text-[10px] font-black uppercase tracking-[0.2em] leading-none bg-indigo-500/10 px-3 py-1.5 rounded-full border border-indigo-500/20">
+                                        <Calendar className="w-3.5 h-3.5" /> Since {new Date(worker.created_at).getFullYear()}
+                                    </p>
+                                </div>
 
-                            <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                                <div className="px-5 py-2 bg-white/5 rounded-full border border-white/5 flex items-center gap-2 text-[11px] font-bold text-white/60">
-                                    <MapPin className="w-3 h-3 text-indigo-400" /> {worker.home_district}
-                                </div>
-                                <div className="px-5 py-2 bg-white/5 rounded-full border border-white/5 flex items-center gap-2 text-[11px] font-bold text-white/60">
-                                    <Briefcase className="w-3 h-3 text-indigo-400" /> {worker.years_experience}+ Years Experience
-                                </div>
+                                {/* SOCIAL LINKS (MINI LINKEDIN) */}
+                                {(worker.facebook_url || worker.instagram_url || worker.tiktok_url) && (
+                                    <div className="flex items-center justify-center md:justify-start gap-3 pt-2">
+                                        {worker.instagram_url && (
+                                            <a href={worker.instagram_url} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all" title="Instagram Profile">
+                                                <Globe className="w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {worker.tiktok_url && (
+                                            <a href={worker.tiktok_url} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all" title="TikTok Profile">
+                                                <Music className="w-4 h-4" />
+                                            </a>
+                                        )}
+                                        {worker.facebook_url && (
+                                            <a href={worker.facebook_url} target="_blank" rel="noopener noreferrer" className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-white/40 hover:text-white hover:bg-white/10 hover:border-white/20 transition-all" title="Facebook Profile">
+                                                <Share2 className="w-4 h-4" />
+                                            </a>
+                                        )}
+                                        <span className="text-[10px] font-black text-white/20 uppercase tracking-widest ml-1">Social Proof</span>
+                                    </div>
+                                )}
                             </div>
                         </div>
+                    </div>
+
+                    {/* TRUST SCORE SUMMARY */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 mb-12">
+                        {[
+                            { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck },
+                            { label: 'Reference', val: worker.is_reference_checked, icon: Star },
+                            { label: 'Documents', val: worker.is_certificate_verified, icon: Award },
+                            { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase },
+                        ].map((badge, i) => (
+                            <div key={i} className={`p-4 rounded-[2rem] border ${badge.val ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' : 'bg-white/2 border-white/5 text-white/20'} flex flex-col items-center gap-2 text-center transition-all`}>
+                                <badge.icon className={`w-5 h-5 ${badge.val ? 'animate-pulse' : ''}`} />
+                                <span className="text-[10px] font-black uppercase tracking-[0.1em]">{badge.label}</span>
+                                <span className="text-[9px] font-bold uppercase opacity-60 tracking-wider font-mono">{badge.val ? 'Verified' : 'Pending'}</span>
+                            </div>
+                        ))}
                     </div>
 
                     {/* Bio Section */}
