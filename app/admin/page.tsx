@@ -618,101 +618,114 @@ export default function AdminPage() {
                                 {loading ? (
                                     <div className="text-center py-20 text-white/20 text-sm">Loading directory...</div>
                                 ) : directory.map(w => (
-                                    <div key={w.id} className="bg-[#18181B] border border-white/5 rounded-2xl p-5 flex items-center gap-5">
-                                        {/* Avatar */}
-                                        {!w.profile_photo_url || imageErrors[w.profile_photo_url]
-                                            ? (
-                                                <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 flex-shrink-0 font-black">
-                                                    {w.full_name?.[0]}
-                                                </div>
-                                              )
-                                            : (
-                                                <img 
-                                                    src={signedUrls[w.profile_photo_url] || w.profile_photo_url} 
-                                                    alt="Avatar"
-                                                    onError={() => setImageErrors(prev => ({ ...prev, [w.profile_photo_url]: true }))}
-                                                    className="w-12 h-12 rounded-xl object-cover border border-white/10 flex-shrink-0" 
-                                                />
-                                              )
-                                        }
+                                    <div key={w.id} className="bg-[#18181B] border border-white/5 rounded-2xl p-4 lg:p-5 flex flex-col lg:flex-row items-start lg:items-center gap-4 lg:gap-5">
+                                        {/* Avatar & Info Row (Mobile First) */}
+                                        <div className="flex items-center gap-4 w-full lg:w-auto flex-1">
+                                            {/* Avatar */}
+                                            {!w.profile_photo_url || imageErrors[w.profile_photo_url]
+                                                ? (
+                                                    <div className="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-white/30 flex-shrink-0 font-black">
+                                                        {w.full_name?.[0]}
+                                                    </div>
+                                                  )
+                                                : (
+                                                    <img 
+                                                        src={signedUrls[w.profile_photo_url] || w.profile_photo_url} 
+                                                        alt="Avatar"
+                                                        onError={() => setImageErrors(prev => ({ ...prev, [w.profile_photo_url]: true }))}
+                                                        className="w-12 h-12 rounded-xl object-cover border border-white/10 flex-shrink-0" 
+                                                    />
+                                                  )
+                                            }
 
-                                        {/* Info */}
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="text-sm font-black text-white truncate">{w.full_name}</h3>
-                                                {w.is_featured && <Star className="w-3 h-3 text-amber-400 fill-amber-400 flex-shrink-0" />}
+                                            {/* Info */}
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <h3 className="text-sm font-black text-white truncate">{w.full_name}</h3>
+                                                    {w.is_featured && <Star className="w-3 h-3 text-amber-400 fill-amber-400 flex-shrink-0" />}
+                                                </div>
+                                                <p className="text-[11px] text-white/30 truncate">{w.trade_category} · {w.home_district}</p>
                                             </div>
-                                            <p className="text-[11px] text-white/30">{w.trade_category} · {w.home_district}</p>
+
+                                            {/* Mobile Status Badge */}
+                                            <div className="lg:hidden flex-shrink-0">
+                                                <StatusBadge status={w.account_status} />
+                                            </div>
                                         </div>
 
-                                        {/* Trade edit */}
-                                        <select
-                                            value={w.trade_category || ''}
-                                            onChange={e => updateTradeCategory(w.id, e.target.value)}
-                                            className="hidden lg:block bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white/60 outline-none [color-scheme:dark] hover:border-white/20 transition-all max-w-[150px]"
-                                        >
-                                            <option value="" disabled>Change Trade...</option>
-                                            {TRADES.map(t => (
-                                                <option key={t} value={t} className="bg-[#18181B]">{t}</option>
-                                            ))}
-                                        </select>
+                                        {/* Controls Row */}
+                                        <div className="flex flex-wrap lg:flex-nowrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+                                            <select
+                                                value={w.trade_category || ''}
+                                                onChange={e => updateTradeCategory(w.id, e.target.value)}
+                                                className="flex-1 lg:flex-none bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 lg:py-2 text-[11px] text-white/60 outline-none [color-scheme:dark] hover:border-white/20 transition-all min-w-[130px] max-w-[180px] lg:max-w-[150px]"
+                                            >
+                                                <option value="" disabled>Change Trade...</option>
+                                                {TRADES.map(t => (
+                                                    <option key={t} value={t} className="bg-[#18181B]">{t}</option>
+                                                ))}
+                                            </select>
 
-                                        <StatusBadge status={w.account_status} />
+                                            {/* Desktop Status Badge */}
+                                            <div className="hidden lg:block">
+                                                <StatusBadge status={w.account_status} />
+                                            </div>
 
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-2 flex-shrink-0">
-                                            <button
-                                                onClick={() => toggleFeatured(w.id, w.is_featured)}
-                                                disabled={!!actionLoading}
-                                                className={`p-2 rounded-xl border transition-all disabled:opacity-50 ${w.is_featured ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-white/5 border-white/5 text-white/20 hover:text-amber-400'}`}
-                                                title="Toggle Featured"
-                                            >
-                                                <Star className={`w-4 h-4 ${w.is_featured ? 'fill-amber-400' : ''}`} />
-                                            </button>
-                                            {w.account_status === 'active' && (
+                                            {/* Actions */}
+                                            <div className="flex items-center gap-1.5 flex-wrap justify-end">
                                                 <button
-                                                    onClick={() => updateStatus(w.id, 'suspended')}
+                                                    onClick={() => toggleFeatured(w.id, w.is_featured)}
                                                     disabled={!!actionLoading}
-                                                    className="p-2 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 transition-all disabled:opacity-50"
-                                                    title="Suspend Worker"
+                                                    className={`p-2 lg:p-2.5 rounded-xl border transition-all disabled:opacity-50 ${w.is_featured ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-white/5 border-white/5 text-white/20 hover:text-amber-400'}`}
+                                                    title="Toggle Featured"
                                                 >
-                                                    <PauseCircle className="w-4 h-4" />
+                                                    <Star className={`w-4 h-4 ${w.is_featured ? 'fill-amber-400' : ''}`} />
                                                 </button>
-                                            )}
-                                            {w.account_status === 'suspended' && (
+                                                {w.account_status === 'active' && (
+                                                    <button
+                                                        onClick={() => updateStatus(w.id, 'suspended')}
+                                                        disabled={!!actionLoading}
+                                                        className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 transition-all disabled:opacity-50"
+                                                        title="Suspend Worker"
+                                                    >
+                                                        <PauseCircle className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {w.account_status === 'suspended' && (
+                                                    <button
+                                                        onClick={() => updateStatus(w.id, 'active')}
+                                                        disabled={!!actionLoading}
+                                                        className="p-2 lg:p-2.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 transition-all disabled:opacity-50"
+                                                        title="Reactivate Worker"
+                                                    >
+                                                        <CheckCircle2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {w.account_status === 'pending' && (
+                                                    <button
+                                                        onClick={() => updateStatus(w.id, 'active', w)}
+                                                        disabled={!!actionLoading}
+                                                        className="p-2 lg:p-2.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 transition-all disabled:opacity-50"
+                                                        title="Quick Activate"
+                                                    >
+                                                        <Zap className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                                 <button
-                                                    onClick={() => updateStatus(w.id, 'active')}
-                                                    disabled={!!actionLoading}
-                                                    className="p-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 transition-all disabled:opacity-50"
-                                                    title="Reactivate Worker"
+                                                    onClick={() => handleResetPassword(w.id, w.full_name)}
+                                                    className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-indigo-400 hover:border-indigo-500/20 transition-all font-bold group/reset"
+                                                    title="Reset Password"
                                                 >
-                                                    <CheckCircle2 className="w-4 h-4" />
+                                                    <Lock className="w-4 h-4" />
                                                 </button>
-                                            )}
-                                            {w.account_status === 'pending' && (
                                                 <button
-                                                    onClick={() => updateStatus(w.id, 'active', w)}
-                                                    disabled={!!actionLoading}
-                                                    className="p-2 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 transition-all disabled:opacity-50 flex-shrink-0"
-                                                    title="Quick Activate"
+                                                    onClick={() => { setSelectedWorker(w); setTab('audit'); }}
+                                                    className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white/40 transition-all"
+                                                    title="Log Audit Note"
                                                 >
-                                                    <Zap className="w-4 h-4" />
+                                                    <ClipboardList className="w-4 h-4" />
                                                 </button>
-                                            )}
-                                            <button
-                                                onClick={() => handleResetPassword(w.id, w.full_name)}
-                                                className="p-2 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-indigo-400 hover:border-indigo-500/20 transition-all font-bold group/reset flex-shrink-0"
-                                                title="Reset Password"
-                                            >
-                                                <Lock className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => { setSelectedWorker(w); setTab('audit'); }}
-                                                className="p-2 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white/40 transition-all"
-                                                title="Log Audit Note"
-                                            >
-                                                <ClipboardList className="w-4 h-4" />
-                                            </button>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -856,7 +869,7 @@ export default function AdminPage() {
                         {tab === 'audit' && (
                             <m.div key="audit" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
                                 {/* Audit Form */}
-                                <div className="bg-[#18181B] border border-white/5 rounded-2xl p-8 space-y-6">
+                                <div className="bg-[#18181B] border border-white/5 rounded-2xl p-4 sm:p-6 lg:p-8 space-y-6">
                                     <h3 className="text-sm font-black uppercase tracking-widest text-white/40">Log Reference Check</h3>
 
                                     {/* Worker Selector */}
@@ -880,24 +893,29 @@ export default function AdminPage() {
                                     </div>
 
                                     {selectedWorker && (
-                                        <div className="bg-white/5 border border-white/5 rounded-xl p-4 flex items-center gap-4">
-                                            {selectedWorker.profile_photo_url && !imageErrors[selectedWorker.profile_photo_url] ? (
-                                                <img 
-                                                    src={signedUrls[selectedWorker.profile_photo_url] || selectedWorker.profile_photo_url} 
-                                                    alt="" 
-                                                    onError={() => setImageErrors(prev => ({ ...prev, [selectedWorker.profile_photo_url]: true }))}
-                                                    className="w-12 h-12 rounded-xl object-cover border border-white/10" 
-                                                />
-                                            ) : (
-                                                <div className="w-12 h-12 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center flex-shrink-0">
-                                                    <User className="w-5 h-5 text-white/20" />
+                                        <div className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                                            <div className="flex items-center gap-4 w-full sm:w-auto flex-1 max-w-full">
+                                                {selectedWorker.profile_photo_url && !imageErrors[selectedWorker.profile_photo_url] ? (
+                                                    <img 
+                                                        src={signedUrls[selectedWorker.profile_photo_url] || selectedWorker.profile_photo_url} 
+                                                        alt="" 
+                                                        onError={() => setImageErrors(prev => ({ ...prev, [selectedWorker.profile_photo_url]: true }))}
+                                                        className="w-12 h-12 rounded-xl object-cover border border-white/10 flex-shrink-0" 
+                                                    />
+                                                ) : (
+                                                    <div className="w-12 h-12 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center flex-shrink-0">
+                                                        <User className="w-5 h-5 text-white/20" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-black text-white truncate">{selectedWorker.full_name}</p>
+                                                    <p className="text-[11px] text-white/30 truncate">{selectedWorker.trade_category} · {selectedWorker.phone}</p>
                                                 </div>
-                                            )}
-                                            <div>
-                                                <p className="text-sm font-black text-white">{selectedWorker.full_name}</p>
-                                                <p className="text-[11px] text-white/30">{selectedWorker.trade_category} · {selectedWorker.phone}</p>
+                                                <div className="sm:hidden flex-shrink-0">
+                                                    <StatusBadge status={selectedWorker.account_status} />
+                                                </div>
                                             </div>
-                                            <div className="ml-auto">
+                                            <div className="hidden sm:block sm:ml-auto">
                                                 <StatusBadge status={selectedWorker.account_status} />
                                             </div>
                                         </div>
@@ -905,7 +923,7 @@ export default function AdminPage() {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-white/30">Outcome</label>
-                                        <div className="flex gap-3">
+                                        <div className="flex flex-wrap gap-2 lg:gap-3">
                                             {[
                                                 { val: 'pass', label: 'Pass ✓', color: 'green' },
                                                 { val: 'fail', label: 'Fail ✗', color: 'red' },
@@ -944,7 +962,7 @@ export default function AdminPage() {
                                     <button
                                         onClick={submitAuditNote}
                                         disabled={!selectedWorker || !auditNote || actionLoading === 'audit'}
-                                        className="px-8 py-4 bg-indigo-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                        className="w-full lg:w-auto px-8 py-4 bg-indigo-500 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-400 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                         {actionLoading === 'audit' ? 'Saving...' : 'Save Audit Note'}
                                     </button>
@@ -962,29 +980,35 @@ export default function AdminPage() {
                                 ) : (
                                     <div className="grid gap-3">
                                         {leads.map(lead => (
-                                            <div key={lead.id} className="bg-[#18181B] border border-white/5 rounded-2xl p-5 flex items-center gap-5 hover:border-white/10 transition-colors">
+                                            <div key={lead.id} className="bg-[#18181B] border border-white/5 rounded-2xl p-4 lg:p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4 lg:gap-5 hover:border-white/10 transition-colors">
                                                 {/* Info */}
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2">
-                                                        <h3 className="text-sm font-black text-white truncate">{lead.full_name}</h3>
-                                                        <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-white/40 uppercase tracking-widest border border-white/5">
+                                                <div className="flex-1 min-w-0 w-full">
+                                                    <div className="flex items-center flex-wrap gap-2">
+                                                        <h3 className="text-sm font-black text-white truncate max-w-full">{lead.full_name}</h3>
+                                                        <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded-full text-white/40 uppercase tracking-widest border border-white/5 flex-shrink-0">
                                                             {lead.service_needed || 'General'}
                                                         </span>
                                                     </div>
-                                                    <div className="text-[11px] text-white/30 truncate mt-1 flex gap-2 items-center">
-                                                        <MapPin className="w-3 h-3 text-indigo-400/80" /> {lead.area_name ? `${lead.area_name}, ` : ''}{lead.district}
-                                                        <span className="text-white/10">•</span>
-                                                        <Phone className="w-3 h-3 text-indigo-400/80" /> {lead.phone}
+                                                    <div className="text-[11px] text-white/30 mt-2 flex flex-wrap gap-2 items-center">
+                                                        <div className="flex items-center gap-1.5 min-w-0">
+                                                            <MapPin className="w-3 h-3 text-indigo-400/80 flex-shrink-0" />
+                                                            <span className="truncate">{lead.area_name ? `${lead.area_name}, ` : ''}{lead.district}</span>
+                                                        </div>
+                                                        <span className="text-white/10 hidden sm:block">•</span>
+                                                        <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                            <Phone className="w-3 h-3 text-indigo-400/80" />
+                                                            <span>{lead.phone}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
 
                                                 {/* Actions */}
-                                                <div className="flex items-center gap-2 flex-shrink-0">
+                                                <div className="flex items-center gap-2 w-full sm:w-auto mt-2 sm:mt-0 justify-end flex-shrink-0">
                                                     <a
                                                         href={`https://wa.me/${lead.phone}?text=${encodeURIComponent(`Hi ${lead.full_name}! ✅ Good news from Grab Me. A verified ${lead.service_needed || 'Handyman'} is now available in ${lead.district}! Are you still looking for help?`)}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
+                                                        className="flex-1 sm:flex-none justify-center px-4 py-2.5 sm:py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2"
                                                         title="WhatsApp Notify"
                                                     >
                                                         <MessageSquare className="w-3 h-3" /> Notify
@@ -994,7 +1018,7 @@ export default function AdminPage() {
                                                             href={`https://www.google.com/maps?q=${lead.lat},${lead.lng}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-indigo-400 hover:border-indigo-500/20 transition-all font-bold"
+                                                            className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/40 hover:text-indigo-400 hover:border-indigo-500/20 transition-all font-bold flex-shrink-0"
                                                             title="View on Map"
                                                         >
                                                             <MapPin className="w-4 h-4" />
