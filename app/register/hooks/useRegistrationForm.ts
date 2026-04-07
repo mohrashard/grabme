@@ -381,6 +381,14 @@ export function useRegistrationForm() {
                 }
             }
 
+            console.log('--- SUBMITTING REGISTRATION ---', {
+                name: finalFormData.fullName,
+                nic: finalFormData.nicNumber,
+                email: finalFormData.email,
+                phone: finalFormData.phone,
+                photosCount: finalFormData.pastWorkPhotos.length
+            });
+
             const result = await registerWorkerAction(finalFormData);
 
             if (!result.success) {

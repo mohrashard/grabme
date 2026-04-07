@@ -109,21 +109,31 @@ import { registrationRateLimit } from '../../lib/rateLimit'
  */
 export async function registerWorkerAction(rawData: any) {
     try {
-        // 0. RATE LIMITING (IP-Based Protection)
-        const headerList = await headers();
-        const ip = headerList.get('x-forwarded-for') || '0.0.0.0';
-        const { success } = await registrationRateLimit.limit(ip);
-        if (!success) {
-            return { success: false, error: 'Too many registration attempts. Please try again in an hour.' };
+        // 0. SERVER SANITY CHECK (Production Defense)
+        if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error('CRITICAL: Supabase Service Role Key missing in environment.');
+            return { success: false, error: 'Registration is currently unavailable (Server Config Error).' };
         }
 
-        // 1. VALIDATE PIPELINE (Strict Zod check)
+        // 1. RATE LIMITING (IP-Based Protection)
+        const headerList = await headers();
+        const ip = headerList.get('x-forwarded-for') || '0.0.0.0';
+        
+        try {
+            const { success } = await registrationRateLimit.limit(ip);
+            if (!success) {
+                return { success: false, error: 'Too many registration attempts (Max 10/hr). Please try again in an hour.' };
+            }
+        } catch (redisErr) {
+            console.error('Rate Limit [Redis] Error:', redisErr);
+            // Non-blocking: Fail-open if Redis is down, but log it.
+        }
+
+        // 2. VALIDATE PIPELINE (Strict Zod check)
         const parse = RegistrationSchema.safeParse(rawData)
 
         if (!parse.success) {
-            // Map structured errors to human-readable field errors
             const fieldErrors = parse.error.flatten().fieldErrors
-            // Convert string[] to string for the UI alert/toast
             const flattenedErrors: Record<string, string> = {}
             Object.keys(fieldErrors).forEach(key => {
                 const messages = fieldErrors[key as keyof typeof fieldErrors]
@@ -136,10 +146,10 @@ export async function registerWorkerAction(rawData: any) {
 
         const data = parse.data
 
-        // 2. CRYPTOGRAPHIC HASHING
-        const hashedPassword = await bcrypt.hash(data.password, 10)
+        // 3. CRYPTOGRAPHIC HASHING
+        const hashedPassword = await bcrypt.hash(data.password, 10);
 
-        // 3. SECURE ADMINISTRATIVE INSERT (Bypasses RLS)
+        // 4. SECURE ADMINISTRATIVE INSERT (Bypasses RLS)
         const { error } = await supabaseAdmin
             .from('workers')
             .insert([
@@ -174,10 +184,17 @@ export async function registerWorkerAction(rawData: any) {
             ]);
 
         if (error) {
+            // Log full error for production diagnosis
+            console.error('Supabase Insert Error:', error);
+
             if (error.code === '23505') {
                 const constraint = error.message.toLowerCase()
                 if (constraint.includes('nic_number')) return { success: false, errors: { nicNumber: 'NIC already registered.' } }
                 if (constraint.includes('phone')) return { success: false, errors: { phone: 'WhatsApp number already registered.' } }
+                if (constraint.includes('email')) return { success: false, errors: { email: 'Email address already registered.' } }
+                
+                // Generic unique violation
+                return { success: false, error: 'One of your details (Email/Phone/NIC) is already registered.' };
             }
             throw error
         }
@@ -185,7 +202,7 @@ export async function registerWorkerAction(rawData: any) {
         return { success: true }
 
     } catch (err: any) {
-        console.error('Registration Error [Code]:', err.code || 'SYSTEM_ERR', err.message || '');
-        return { success: false, error: 'Registration failed due to a system error. Please try again later.' }
+        console.error('Registration Exception [Full Trace]:', err);
+        return { success: false, error: 'Registration failed due to a system error. Please contact support.' }
     }
 }
