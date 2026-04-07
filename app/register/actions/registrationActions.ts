@@ -84,7 +84,7 @@ const RegistrationSchema = z.object({
         // New NIC: Full year
         nicBirthYear = parseInt(nic.substring(0, 4))
     } else {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid Sri Lankan NIC Format.", path: ["nicNumber"] })
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid NIC: Use Old (9 digits + V/X) or New (12 digits) format.", path: ["nicNumber"] })
         return
     }
 

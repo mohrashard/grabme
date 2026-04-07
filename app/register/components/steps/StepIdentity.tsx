@@ -55,7 +55,7 @@ export default function StepIdentity({ formData, handleInputChange, fieldErrors 
                 {/* NIC */}
                 <div className="space-y-1.5">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/30">NIC Number</label>
-                    <input name="nicNumber" inputMode="numeric" value={formData.nicNumber} onChange={handleInputChange} placeholder="e.g. 92xxxxxxxV" className={`w-full px-5 py-4 bg-white/5 border rounded-2xl focus:border-[#4F46E5] outline-none text-sm transition-all ${fieldErrors.nicNumber ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'}`} />
+                    <input name="nicNumber" value={formData.nicNumber} onChange={handleInputChange} placeholder="e.g. 92xxxxxxxV" className={`w-full px-5 py-4 bg-white/5 border rounded-2xl focus:border-[#4F46E5] outline-none text-sm transition-all ${fieldErrors.nicNumber ? 'border-red-500/50 bg-red-500/5' : 'border-white/10'}`} />
                     {renderHint('nicNumber', 'Old (9+V/X) or New (12 digits)')}
                 </div>
 

@@ -1,0 +1,20 @@
+# THIS FILE IS THE LAW OF THIS PROJECT.
+# Read it before every change.
+# Update it after every change.
+# Never break what works.
+# Always ask before touching what is locked.
+# The founder built this in 29 hours. Respect the craft.
+
+**Cursor AI Instructions:**
+1. **READ RULES.md** before making ANY code change. No exceptions.
+2. **NEVER modify a working feature** without explicit user approval. Assume everything works as intended.
+3. **NEVER touch security files** without explicitly stating what is changing and why.
+4. **NEVER change RLS policies** without providing a before/after SQL comparison.
+5. **NEVER change environment variable names**.
+6. **NEVER move 'use client' or 'use server' directives** without explicit approval.
+7. **MENTALLY RUN `tsc --noEmit`** before suggesting any changes to ensure type safety.
+8. **ALWAYS SHOW BEFORE AND AFTER code** for every single edit.
+9. **ASK "Does this break anything listed in RULES.md?"** before finalizing every change.
+10. **STRICT ENFORCEMENT**: If a requested change contradicts `RULES.md`, refuse it and explain why.
+
+Follow the protocols in index.md/RULES.md for every interaction.
