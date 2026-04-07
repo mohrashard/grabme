@@ -100,16 +100,16 @@ export function CustomSelect({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-sm text-left font-bold focus:outline-none hover:border-white/20 transition-all text-white shadow-sm"
+                className="w-full flex items-center justify-between bg-white border border-[#e2e8f0] rounded-2xl py-4 px-5 text-sm text-left font-bold focus:outline-none hover:border-[#1d4ed8]/30 transition-all text-[#0f172a] shadow-sm"
             >
                 <span className="truncate pr-4">{displayLabel}</span>
                 <div className="flex items-center gap-2">
                     {isMulti && Array.isArray(value) && value.length > 0 && (
-                        <div className="bg-indigo-500 text-[10px] px-1.5 py-0.5 rounded-full font-black">
+                        <div className="bg-[#1d4ed8] text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">
                             {value.length}
                         </div>
                     )}
-                    <ChevronDown className={`w-4 h-4 text-white/40 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-[#64748b] transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
             </button>
 
@@ -121,12 +121,12 @@ export function CustomSelect({
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute z-50 w-full mt-2 bg-[#18181B] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl"
+                        className="absolute z-50 w-full mt-2 bg-white border border-[#e2e8f0] rounded-2xl shadow-xl overflow-hidden"
                     >
                         {/* Search Input */}
-                        <div className="p-2 border-b border-white/5">
+                        <div className="p-2 border-b border-[#f1f5f9]">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1d4ed8]" />
                                 <input
                                     type="text"
                                     placeholder={searchPlaceholder}
@@ -135,7 +135,7 @@ export function CustomSelect({
                                     // Prevent closing when typing
                                     onClick={(e) => e.stopPropagation()}
                                     autoFocus
-                                    className="w-full bg-black/20 text-white text-sm rounded-xl py-2.5 pl-10 pr-4 outline-none border border-transparent focus:border-indigo-500/50 transition-all"
+                                    className="w-full bg-[#f8fafc] text-[#0f172a] text-sm rounded-xl py-2.5 pl-10 pr-4 outline-none border border-transparent focus:border-[#1d4ed8]/30 transition-all font-medium"
                                 />
                             </div>
                         </div>
@@ -143,7 +143,7 @@ export function CustomSelect({
                         {/* Options List */}
                         <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
                             {filteredOptions.length === 0 ? (
-                                <div className="px-4 py-3 text-sm text-white/30 text-center font-medium">
+                                <div className="px-4 py-3 text-sm text-[#94a3b8] text-center font-medium">
                                     No results found
                                 </div>
                             ) : (
@@ -154,14 +154,14 @@ export function CustomSelect({
                                         onClick={() => handleSelect(option.value)}
                                         className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all mb-1 last:mb-0
                                             ${isSelected(option.value)
-                                                ? 'bg-indigo-500/20 text-indigo-400' 
-                                                : 'text-white/70 hover:bg-white/5 hover:text-white'
+                                                ? 'bg-[#eff6ff] text-[#1d4ed8]' 
+                                                : 'text-[#334155] hover:bg-[#f1f5f9] hover:text-[#1d4ed8]'
                                             }
                                         `}
                                     >
                                         <span className="truncate">{option.label}</span>
                                         {isSelected(option.value) && (
-                                            <div className="flex items-center justify-center w-5 h-5 bg-indigo-500 rounded-lg">
+                                            <div className="flex items-center justify-center w-5 h-5 bg-[#1d4ed8] rounded-lg">
                                                 <Check className="w-3.5 h-3.5 text-white" />
                                             </div>
                                         )}

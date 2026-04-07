@@ -67,23 +67,31 @@ export default function WhatsAppButton({ workerId, workerTrade }: WhatsAppButton
 
     return (
         <>
-            <button 
-                onClick={handleContact}
-                disabled={isRedirecting}
-                className="w-full py-6 bg-[#4F46E5] text-white rounded-[2.5rem] font-black uppercase tracking-[0.2em] text-sm shadow-[0_20px_50px_rgba(79,70,229,0.4)] hover:bg-indigo-400 hover:-translate-y-1 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
-            >
-                {isRedirecting ? (
-                    <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Connecting...
-                    </>
-                ) : (
-                    <>
-                        <MessageSquare className="w-5 h-5 fill-white" />
-                        Contact on WhatsApp
-                    </>
-                )}
-            </button>
+            <div className="space-y-3">
+                <button 
+                    onClick={handleContact}
+                    disabled={isRedirecting}
+                    className="w-full min-h-[64px] bg-[#16a34a] text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-[#15803d] hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                >
+                    {isRedirecting ? (
+                        <>
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            Connecting...
+                        </>
+                    ) : (
+                        <>
+                            <span className="text-2xl">💬</span>
+                            Chat on WhatsApp
+                        </>
+                    )}
+                </button>
+
+                <button 
+                    className="w-full min-h-[56px] bg-white border-2 border-[#e2e8f0] text-[#334155] rounded-2xl font-bold text-sm hover:border-[#1d4ed8] hover:text-[#1d4ed8] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                >
+                    Share Profile
+                </button>
+            </div>
 
             <LeadCaptureModal 
                 isOpen={isModalOpen}

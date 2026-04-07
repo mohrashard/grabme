@@ -123,23 +123,23 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-md bg-[#18181B] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+                        className="relative w-full max-w-md bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
                     >
                         {/* Glow */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[80px] rounded-full" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#1d4ed8]/5 blur-[80px] rounded-full" />
 
                         <div className="relative z-10 space-y-8">
                             {/* Header */}
                             <div className="flex items-start justify-between">
                                 <div className="space-y-2">
-                                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">Quick Check-in</h2>
-                                    <p className="text-white/40 text-xs font-bold uppercase tracking-widest leading-relaxed">
+                                    <h2 className="text-2xl font-black text-[#0f172a] tracking-tight uppercase">Quick Check-in</h2>
+                                    <p className="text-[#64748b] text-xs font-bold uppercase tracking-widest leading-relaxed">
                                         We track connections to ensure quality. Please enter your details once.
                                     </p>
                                 </div>
                                 <button 
                                     onClick={onClose}
-                                    className="p-2 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-white hover:bg-white/10 transition-all"
+                                    className="p-2 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#94a3b8] hover:text-[#0f172a] hover:bg-[#f1f5f9] transition-all"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -148,9 +148,9 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                             {/* Form */}
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 ml-2">Full Name</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#94a3b8] ml-2">Full Name</label>
                                     <div className="relative">
-                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1d4ed8]" />
                                         <input 
                                             required
                                             type="text" 
@@ -158,15 +158,15 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                                             placeholder="John Doe"
                                             value={formData.full_name}
                                             onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white placeholder:text-white/10 focus:border-indigo-500/50 outline-none transition-all font-bold"
+                                            className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl py-4 pl-12 pr-6 text-sm text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1d4ed8]/30 outline-none transition-all font-bold"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 ml-2">Phone Number</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#94a3b8] ml-2">Phone Number</label>
                                     <div className="relative">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1d4ed8]" />
                                         <input 
                                             required
                                             type="tel" 
@@ -175,21 +175,21 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                                             placeholder="0771234567"
                                             value={formData.phone}
                                             onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white placeholder:text-white/10 focus:border-indigo-500/50 outline-none transition-all font-bold"
+                                            className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl py-4 pl-12 pr-6 text-sm text-[#0f172a] placeholder:text-[#94a3b8] focus:border-[#1d4ed8]/30 outline-none transition-all font-bold"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 ml-2">Your District</label>
+                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-[#94a3b8] ml-2">Your District</label>
                                     <div className="flex gap-3 items-center">
                                         <div className="relative flex-1">
-                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1d4ed8]" />
                                             <select 
                                                 required
                                                 value={formData.district}
                                                 onChange={(e) => setFormData({...formData, district: e.target.value})}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 text-sm text-white focus:border-indigo-500/50 outline-none transition-all font-bold appearance-none [color-scheme:dark]"
+                                                className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl py-4 pl-12 pr-6 text-sm text-[#0f172a] focus:border-[#1d4ed8]/30 outline-none transition-all font-bold appearance-none"
                                             >
                                                 {DISTRICTS.map(d => <option key={d}>{d}</option>)}
                                             </select>
@@ -199,7 +199,7 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                                             onClick={detectDistrict}
                                             disabled={detecting}
                                             title="Auto-detect my district"
-                                            className="flex-shrink-0 w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/30 hover:text-indigo-400 hover:border-indigo-500/40 transition-all disabled:opacity-30 group"
+                                            className="flex-shrink-0 w-14 h-14 bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl flex items-center justify-center text-[#64748b] hover:text-[#1d4ed8] hover:border-[#1d4ed8]/30 transition-all disabled:opacity-30 group"
                                         >
                                             {detecting ? (
                                                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -213,7 +213,7 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                                 <button 
                                     disabled={loading}
                                     type="submit"
-                                    className="w-full py-5 bg-[#4F46E5] text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-xl hover:bg-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 mt-4"
+                                    className="w-full py-5 bg-[#1d4ed8] text-white rounded-[1.5rem] font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg hover:bg-[#1e40af] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 mt-4"
                                 >
                                     {loading ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -226,7 +226,7 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                                 </button>
 
                                 <div className="pt-2 text-center">
-                                    <p className="text-[9px] font-bold uppercase tracking-widest text-white/10">
+                                    <p className="text-[9px] font-bold uppercase tracking-widest text-[#94a3b8]">
                                         You only need to do this once.
                                     </p>
                                 </div>

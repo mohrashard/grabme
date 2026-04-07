@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { m, AnimatePresence } from 'framer-motion'
+import { m } from 'framer-motion'
 import {
     User, Phone, MapPin, Navigation, Loader2,
     CheckCircle2, ArrowLeft, Bell
@@ -13,6 +13,7 @@ import { DISTRICTS } from '@/app/register/constants'
 import { registerCustomerAction } from '../actions'
 import { toast } from 'sonner'
 import { fetchTaxonomyAction } from '@/app/lib/taxonomyActions'
+import Footer from '@/app/components/Footer'
 
 export default function CustomerRegisterClient() {
     const searchParams = useSearchParams()
@@ -38,14 +39,12 @@ export default function CustomerRegisterClient() {
         fetchTaxonomyAction().then(data => {
             const names = data.services.map(s => s.name);
             setServices(names);
-            // Validate the URL service against actual services
             if (urlService && !names.includes(urlService) && urlService !== 'General') {
                 setFormData(p => ({ ...p, service_needed: 'General' }));
             }
         });
     }, [urlService]);
 
-    // GPS auto-detect district
     const detectDistrict = () => {
         if (!navigator.geolocation) {
             toast.error('Location not supported by your browser')
@@ -78,7 +77,7 @@ export default function CustomerRegisterClient() {
                             }))
                             toast.success(`Location set tracking ${cleaned}`, { id: toastId })
                         } else {
-                            toast.error('Located, but district not in our service range. Please select manually.', { id: toastId })
+                            toast.error('Located, but district not in our service range.', { id: toastId })
                         }
                     } else {
                         toast.error('Could not resolve location. Please select manually.', { id: toastId })
@@ -91,7 +90,7 @@ export default function CustomerRegisterClient() {
             },
             () => {
                 setDetecting(false)
-                toast.error('Location access denied. Please select your district manually.', { id: toastId })
+                toast.error('Location access denied.', { id: toastId })
             },
             { timeout: 10000 }
         )
@@ -102,7 +101,6 @@ export default function CustomerRegisterClient() {
         setLoading(true)
         setFieldErrors({})
 
-        // Client-side pre-validation to match server Zod schema
         if (formData.full_name.trim().length < 2) {
             setFieldErrors({ full_name: 'Name is too short' })
             setLoading(false)
@@ -140,69 +138,79 @@ export default function CustomerRegisterClient() {
         }
     }
 
-    // ── Success State ──────────────────────────────────────────────────────────
     if (success) {
         return (
-            <div
-                className="min-h-screen flex items-center justify-center px-6 font-sans"
-                style={{ background: '#090A0F' }}
-            >
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="min-h-screen flex flex-col font-outfit bg-slate-50 relative overflow-x-hidden">
+                {/* Premium Background Mesh */}
+                <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
+                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
+                    <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
+                    <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
+                </div>
 
-                <m.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 w-full max-w-md text-center bg-[#18181B] border border-white/5 rounded-[2.5rem] p-12 shadow-2xl space-y-8"
-                >
+                <div className="flex-1 flex items-center justify-center px-6 py-24">
                     <m.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 200, damping: 14 }}
-                        className="w-24 h-24 bg-green-500/10 border border-green-500/20 rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-green-500/10"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative z-10 w-full max-w-md text-center bg-white rounded-[2.5rem] p-12 shadow-2xl border-t-8 border-t-[#1d4ed8] space-y-8"
                     >
-                        <CheckCircle2 className="w-12 h-12 text-green-400" />
+                        <m.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 200, damping: 14 }}
+                            className="w-24 h-24 bg-green-50 border border-green-100 rounded-[2rem] flex items-center justify-center mx-auto shadow-sm"
+                        >
+                            <CheckCircle2 className="w-12 h-12 text-green-500" />
+                        </m.div>
+
+                        <div className="space-y-3">
+                             <div className="flex items-center justify-center gap-2 mb-4">
+                                <span className="text-[#1d4ed8] text-xl font-bold tracking-tight uppercase">Grab Me</span>
+                            </div>
+                            <h1 className="text-2xl font-bold text-[#0f172a] uppercase tracking-tight">
+                                You&apos;re on the list!
+                            </h1>
+                            <p className="text-[#64748b] text-sm font-medium leading-relaxed">
+                                We&apos;ll notify you when new workers join your area.
+                                Keep an eye on WhatsApp!
+                            </p>
+                        </div>
+
+                        <Link
+                            href="/browse"
+                            className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 bg-[#1d4ed8] text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[#1e3a8a] transition-all shadow-lg shadow-blue-500/10"
+                        >
+                            <ArrowLeft className="w-4 h-4" />
+                            Back to Directory
+                        </Link>
                     </m.div>
-
-                    <div className="space-y-3">
-                        <h1 className="text-2xl font-black text-white uppercase tracking-tight">
-                            You&apos;re on the list!
-                        </h1>
-                        <p className="text-white/40 text-sm font-medium leading-relaxed">
-                            We&apos;ll notify you when new workers join your area.
-                            Keep an eye on WhatsApp!
-                        </p>
-                    </div>
-
-                    <Link
-                        href="/browse"
-                        className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 bg-[#4F46E5] text-white rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-indigo-400 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-indigo-500/20"
-                    >
-                        <ArrowLeft className="w-4 h-4" />
-                        Back to Directory
-                    </Link>
-                </m.div>
+                </div>
+                <Footer />
             </div>
         )
     }
 
-    // ── Registration Form ──────────────────────────────────────────────────────
     return (
-        <div
-            className="min-h-screen font-sans flex flex-col"
-            style={{ background: '#090A0F', color: '#FFFFFF' }}
-        >
-            {/* Minimal Nav */}
-            <nav className="fixed top-0 w-full z-50 bg-[#090A0F]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="min-h-screen font-outfit flex flex-col bg-slate-50 relative overflow-x-hidden">
+            {/* Premium Background Mesh */}
+            <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
+                <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
+            </div>
+
+            {/* Fixed Nav */}
+            <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-[#e2e8f0]">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <Link href="/" className="flex items-center gap-3">
-                        <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-white/10">
+                        <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-sm border border-[#e2e8f0]">
                             <Image src="/grabme.png" alt="Grab Me Sri Lanka" fill sizes="32px" className="object-cover" />
                         </div>
-                        <span className="text-white text-lg font-bold tracking-tight">Grab Me</span>
+                        <span className="text-[#1d4ed8] text-lg font-bold tracking-tight">Grab Me</span>
                     </Link>
                     <Link
                         href="/browse"
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors"
+                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#64748b] hover:text-[#1d4ed8] transition-colors"
                     >
                         <ArrowLeft className="w-3 h-3" />
                         Back to Browse
@@ -211,31 +219,23 @@ export default function CustomerRegisterClient() {
             </nav>
 
             <div className="flex-1 pt-40 pb-24 px-6 flex justify-center items-center relative">
-                {/* Background glows */}
-                <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none" />
-                <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-purple-600/5 blur-[120px] rounded-full pointer-events-none" />
-
                 <m.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease: 'easeOut' }}
                     className="w-full max-w-md relative z-10"
                 >
-                    <div className="bg-[#18181B] border border-white/5 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border-t-8 border-t-[#1d4ed8] overflow-hidden">
                         {/* Card header */}
-                        <div className="pt-14 pb-8 px-10 text-center relative overflow-hidden">
-                            <div
-                                className="absolute inset-0 opacity-10 pointer-events-none"
-                                style={{ background: 'radial-gradient(circle at center, #4F46E5 0%, transparent 70%)' }}
-                            />
+                        <div className="pt-14 pb-8 px-10 text-center relative">
                             <div className="relative z-10">
-                                <div className="w-16 h-16 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center mx-auto mb-6 shadow-xl">
-                                    <Bell className="w-8 h-8 text-[#4F46E5]" />
+                                <div className="w-16 h-16 bg-blue-50 rounded-2xl border border-blue-100 flex items-center justify-center mx-auto mb-6 shadow-sm">
+                                    <Bell className="w-8 h-8 text-[#1d4ed8]" />
                                 </div>
-                                <h1 className="text-2xl font-black tracking-tight text-white mb-2 uppercase">
+                                <h1 className="text-2xl font-bold tracking-tight text-[#0f172a] mb-2 uppercase">
                                     Get Notified
                                 </h1>
-                                <p className="text-white/30 text-[10px] font-bold uppercase tracking-[0.3em]">
+                                <p className="text-[#64748b] text-[10px] font-bold uppercase tracking-[0.3em]">
                                     We&apos;ll alert you when a pro is available near you
                                 </p>
                             </div>
@@ -243,12 +243,12 @@ export default function CustomerRegisterClient() {
 
                         <form onSubmit={handleSubmit} className="px-10 pb-14 space-y-6">
                             {/* Full Name */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#0f172a]">
                                     Full Name
                                 </label>
                                 <div className="relative group">
-                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#4F46E5] transition-all">
+                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-[#1d4ed8] transition-all">
                                         <User className="w-4 h-4" />
                                     </div>
                                     <input
@@ -258,25 +258,25 @@ export default function CustomerRegisterClient() {
                                         placeholder="e.g. Kasun Perera"
                                         value={formData.full_name}
                                         onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))}
-                                        className={`w-full pl-14 pr-5 py-4 bg-white/5 border rounded-2xl focus:outline-none text-sm transition-all placeholder:text-white/10 text-white font-medium ${
+                                        className={`w-full pl-14 pr-5 py-4 bg-[#f8fafc] border rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#dbeafe] text-sm transition-all placeholder:text-[#94a3b8] text-[#0f172a] font-medium ${
                                             fieldErrors.full_name
-                                                ? 'border-red-500/50 focus:border-red-500'
-                                                : 'border-white/10 focus:border-[#4F46E5]'
+                                                ? 'border-red-300'
+                                                : 'border-[#e2e8f0] focus:border-[#1d4ed8]'
                                         }`}
                                     />
                                 </div>
                                 {fieldErrors.full_name && (
-                                    <p className="text-[10px] text-red-400 font-bold ml-2">{fieldErrors.full_name}</p>
+                                    <p className="text-[10px] text-red-500 font-bold ml-2">{fieldErrors.full_name}</p>
                                 )}
                             </div>
 
                             {/* Phone Number */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#0f172a]">
                                     Phone Number
                                 </label>
                                 <div className="relative group">
-                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#4F46E5] transition-all">
+                                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-[#1d4ed8] transition-all">
                                         <Phone className="w-4 h-4" />
                                     </div>
                                     <input
@@ -287,56 +287,56 @@ export default function CustomerRegisterClient() {
                                         placeholder="0771234567"
                                         value={formData.phone}
                                         onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                                        className={`w-full pl-14 pr-5 py-4 bg-white/5 border rounded-2xl focus:outline-none text-sm transition-all placeholder:text-white/10 text-white font-medium ${
+                                        className={`w-full pl-14 pr-5 py-4 bg-[#f8fafc] border rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#dbeafe] text-sm transition-all placeholder:text-[#94a3b8] text-[#0f172a] font-bold ${
                                             fieldErrors.phone
-                                                ? 'border-red-500/50 focus:border-red-500'
-                                                : 'border-white/10 focus:border-[#4F46E5]'
+                                                ? 'border-red-300'
+                                                : 'border-[#e2e8f0] focus:border-[#1d4ed8]'
                                         }`}
                                     />
                                 </div>
                                 {fieldErrors.phone && (
-                                    <p className="text-[10px] text-red-400 font-bold ml-2">{fieldErrors.phone}</p>
+                                    <p className="text-[10px] text-red-500 font-bold ml-2">{fieldErrors.phone}</p>
                                 )}
                             </div>
 
                             {/* Service Needed */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#0f172a]">
                                     Service Needed
                                 </label>
-                                <div className="relative group">
+                                <div className="relative">
                                     <select
                                         required
                                         value={formData.service_needed}
                                         onChange={e => setFormData(p => ({ ...p, service_needed: e.target.value }))}
-                                        className="w-full pl-5 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] focus:outline-none text-sm transition-all text-white font-medium [color-scheme:dark] appearance-none"
+                                        className="w-full pl-5 pr-5 py-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl focus:border-[#1d4ed8] focus:bg-white focus:ring-2 focus:ring-[#dbeafe] focus:outline-none text-sm transition-all text-[#0f172a] font-bold appearance-none cursor-pointer"
                                     >
-                                        <option value="General" className="bg-[#18181B]">General Handyman</option>
+                                        <option value="General">General Handyman</option>
                                         {services.map(t => (
-                                            <option key={t} value={t} className="bg-[#18181B]">{t}</option>
+                                            <option key={t} value={t}>{t}</option>
                                         ))}
                                     </select>
                                 </div>
                             </div>
 
                             {/* District + GPS */}
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-white/30">
+                            <div className="space-y-2.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-[#0f172a]">
                                     Your District
                                 </label>
                                 <div className="flex gap-3 items-center">
                                     <div className="relative flex-1 group">
-                                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#4F46E5] transition-all pointer-events-none">
+                                        <div className="absolute left-5 top-1/2 -translate-y-1/2 text-[#64748b] group-focus-within:text-[#1d4ed8] transition-all pointer-events-none">
                                             <MapPin className="w-4 h-4" />
                                         </div>
                                         <select
                                             required
                                             value={formData.district}
                                             onChange={e => setFormData(p => ({ ...p, district: e.target.value }))}
-                                            className="w-full pl-14 pr-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:border-[#4F46E5] focus:outline-none text-sm transition-all text-white font-medium [color-scheme:dark] appearance-none"
+                                            className="w-full pl-14 pr-5 py-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl focus:border-[#1d4ed8] focus:bg-white focus:ring-2 focus:ring-[#dbeafe] focus:outline-none text-sm transition-all text-[#0f172a] font-bold appearance-none cursor-pointer"
                                         >
                                             {DISTRICTS.map(d => (
-                                                <option key={d} value={d} className="bg-[#18181B]">{d}</option>
+                                                <option key={d} value={d}>{d}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -347,7 +347,7 @@ export default function CustomerRegisterClient() {
                                         onClick={detectDistrict}
                                         disabled={detecting}
                                         title="Auto-detect my district"
-                                        className="flex-shrink-0 w-14 h-14 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-white/30 hover:text-indigo-400 hover:border-indigo-500/40 transition-all disabled:opacity-30 group/gps"
+                                        className="flex-shrink-0 w-14 h-14 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center text-[#1d4ed8] hover:bg-blue-100 transition-all disabled:opacity-30 group/gps shadow-sm"
                                     >
                                         {detecting ? (
                                             <Loader2 className="w-5 h-5 animate-spin" />
@@ -362,7 +362,7 @@ export default function CustomerRegisterClient() {
                             <button
                                 type="submit"
                                 disabled={loading || !formData.full_name.trim() || !formData.phone.trim()}
-                                className="w-full mt-2 flex items-center justify-center gap-3 bg-[#4F46E5] text-white py-5 rounded-full font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-indigo-500/20 hover:bg-indigo-400 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="w-full mt-2 flex items-center justify-center gap-3 bg-[#1d4ed8] text-white py-5 rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-blue-500/10 hover:bg-[#1e3a8a] transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
                             >
                                 {loading ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -375,26 +375,27 @@ export default function CustomerRegisterClient() {
                             </button>
 
                             {/* Divider */}
-                            <div className="flex items-center gap-4">
-                                <div className="flex-1 h-[1px] bg-white/5" />
-                                <span className="text-[8px] font-black uppercase tracking-widest text-white/10">or</span>
-                                <div className="flex-1 h-[1px] bg-white/5" />
+                            <div className="relative flex items-center gap-4 py-2">
+                                <div className="flex-1 h-[1px] bg-[#e2e8f0]" />
+                                <span className="text-[8px] font-black uppercase tracking-widest text-[#94a3b8] italic">or</span>
+                                <div className="flex-1 h-[1px] bg-[#e2e8f0]" />
                             </div>
 
-                            <p className="text-center text-[10px] text-white/20 font-medium leading-relaxed">
+                            <p className="text-center text-[10px] text-[#64748b] font-medium leading-relaxed">
                                 Already see workers available?{' '}
-                                <Link href="/browse" className="text-indigo-400 hover:text-indigo-300 transition-colors font-black">
+                                <Link href="/browse" className="text-[#1d4ed8] hover:text-[#1e3a8a] transition-colors font-bold uppercase tracking-wider">
                                     Browse the Directory
                                 </Link>
                             </p>
                         </form>
                     </div>
 
-                    <p className="text-center text-[10px] text-white/10 font-bold uppercase tracking-widest mt-8">
+                    <p className="text-center text-[10px] text-[#94a3b8] font-bold uppercase tracking-widest mt-8">
                         Powered by Mr2 Labs
                     </p>
                 </m.div>
             </div>
+            <Footer />
         </div>
     )
 }

@@ -154,23 +154,23 @@ export default function WorkerProfilePage() {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-[#090A0F] flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin" />
         </div>
     );
 
     const statusVis = getStatusStyles(fullProfile?.account_status || 'pending');
 
     return (
-        <div className="min-h-screen font-sans flex bg-[#090A0F] text-white">
+        <div className="min-h-screen font-sans flex bg-[#f1f5f9] text-[#0f172a]">
             {/* Sidebar */}
-            <aside className="w-64 border-r border-white/5 bg-[#18181B] flex flex-col hidden lg:flex">
+            <aside className="w-64 border-r border-[#e2e8f0] bg-white shadow-sm flex flex-col hidden lg:flex z-30">
                 <div className="p-8">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                        <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#e2e8f0] shadow-md">
                             <Image src="/grabme.png" alt="Grab Me" fill className="object-cover" />
                         </div>
-                        <span className="text-white text-lg font-bold tracking-tight">Portal</span>
+                        <span className="text-[#0f172a] text-lg font-bold tracking-tight">Portal</span>
                     </Link>
                 </div>
 
@@ -182,17 +182,17 @@ export default function WorkerProfilePage() {
                         <Link 
                             key={i} 
                             href={item.href}
-                            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${item.active ? 'bg-[#4F46E5] text-white shadow-lg shadow-indigo-500/20' : 'text-white/30 hover:bg-white/5 hover:text-white'}`}
+                            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${item.active ? 'bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/20' : 'text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]'}`}
                         >
                             <item.icon className="w-5 h-5" /> {item.label}
                         </Link>
                     ))}
                 </nav>
 
-                <div className="p-4 border-t border-white/5">
+                <div className="p-4 border-t border-[#e2e8f0]">
                     <button 
                         onClick={handleLogout}
-                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-red-400 hover:bg-red-500/10 transition-all"
+                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
                     >
                         <LogOut className="w-5 h-5" /> Logout
                     </button>
@@ -201,12 +201,12 @@ export default function WorkerProfilePage() {
 
             {/* Main Content */}
             <main className="flex-1 overflow-y-auto pb-32 lg:pb-12">
-                <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 lg:px-12 bg-[#090A0F]/50 backdrop-blur-xl sticky top-0 z-20">
+                <header className="h-20 border-b border-[#e2e8f0] flex items-center justify-between px-8 lg:px-12 bg-white/95 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
                     <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-white transition-all">
+                        <Link href="/dashboard" className="w-10 h-10 rounded-full bg-[#f1f5f9] border border-[#e2e8f0] flex items-center justify-center text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] transition-all">
                             <ChevronLeft className="w-5 h-5" />
                         </Link>
-                        <h2 className="text-sm font-bold text-white uppercase tracking-widest">My Partner Profile</h2>
+                        <h2 className="text-sm font-bold text-[#0f172a] uppercase tracking-widest">My Partner Profile</h2>
                     </div>
                 </header>
 
@@ -214,26 +214,26 @@ export default function WorkerProfilePage() {
                     {/* Public Preview Info Banner */}
                     <m.div 
                         initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
-                        className="bg-indigo-500/10 border border-indigo-500/20 rounded-3xl p-6 flex items-center gap-6"
+                        className="bg-[#eff6ff] border border-[#bfdbfe] rounded-3xl p-6 flex items-center gap-6 shadow-sm"
                     >
-                        <div className="w-12 h-12 bg-indigo-500/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-                            <Eye className="w-6 h-6 text-indigo-400" />
+                        <div className="w-12 h-12 bg-[#dbeafe] rounded-2xl flex items-center justify-center flex-shrink-0">
+                            <Eye className="w-6 h-6 text-[#1d4ed8]" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-sm font-black text-white uppercase tracking-tight">Public Preview Mode</h3>
-                            <p className="text-[11px] font-bold text-white/30 uppercase tracking-widest leading-relaxed">
+                            <h3 className="text-sm font-black text-[#1e3a8a] uppercase tracking-tight">Public Preview Mode</h3>
+                            <p className="text-[11px] font-bold text-[#1e3a8a]/70 uppercase tracking-widest leading-relaxed">
                                 This is exactly how customers see your profile on the directory. To update your info or trade, contact Admin via WhatsApp.
                             </p>
                         </div>
                     </m.div>
                     {/* Profile Hero section */}
                     <div className="relative pt-20">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-gradient-to-b from-indigo-500/10 to-transparent blur-[120px] rounded-full pointer-events-none" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-gradient-to-b from-[#dbeafe]/50 to-transparent blur-[80px] rounded-full pointer-events-none" />
                         
                         <div className="relative flex flex-col md:flex-row items-center md:items-end gap-8">
                             <div className="relative group">
-                                <div className="absolute inset-0 bg-indigo-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-all" />
-                                <div className="relative w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-[#18181B] shadow-2xl">
+                                <div className="absolute inset-0 bg-[#bfdbfe] blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-all pointer-events-none" />
+                                <div className="relative w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl bg-white">
                                     <Image 
                                         src={fullProfile?.profile_photo_url || '/grabme.png'} 
                                         alt={fullProfile?.full_name || 'Profile'} 
@@ -241,19 +241,19 @@ export default function WorkerProfilePage() {
                                         className="object-cover" 
                                     />
                                 </div>
-                                <div className={`absolute -bottom-2 -right-2 w-10 h-10 ${statusVis.bg} ${statusVis.border} border rounded-2xl flex items-center justify-center shadow-xl`}>
+                                <div className={`absolute -bottom-2 -right-2 w-10 h-10 ${statusVis.bg} ${statusVis.border} border rounded-2xl flex items-center justify-center shadow-md bg-white`}>
                                     {fullProfile?.account_status === 'active' ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <Clock className="w-5 h-5 text-amber-500" />}
                                 </div>
                             </div>
                             
                             <div className="flex-1 text-center md:text-left space-y-3 pb-2">
-                                <span className={`inline-flex items-center gap-2 px-3 py-1 ${statusVis.bg} ${statusVis.border} border rounded-full text-xs font-black uppercase tracking-widest ${statusVis.text}`}>
+                                <span className={`inline-flex items-center gap-2 px-3 py-1 ${statusVis.bg} ${statusVis.border} border rounded-full text-xs font-black uppercase tracking-widest ${statusVis.text} bg-white shadow-sm`}>
                                     {statusVis.label}
                                 </span>
-                                <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-none text-white ">{fullProfile?.full_name}</h1>
+                                <h1 className="text-4xl lg:text-5xl font-black tracking-tight leading-none text-[#0f172a] ">{fullProfile?.full_name}</h1>
                                 <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-6">
-                                    <p className="flex items-center gap-2 text-white/30 text-sm font-bold uppercase tracking-widest"><BriefcaseIcon className="w-4 h-4" /> {fullProfile?.trade_category}</p>
-                                    <p className="flex items-center gap-2 text-white/30 text-sm font-bold uppercase tracking-widest"><MapPin className="w-4 h-4" /> {fullProfile?.home_district}, {fullProfile?.town}</p>
+                                    <p className="flex items-center gap-2 text-[#475569] text-sm font-bold uppercase tracking-widest"><BriefcaseIcon className="w-4 h-4" /> {fullProfile?.trade_category}</p>
+                                    <p className="flex items-center gap-2 text-[#475569] text-sm font-bold uppercase tracking-widest"><MapPin className="w-4 h-4" /> {fullProfile?.home_district}, {fullProfile?.town}</p>
                                 </div>
                             </div>
                         </div>
@@ -263,63 +263,63 @@ export default function WorkerProfilePage() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Stats Summary */}
                         <div className="lg:col-span-1 space-y-8">
-                            <div className="bg-[#18181B] border border-white/5 rounded-[2.5rem] p-8 space-y-6">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-[#4F46E5] flex items-center gap-2">
+                            <div className="bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 space-y-6 shadow-sm">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-[#1d4ed8] flex items-center gap-2">
                                     <Award className="w-4 h-4" /> Professional Pulse
                                 </h3>
                                 <div className="space-y-6">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-white/40 text-sm font-bold uppercase tracking-widest">Experience</p>
-                                        <p className="text-white font-black">{fullProfile?.years_experience}+ Years</p>
+                                        <p className="text-[#64748b] text-sm font-bold uppercase tracking-widest">Experience</p>
+                                        <p className="text-[#0f172a] font-black">{fullProfile?.years_experience}+ Years</p>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <p className="text-white/40 text-sm font-bold uppercase tracking-widest">ID Verified</p>
-                                        <p className={fullProfile?.is_identity_verified ? 'text-emerald-400 font-black' : 'text-zinc-600 font-bold'}>{fullProfile?.is_identity_verified ? 'YES' : 'PENDING'}</p>
+                                        <p className="text-[#64748b] text-sm font-bold uppercase tracking-widest">ID Verified</p>
+                                        <p className={fullProfile?.is_identity_verified ? 'text-emerald-600 font-black' : 'text-[#64748b] font-bold'}>{fullProfile?.is_identity_verified ? 'YES' : 'PENDING'}</p>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <p className="text-white/40 text-sm font-bold uppercase tracking-widest">Reference</p>
-                                        <p className={fullProfile?.is_reference_checked ? 'text-emerald-400 font-black' : 'text-zinc-600 font-bold'}>{fullProfile?.is_reference_checked ? 'VERIFIED' : 'PENDING'}</p>
+                                        <p className="text-[#64748b] text-sm font-bold uppercase tracking-widest">Reference</p>
+                                        <p className={fullProfile?.is_reference_checked ? 'text-emerald-600 font-black' : 'text-[#64748b] font-bold'}>{fullProfile?.is_reference_checked ? 'VERIFIED' : 'PENDING'}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-[#18181B] border border-white/5 rounded-[2.5rem] p-8 space-y-6">
-                                <h3 className="text-xs font-black uppercase tracking-widest text-[#4F46E5] flex items-center gap-2">
+                            <div className="bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 space-y-6 shadow-sm">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-[#1d4ed8] flex items-center gap-2">
                                     <Phone className="w-4 h-4" /> Identity Contact
                                 </h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <p className="text-xs font-black uppercase tracking-[0.2em] text-white/20 mb-1">WhatsApp</p>
-                                        <p className="text-sm font-bold text-white">{fullProfile?.phone}</p>
+                                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#64748b] mb-1">WhatsApp</p>
+                                        <p className="text-sm font-bold text-[#0f172a]">{fullProfile?.phone}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs font-black uppercase tracking-[0.2em] text-white/20 mb-1">NIC Number</p>
-                                        <p className="text-sm font-bold text-white">{fullProfile?.nic_number}</p>
+                                        <p className="text-xs font-black uppercase tracking-[0.2em] text-[#64748b] mb-1">NIC Number</p>
+                                        <p className="text-sm font-bold text-[#0f172a]">{fullProfile?.nic_number}</p>
                                     </div>
                                 </div>
                             </div>
 
                             {/* SOCIAL MEDIA HUB */}
-                            <div className="bg-[#18181B] border border-white/5 rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 blur-3xl group-hover:scale-150 transition-transform" />
+                            <div className="bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group shadow-sm">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-[#eff6ff] blur-3xl group-hover:scale-150 transition-transform" />
                                 
                                 <div className="flex items-center justify-between relative z-10">
-                                    <h3 className="text-xs font-black uppercase tracking-widest text-[#4F46E5] flex items-center gap-2">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-[#1d4ed8] flex items-center gap-2">
                                         <Share2 className="w-4 h-4" /> Digital Footprint
                                     </h3>
                                     <button 
                                         onClick={handleSocialSave}
                                         disabled={savingSocials}
-                                        className="text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1.5"
+                                        className="text-[10px] font-black uppercase tracking-widest text-[#1d4ed8] hover:text-[#1e3a8a] transition-colors disabled:opacity-50 flex items-center gap-1.5"
                                     >
                                         <Save className="w-3.5 h-3.5" /> {savingSocials ? 'Saving...' : 'Save Links'}
                                     </button>
                                 </div>
 
                                 {/* Trust Booster Nudge */}
-                                <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl relative z-10">
-                                    <p className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider leading-relaxed">
-                                        💡 Tip: Partners with social links are <span className="text-white">70% more likely</span> to be hired. It builds instant trust!
+                                <div className="p-4 bg-[#eff6ff] border border-[#bfdbfe] rounded-2xl relative z-10">
+                                    <p className="text-[10px] font-bold text-[#1e3a8a] uppercase tracking-wider leading-relaxed">
+                                        💡 Tip: Partners with social links are <span className="text-[#1d4ed8] font-black">70% more likely</span> to be hired. It builds instant trust!
                                     </p>
                                 </div>
 
@@ -330,15 +330,15 @@ export default function WorkerProfilePage() {
                                         { id: 'facebook_url', icon: Share2, label: 'Facebook URL', placeholder: 'https://facebook.com/page...' },
                                     ].map((social) => (
                                         <div key={social.id} className="space-y-2">
-                                            <label className="flex items-center gap-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-1">
-                                                <social.icon className="w-3 h-3 text-indigo-400" /> {social.label}
+                                            <label className="flex items-center gap-2 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] ml-1">
+                                                <social.icon className="w-3 h-3 text-[#1d4ed8]" /> {social.label}
                                             </label>
                                             <input 
                                                 type="url"
                                                 value={(socialLinks as any)[social.id]}
                                                 onChange={(e) => setSocialLinks((prev: any) => ({ ...prev, [social.id]: e.target.value }))}
                                                 placeholder={social.placeholder}
-                                                className="w-full bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3 text-xs font-bold text-white placeholder:text-white/10 focus:outline-none focus:border-indigo-500/50 transition-all"
+                                                className="w-full bg-white border border-[#e2e8f0] rounded-xl px-4 py-3 text-xs font-bold text-[#0f172a] placeholder:text-[#94a3b8] focus:outline-none focus:border-[#1d4ed8] transition-all shadow-inner"
                                             />
                                         </div>
                                     ))}
@@ -348,21 +348,21 @@ export default function WorkerProfilePage() {
 
                         {/* Main Details */}
                         <div className="lg:col-span-2 space-y-8">
-                            <div className="bg-[#18181B] border border-white/5 rounded-[3rem] p-10 md:p-12 space-y-10">
+                            <div className="bg-white border border-[#e2e8f0] shadow-sm rounded-[3rem] p-10 md:p-12 space-y-10">
                                 {/* Bio Section */}
                                 <div className="space-y-6">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-white/30 border-l-2 border-indigo-500 pl-4 py-1">About My Craft</h3>
-                                    <p className="text-lg text-white/60 leading-relaxed font-medium italic">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-[#64748b] border-l-2 border-[#1d4ed8] pl-4 py-1">About My Craft</h3>
+                                    <p className="text-lg text-[#0f172a] leading-relaxed font-medium italic">
                                         "{fullProfile?.short_bio || 'No bio provided.'}"
                                     </p>
                                 </div>
 
                                 {/* Skills Section */}
                                 <div className="space-y-6">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-white/30 border-l-2 border-indigo-500 pl-4 py-1">Expertise & Skills</h3>
+                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-[#64748b] border-l-2 border-[#1d4ed8] pl-4 py-1">Expertise & Skills</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {fullProfile?.sub_skills?.map((skill: string, i: number) => (
-                                            <span key={i} className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold text-white/60">
+                                            <span key={i} className="px-4 py-2 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-xs font-bold text-[#475569]">
                                                 {skill}
                                             </span>
                                         ))}
@@ -371,33 +371,33 @@ export default function WorkerProfilePage() {
 
                                 {/* Network Section */}
                                 <div className="space-y-6 pt-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-white/30 border-l-2 border-indigo-500 pl-4 py-1">Service Coverage</h3>
+                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-[#64748b] border-l-2 border-[#1d4ed8] pl-4 py-1">Service Coverage</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl">
-                                            <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400">
+                                        <div className="flex items-center gap-4 p-4 bg-white border border-[#e2e8f0] shadow-sm rounded-2xl">
+                                            <div className="w-10 h-10 bg-[#eff6ff] rounded-xl flex items-center justify-center text-[#1d4ed8]">
                                                 <MapPin className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-white/20 uppercase tracking-widest">Base District</p>
-                                                <p className="text-sm font-black text-white">{fullProfile?.home_district}</p>
+                                                <p className="text-xs font-bold text-[#64748b] uppercase tracking-widest">Base District</p>
+                                                <p className="text-sm font-black text-[#0f172a]">{fullProfile?.home_district}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl">
-                                            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400">
+                                        <div className="flex items-center gap-4 p-4 bg-white border border-[#e2e8f0] shadow-sm rounded-2xl">
+                                            <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex items-center justify-center text-emerald-600">
                                                 <Calendar className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold text-white/20 uppercase tracking-widest">Partner Since</p>
-                                                <p className="text-sm font-black text-white">{new Date(fullProfile?.created_at).toLocaleDateString('en-GB')}</p>
+                                                <p className="text-xs font-bold text-[#64748b] uppercase tracking-widest">Partner Since</p>
+                                                <p className="text-sm font-black text-[#0f172a]">{new Date(fullProfile?.created_at).toLocaleDateString('en-GB')}</p>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
-                                        <p className="text-xs font-bold text-white/20 uppercase tracking-widest mb-3 px-2">Districts Covered</p>
+                                    <div className="p-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl">
+                                        <p className="text-xs font-bold text-[#64748b] uppercase tracking-widest mb-3 px-2">Districts Covered</p>
                                         <div className="flex flex-wrap gap-2">
                                             {fullProfile?.districts_covered?.map((d: string, i: number) => (
-                                                <span key={i} className="text-[11px] font-bold text-white/40 bg-zinc-900 px-3 py-1 rounded-lg">
+                                                <span key={i} className="text-[11px] font-bold text-[#0f172a] bg-white border border-[#e2e8f0] px-3 py-1 rounded-lg shadow-sm">
                                                     {d}
                                                 </span>
                                             ))}
@@ -407,19 +407,19 @@ export default function WorkerProfilePage() {
                             </div>
 
                             {/* Help Banner */}
-                            <div className="bg-indigo-600 rounded-[2.5rem] p-8 relative overflow-hidden group shadow-2xl shadow-indigo-500/20">
+                            <div className="bg-[#1d4ed8] rounded-[2.5rem] p-8 relative overflow-hidden group shadow-xl">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 blur-[80px] group-hover:scale-150 transition-all duration-700 rounded-full" />
                                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                                     <div className="text-center md:text-left">
                                         <h4 className="text-xl font-black text-white mb-2">Need to update your data?</h4>
-                                        <p className="text-white/60 text-sm font-bold uppercase tracking-wider">Contact Mr² Labs Admin on WhatsApp for profile edits.</p>
+                                        <p className="text-blue-100 text-sm font-bold uppercase tracking-wider">Contact Mr² Labs Admin on WhatsApp for profile edits.</p>
                                     </div>
                                     <button
                                         onClick={async () => {
                                             const { url } = await getAdminContactAction(`Requesting profile update for ${fullProfile?.full_name || ''}`);
                                             window.open(url, '_blank');
                                         }}
-                                        className="px-8 py-4 bg-white text-[#4F46E5] rounded-full text-xs font-black uppercase tracking-widest hover:bg-zinc-100 transition-all shadow-lg active:scale-95"
+                                        className="px-8 py-4 bg-white text-[#1d4ed8] rounded-full text-xs font-black uppercase tracking-widest hover:bg-zinc-50 transition-all shadow active:scale-95 whitespace-nowrap"
                                     >
                                         Message Founder
                                     </button>
@@ -429,23 +429,23 @@ export default function WorkerProfilePage() {
                     </div>
                 </div>
 
-                <div className="px-12 py-10 border-t border-white/5 flex justify-between items-center text-xs font-bold text-white/10 uppercase tracking-widest mt-12">
+                <div className="px-12 py-10 border-t border-[#e2e8f0] flex justify-between items-center text-xs font-bold text-[#64748b] uppercase tracking-widest mt-12">
                      <span>© 2026 Grab Me Professional Portal</span>
-                     <span>Powered by Mr² Labs</span>
+                     <span className="text-[#334155]">Powered by Mr² Labs</span>
                 </div>
             </main>
 
             {/* Mobile Bottom Navigation Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-[#090A0F]/90 backdrop-blur-2xl border-t border-white/10 flex justify-around items-center h-20 z-50 px-4 pb-safe shadow-2xl">
-                <Link href="/dashboard" className="flex flex-col items-center gap-1.5 p-3 text-white/40 hover:text-white transition-all">
+            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-[#e2e8f0] flex justify-around items-center h-20 z-50 px-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                <Link href="/dashboard" className="flex flex-col items-center gap-1.5 p-3 text-[#64748b] hover:text-[#0f172a] transition-all">
                     <LayoutDashboard className="w-6 h-6" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
                 </Link>
-                <Link href="/dashboard/profile" className="flex flex-col items-center gap-1.5 p-3 text-[#4F46E5] transition-all">
+                <Link href="/dashboard/profile" className="flex flex-col items-center gap-1.5 p-3 text-[#1d4ed8] transition-all">
                     <User className="w-6 h-6" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Profile</span>
                 </Link>
-                <button onClick={handleLogout} className="flex flex-col items-center gap-1.5 p-3 text-red-500/60 hover:text-red-500 transition-all">
+                <button onClick={handleLogout} className="flex flex-col items-center gap-1.5 p-3 text-red-500/80 hover:text-red-600 transition-all">
                     <LogOut className="w-6 h-6" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
                 </button>

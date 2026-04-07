@@ -8,16 +8,19 @@ export function useLogin() {
     const [loading, setLoading] = useState(false);
     const [identifier, setIdentifier] = useState(''); // Email, NIC, or Phone
     const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     const handleLogin = async () => {
         setLoading(true);
+        setError(null);
         try {
             // SECURITY REFACTOR: Migrate validation to Server Action
             // This ensures hashed passwords are never fetched into the browser.
             const result = await loginWorkerAction(identifier, password);
 
             if (!result.success) {
-                toast.error(result.error);
+                setError(result.error || 'Login failed');
+                toast.error(result.error || 'Login failed');
                 return;
             }
 
@@ -35,6 +38,7 @@ export function useLogin() {
             router.push('/dashboard');
         } catch (err: any) {
             console.error('Portal Hook Error:', err);
+            setError('Something went wrong. Please try again.');
             toast.error('Something went wrong. Please try again.');
         } finally {
             setLoading(false);
@@ -47,6 +51,7 @@ export function useLogin() {
         setIdentifier,
         password,
         setPassword,
+        error,
         handleLogin
     };
 }

@@ -25,22 +25,22 @@ export default function StepIndicator({ step, setStep }: StepIndicatorProps) {
                     className="flex flex-col items-center gap-2 md:gap-3 relative flex-1 group transition-all"
                 >
                     <div className={`w-8 h-8 md:w-10 md:h-10 rounded-[0.8rem] md:rounded-2xl flex items-center justify-center text-xs md:text-sm font-black transition-all duration-500 ${step === it.id
-                        ? 'bg-[#4F46E5] text-white shadow-[0_0_20px_rgba(79,70,229,0.3)] scale-110 ring-4 ring-indigo-500/10'
+                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 scale-110 ring-4 ring-blue-50'
                         : step > it.id
-                            ? 'bg-white/10 text-white/40 group-hover:bg-white/20'
-                            : 'bg-white/5 text-white/20 border border-white/5 group-hover:bg-white/10'
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-slate-100 text-slate-400'
                         }`}>
-                        {step > it.id ? <Check className="w-5 h-5 opacity-40" /> : it.id}
+                        {step > it.id ? <Check className="w-5 h-5" /> : it.id}
                     </div>
                     
                     <div className="hidden lg:block space-y-0.5 text-center transition-all">
-                        <p className={`text-[9px] font-black uppercase tracking-[0.15em] ${step === it.id ? 'text-indigo-400' : 'text-white/30'}`}>{it.label}</p>
-                        <p className={`text-[7px] font-bold lowercase tracking-widest text-white/10 whitespace-nowrap overflow-hidden max-w-[80px] truncate ${step === it.id ? 'text-white/20' : ''}`}>{it.detail}</p>
+                        <p className={`text-[9px] font-black uppercase tracking-[0.15em] ${step === it.id ? 'text-blue-700' : 'text-slate-600'}`}>{it.label}</p>
+                        <p className={`text-[7px] font-bold lowercase tracking-widest text-slate-500 whitespace-nowrap overflow-hidden max-w-[80px] truncate ${step === it.id ? 'opacity-100' : 'opacity-40'}`}>{it.detail}</p>
                     </div>
 
                     {/* Progress Bar Connector */}
                     {it.id < 6 && (
-                        <div className="hidden lg:block absolute left-full top-5 w-[calc(100%-80%)] h-[1px] bg-white/5 mx-auto" />
+                        <div className={`hidden lg:block absolute left-full top-5 w-[calc(100%-80%)] h-[2px] transition-colors duration-500 ${step > it.id ? 'bg-blue-600' : 'bg-slate-200'}`} />
                     )}
                 </button>
             ))}

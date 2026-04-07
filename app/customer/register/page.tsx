@@ -17,8 +17,8 @@ export const metadata: Metadata = {
 export default function CustomerRegistrationPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#090A0F] flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-indigo-500" />
+            <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[#1d4ed8]" />
             </div>
         }>
             <CustomerRegisterClient />

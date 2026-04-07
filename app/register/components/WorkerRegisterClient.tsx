@@ -9,7 +9,7 @@ import Link from 'next/link'
 // Hooks & Components
 import { useRegistrationForm } from '../hooks/useRegistrationForm'
 import RegisterHeader from '../components/RegisterHeader'
-import RegisterFooter from '../components/RegisterFooter'
+import Footer from '../../components/Footer'
 import StepIndicator from '../components/StepIndicator'
 import StepNavigation from '../components/StepNavigation'
 
@@ -58,30 +58,33 @@ export default function WorkerRegisterClient() {
 
     if (registrationSuccess) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-6 font-sans bg-[#090A0F]">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="min-h-screen flex items-center justify-center px-6 font-sans bg-gradient-to-br from-[#eff6ff] via-white to-[#eff6ff] relative overflow-hidden">
+                {/* Decorative Background Elements */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/5 blur-[120px] rounded-full -mr-48 -mt-48" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-400/5 blur-[120px] rounded-full -ml-48 -mb-48" />
+                
                 <m.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 w-full max-w-md text-center bg-[#18181B] border border-white/5 rounded-[2.5rem] p-12 shadow-2xl space-y-8"
+                    className="relative z-10 w-full max-w-md text-center bg-white border border-[#e2e8f0] rounded-[2.5rem] p-12 shadow-2xl space-y-8"
                 >
-                    <div className="w-24 h-24 bg-green-500/10 border border-green-500/20 rounded-[2rem] flex items-center justify-center mx-auto">
-                        <CheckCircle2 className="w-12 h-12 text-green-400" />
+                    <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-xl shadow-green-500/10">
+                        <CheckCircle2 className="w-12 h-12 text-[#16a34a]" />
                     </div>
                     <div className="space-y-3">
-                        <h1 className="text-2xl font-black text-white uppercase tracking-tight">Application Received</h1>
-                        <p className="text-white/40 text-sm font-medium leading-relaxed">
+                        <h1 className="text-2xl font-bold text-[#0f172a] uppercase tracking-tight">Application Received</h1>
+                        <p className="text-[#64748b] text-sm font-medium leading-relaxed">
                             Your profile is under review. To speed up the process, please activate your account via WhatsApp.
                         </p>
                     </div>
                     <button
                         onClick={triggerWhatsAppActivation}
-                        className="w-full px-8 py-5 bg-green-600 text-white rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-green-500 transition-all shadow-xl shadow-green-500/20"
+                        className="w-full px-8 py-5 bg-[#16a34a] text-white rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-[#15803d] transition-all shadow-xl shadow-green-500/20"
                     >
                         Activate via WhatsApp
                     </button>
-                    <Link href="/browse" className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 bg-white/5 text-white/40 rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all">
-                        <ArrowLeft className="w-4 h-4" /> Back to Directory
+                    <Link href="/browse" className="inline-flex items-center justify-center gap-3 w-full px-8 py-5 bg-[#f8fafc] text-[#64748b] border border-[#e2e8f0] rounded-full font-black uppercase tracking-widest text-[10px] hover:bg-[#f1f5f9] transition-all">
+                        <ArrowLeft className="w-4 h-4 text-[#1d4ed8]" /> Back to Directory
                     </Link>
                 </m.div>
             </div>
@@ -89,26 +92,32 @@ export default function WorkerRegisterClient() {
     }
 
     return (
-        <div className="min-h-screen font-sans" style={{ background: '#090A0F', color: '#FFFFFF' }}>
+        <div className="min-h-screen bg-slate-50 relative font-outfit selection:bg-[#1d4ed8]/10 overflow-x-hidden md:pb-24">
+            {/* Premium Background Mesh */}
+            <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
+                <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
+            </div>
             <RegisterHeader 
                 scrolled={scrolled} 
                 mobileOpen={mobileOpen} 
                 setMobileOpen={setMobileOpen} 
             />
 
-            <main className="max-w-2xl mx-auto px-6 pt-32 pb-24">
+            <main className="max-w-2xl mx-auto px-6 pt-32 pb-24 relative z-10">
                 <div className="space-y-8">
                     {/* Header Info */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
-                                <ShieldCheck className="w-5 h-5 text-indigo-400" />
+                            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm">
+                                <ShieldCheck className="w-5 h-5 text-[#1d4ed8]" />
                             </div>
-                            <h1 className="text-2xl font-black text-white uppercase tracking-tight">Worker Registration</h1>
+                            <h1 className="text-2xl font-bold text-[#0f172a] uppercase tracking-tight">Worker Registration</h1>
                         </div>
                         <div className="space-y-1">
-                            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">{getStepTitle()}</h2>
-                            <p className="text-white/40 text-sm font-medium">{getStepDescription()}</p>
+                            <h2 className="text-3xl md:text-4xl font-bold text-[#0f172a] tracking-tight">{getStepTitle()}</h2>
+                            <p className="text-[#64748b] text-sm font-medium">{getStepDescription()}</p>
                         </div>
                     </div>
 
@@ -116,9 +125,9 @@ export default function WorkerRegisterClient() {
                     <StepIndicator step={step} setStep={setStep} />
 
                     {/* Form Content */}
-                    <div className="relative mt-12 bg-[#18181B] border border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl overflow-hidden min-h-[460px]">
+                    <div className="relative mt-12 bg-white border border-slate-200/60 border-t-8 border-t-[#1d4ed8] rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 overflow-hidden min-h-[460px]">
                         {/* Background Glow */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 blur-[80px] rounded-full pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none" />
                         
                         <AnimatePresence mode="wait">
                             <m.div
@@ -150,7 +159,7 @@ export default function WorkerRegisterClient() {
                 </div>
             </main>
 
-            <RegisterFooter />
+            <Footer />
         </div>
     )
 }

@@ -64,10 +64,10 @@ export default async function BrowsePage({ searchParams }: PageProps) {
 
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#090A0F] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="w-12 h-12 bg-white/5 rounded-2xl border border-white/10" />
-          <div className="h-4 w-32 bg-white/5 rounded-full" />
+          <div className="w-12 h-12 bg-white rounded-2xl border border-[#e2e8f0] shadow-sm" />
+          <div className="h-4 w-32 bg-[#e2e8f0] rounded-full" />
         </div>
       </div>
     }>

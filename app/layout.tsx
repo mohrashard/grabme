@@ -30,7 +30,7 @@ const outfit = Outfit({
 });
 
 export const viewport: Viewport = {
-  themeColor: '#090A0F',
+  themeColor: '#ffffff',
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -91,7 +91,7 @@ export default function RootLayout({
     "image": "https://www.grabme.page/grabme.png",
     "description": "Sri Lanka's verified home services directory connecting homeowners with trusted professionals.",
     "url": "https://www.grabme.page",
-    "telephone": "+94000000000", // Update with actual if available
+    "telephone": "+94719382296", // Update with actual if available
     "address": {
       "@type": "PostalAddress",
       "streetAddress": "Colombo",
@@ -127,41 +127,8 @@ export default function RootLayout({
         <LazyMotion features={domAnimation} strict>
           {children}
         </LazyMotion>
-        
-        {/* Global Legal Footer */}
-        <footer className="mt-auto border-t border-white/5 bg-[#090A0F] py-12 px-6">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-            <div className="flex items-center gap-3 opacity-30 grayscale hover:grayscale-0 transition-all cursor-default">
-              <div className="relative w-6 h-6 rounded-lg overflow-hidden border border-white/10">
-                <img src="/grabme.png" alt="Grab Me" width="24" height="24" loading="lazy" className="object-cover" />
-              </div>
-              <span className="text-xs font-black uppercase tracking-[0.2em] text-white">Grab Me</span>
-            </div>
-            
-            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-4">
-              {[
-                { label: 'Terms', href: '/terms' },
-                { label: 'Privacy', href: '/privacy' },
-                { label: 'Conduct', href: '/conduct' },
-                { label: 'Directory', href: '/browse' },
-              ].map((link) => (
-                <Link 
-                  key={link.label} 
-                  href={link.href}
-                  className="text-xs font-black uppercase tracking-[0.2em] text-white/20 hover:text-indigo-400 transition-colors"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-            
-            <div className="text-xs font-black uppercase tracking-[0.2em] text-white/10">
-              &copy; 2026 Mr2 Labs
-            </div>
-          </div>
-        </footer>
 
-        <Toaster theme="dark" richColors position="bottom-center" />
+        <Toaster theme="light" richColors position="bottom-center" />
       </body>
     </html>
   );

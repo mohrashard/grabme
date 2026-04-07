@@ -19,8 +19,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!authorized) {
         // Return matching background from dashboard page component to avoid white flash
         return (
-            <div className="min-h-screen bg-[#090A0F] flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+                <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin" />
             </div>
         )
     }

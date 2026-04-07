@@ -33,19 +33,19 @@ export default function LanguageTabs({ currentLang, currentRole }: LanguageTabsP
     return (
         <div className="flex flex-col gap-8 items-center justify-center py-8">
             {/* Role Toggle */}
-            <div className="inline-flex p-1.5 bg-white/5 border border-white/10 rounded-[2rem] relative">
+            <div className="inline-flex p-1.5 bg-white border border-[#e2e8f0] rounded-full relative shadow-sm">
                 {roles.map((role) => (
                     <button
                         key={role.id}
                         onClick={() => updateParams('role', role.id)}
-                        className={`relative z-10 px-6 py-3.5 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-3 min-h-[44px] ${
-                            currentRole === role.id ? 'text-white' : 'text-white/40 hover:text-white/60'
+                        className={`relative z-10 px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-3 min-h-[40px] ${
+                            currentRole === role.id ? 'text-white' : 'text-[#334155] hover:text-[#1d4ed8]'
                         }`}
                     >
                         {currentRole === role.id && (
                             <m.div
                                 layoutId="role-pill"
-                                className="absolute inset-0 bg-[#4F46E5] rounded-full -z-10 shadow-lg shadow-indigo-500/20"
+                                className="absolute inset-0 bg-[#1d4ed8] rounded-full -z-10 shadow-md shadow-blue-500/10"
                                 transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                             />
                         )}
@@ -61,10 +61,10 @@ export default function LanguageTabs({ currentLang, currentRole }: LanguageTabsP
                     <button
                         key={lang.code}
                         onClick={() => updateParams('lang', lang.code)}
-                        className={`px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all min-h-[44px] ${
+                        className={`px-6 py-2.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all min-h-[40px] ${
                             currentLang === lang.code
-                                ? 'bg-[#4F46E5] text-white shadow-xl shadow-indigo-500/10'
-                                : 'bg-white/5 text-white/40 border border-white/5 hover:bg-white/10 hover:text-white'
+                                ? 'bg-[#1d4ed8] text-white shadow-sm'
+                                : 'bg-white text-[#334155] border border-[#e2e8f0] hover:border-[#1d4ed8] hover:text-[#1d4ed8]'
                         }`}
                     >
                         {lang.label}
