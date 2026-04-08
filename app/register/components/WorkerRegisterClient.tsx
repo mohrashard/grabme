@@ -25,7 +25,7 @@ export default function WorkerRegisterClient() {
         formData, setFormData, handleInputChange, toggleSubSkill, toggleDistrictCovered,
         setSubSkills, setDistrictsCovered,
         handleFileUpload, handleFileRemove,
-        canMoveToNext, submitForm,
+        canMoveToNext, handleNextStep, submitForm,
         registrationSuccess, triggerWhatsAppActivation,
         previews, fieldErrors
     } = useRegistrationForm()
@@ -158,6 +158,7 @@ export default function WorkerRegisterClient() {
                 step={step} 
                 setStep={setStep} 
                 canMoveToNext={canMoveToNext} 
+                handleNextStep={handleNextStep}
                 submitForm={submitForm}
                 loading={loading || !!uploading} 
                 formData={formData}

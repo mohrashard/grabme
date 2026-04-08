@@ -5,12 +5,13 @@ interface StepNavigationProps {
     step: number;
     setStep: (step: number | ((s: number) => number)) => void;
     canMoveToNext: () => boolean;
+    handleNextStep: () => void;
     submitForm: () => void;
     loading: boolean;
     formData: any;
 }
 
-export default function StepNavigation({ step, setStep, canMoveToNext, submitForm, loading, formData }: StepNavigationProps) {
+export default function StepNavigation({ step, setStep, canMoveToNext, handleNextStep, submitForm, loading, formData }: StepNavigationProps) {
     const isLastStep = step === 6;
     const canProgress = canMoveToNext();
 
@@ -31,7 +32,7 @@ export default function StepNavigation({ step, setStep, canMoveToNext, submitFor
 
                 {!isLastStep ? (
                     <button 
-                        onClick={() => setStep(s => s + 1)} 
+                        onClick={handleNextStep} 
                         disabled={!canProgress} 
                         className={`flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all active:scale-[0.98] shadow-lg shadow-blue-500/10
                             ${canProgress 

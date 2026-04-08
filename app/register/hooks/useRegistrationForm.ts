@@ -116,7 +116,20 @@ export function useRegistrationForm() {
     }, [router]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+
+        // Strict Normalization
+        if (['phone', 'emergencyContact', 'referencePhone'].includes(name)) {
+            value = value.replace(/\D/g, ''); // Strip non-numeric
+            if (value.startsWith('94')) value = '0' + value.slice(2); // 94 -> 0
+            value = value.slice(0, 10); // Max 10 chars
+        }
+
+        if (name === 'nicNumber') {
+            value = value.replace(/\s+/g, '').toUpperCase(); // No spaces, force Upper
+            value = value.slice(0, 12); // Max 12 chars
+        }
+
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
@@ -144,6 +157,53 @@ export function useRegistrationForm() {
 
     const setDistrictsCovered = (districts: string[]) => {
         setFormData(prev => ({ ...prev, districtsCovered: districts }));
+    };
+
+    const validateStep = (s: number): boolean => {
+        const errors: Record<string, string> = {};
+        
+        if (s === 1) {
+            // Phone Patterns
+            const phoneRegex = /^0\d{9}$/;
+            if (!phoneRegex.test(formData.phone)) errors.phone = "Invalid primary phone (use 07xxxxxxxx)";
+            if (!phoneRegex.test(formData.emergencyContact)) errors.emergencyContact = "Invalid emergency phone format";
+            
+            // Uniqueness
+            if (formData.phone === formData.emergencyContact) errors.emergencyContact = "Emergency contact cannot be your own phone";
+            if (formData.phone === formData.referencePhone) errors.referencePhone = "Reference cannot be your own phone";
+            
+            // NIC pattern (Basic frontend check to match backend)
+            if (!/^([0-9]{9}[VX]|[0-9]{12})$/i.test(formData.nicNumber)) {
+                errors.nicNumber = "Invalid NIC format (9 digits + V/X or 12 digits)";
+            }
+
+            // NIC vs DOB Match
+            const dobYear = new Date(formData.dob).getFullYear().toString();
+            let nicYear = '';
+            if (formData.nicNumber.length === 10) nicYear = '19' + formData.nicNumber.substring(0, 2);
+            else if (formData.nicNumber.length === 12) nicYear = formData.nicNumber.substring(0, 4);
+            
+            if (nicYear && nicYear !== dobYear) {
+                errors.dob = `Birth year (${nicYear}) doesn't match NIC.`;
+            }
+        }
+
+        if (s === 5) {
+            const phoneRegex = /^0\d{9}$/;
+            if (!phoneRegex.test(formData.referencePhone)) errors.referencePhone = "Invalid reference phone";
+            if (formData.phone === formData.referencePhone) errors.referencePhone = "Cannot refer yourself";
+        }
+
+        setFieldErrors(errors);
+        return Object.keys(errors).length === 0;
+    };
+
+    const handleNextStep = () => {
+        if (validateStep(step)) {
+            setStep(s => s + 1);
+        } else {
+            toast.error("Please fix the errors before proceeding.");
+        }
     };
 
     const handleFileUpload = async (filesOrEvent: any, type: string) => {
@@ -310,7 +370,9 @@ export function useRegistrationForm() {
     };
 
     const canMoveToNext = (): boolean => {
-        if (step === 1) return !!(formData.fullName && formData.email && formData.password && formData.phone && formData.nicNumber && formData.emergencyContact);
+        if (step === 1) {
+            return !!(formData.fullName && formData.email && formData.password && formData.phone && formData.nicNumber && formData.emergencyContact && formData.dob);
+        }
         if (step === 2) return !!(formData.profilePhotoUrl && formData.nicFrontUrl && formData.nicBackUrl);
         if (step === 3) return !!(formData.tradeCategory && formData.yearsExperience >= 0);
         if (step === 4) return !!(formData.homeDistrict && formData.town && formData.districtsCovered.length > 0);
@@ -440,6 +502,7 @@ export function useRegistrationForm() {
         handleFileUpload,
         handleFileRemove,
         canMoveToNext,
+        handleNextStep,
         submitForm,
         registrationSuccess,
         triggerWhatsAppActivation,

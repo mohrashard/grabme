@@ -20,6 +20,9 @@ const containsProfanity = (val: string) => {
 /**
  * HYPER-ADVANCED REGISTRATION SCHEMA
  */
+/**
+ * HYPER-ADVANCED REGISTRATION SCHEMA
+ */
 const RegistrationSchema = z.object({
     fullName: z.string()
         .min(5, "Name too short (Min 5 chars)")
@@ -28,8 +31,8 @@ const RegistrationSchema = z.object({
         .refine(val => !containsProfanity(val), "Invalid Name: Profanity detected."),
     
     email: z.string()
-        .email("Invalid Email Format")
-        .transform(val => val.toLowerCase().trim()),
+        .transform(val => val.trim().toLowerCase())
+        .pipe(z.string().email("Invalid email format")),
 
     password: z.string()
         .min(8, "Password too weak: Minimum 8 characters")
@@ -37,23 +40,33 @@ const RegistrationSchema = z.object({
                "Password MUST include: 1 Uppercase, 1 Lowercase, 1 Number, and 1 Special Char (@$!%*?&)"),
 
     phone: z.string()
-        .regex(/^(\+94|0)?7[0-9]{8}$/, "Invalid Primary WhatsApp Number"),
+        .transform(val => val.replace(/\D/g, '').replace(/^94/, '0').slice(0, 10))
+        .pipe(z.string().regex(/^0\d{9}$/, "Invalid primary phone format")),
 
     referencePhone: z.string()
-        .regex(/^(\+94|0)?7[0-9]{8}$/, "Invalid Reference WhatsApp Number"),
+        .transform(val => val.replace(/\D/g, '').replace(/^94/, '0').slice(0, 10))
+        .pipe(z.string().regex(/^0\d{9}$/, "Invalid reference phone format")),
+
+    emergencyContact: z.string()
+        .transform(val => val.replace(/\D/g, '').replace(/^94/, '0').slice(0, 10))
+        .pipe(z.string().regex(/^0\d{9}$/, "Invalid emergency phone format")),
 
     nicNumber: z.string()
-        .transform(val => val.trim().toUpperCase()),
+        .transform(val => val.replace(/\s+/g, '').toUpperCase())
+        .pipe(z.string().regex(/^([0-9]{9}[VX]|[0-9]{12})$/, "Invalid NIC format")),
 
     dob: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid Date of Birth"),
 
-    address: z.string().min(10, "Full residential address required for verification."),
+    address: z.string()
+        .min(10, "Address must be at least 10 characters long")
+        .regex(/^[0-9A-Z/].*,.*$/i, "Invalid format: Please follow 'House No, Street, City' (include commas)."),
+    
     shortBio: z.string()
         .min(20, "Bio too short: Describe your skills in at least 20 chars.")
         .max(500, "Bio too long (Max 500 chars)")
         .refine(val => !containsProfanity(val), "Bio contains restricted language."),
 
-    // File path enforcement (profilePhoto is now a full URL, others are raw paths)
+    // File path enforcement
     profilePhotoUrl: z.string().min(1, "Profile photo required"),
     nicFrontUrl: z.string().regex(/^workers\/.*?\.(png|jpg|jpeg|webp)$/i, "Invalid NIC image path"),
     nicBackUrl: z.string().regex(/^workers\/.*?\.(png|jpg|jpeg|webp)$/i, "Invalid NIC image path"),
@@ -68,38 +81,26 @@ const RegistrationSchema = z.object({
 }).refine((data) => data.phone !== data.referencePhone, {
     message: "Self-Reference Error: You cannot provide your own number as a reference.",
     path: ["referencePhone"]
-}).superRefine((data, ctx) => {
-    /**
-     * SRI LANKAN SMART NIC LOGIC
-     */
-    let nicBirthYear: number | null = null
-    const nic = data.nicNumber
-    const dobObj = new Date(data.dob)
-    const dobYear = dobObj.getFullYear()
+}).refine((data) => data.phone !== data.emergencyContact, {
+    message: "Primary Phone cannot be same as Emergency Contact.",
+    path: ["emergencyContact"]
+}).refine((data) => {
+    // NIC vs DOB Year Matching
+    const nic = data.nicNumber;
+    const dobYear = new Date(data.dob).getFullYear().toString();
+    let nicBirthYear = '';
 
-    if (/^[0-9]{9}[VvXx]$/.test(nic)) {
-        // Old NIC: 19xx
-        nicBirthYear = 1900 + parseInt(nic.substring(0, 2))
-    } else if (/^[0-9]{12}$/.test(nic)) {
-        // New NIC: Full year
-        nicBirthYear = parseInt(nic.substring(0, 4))
-    } else {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Invalid NIC: Use Old (9 digits + V/X) or New (12 digits) format.", path: ["nicNumber"] })
-        return
+    if (nic.length === 10) {
+        nicBirthYear = '19' + nic.substring(0, 2);
+    } else if (nic.length === 12) {
+        nicBirthYear = nic.substring(0, 4);
     }
 
-    // 1. Age Gate (18 - 80)
-    const currentYear = new Date().getFullYear()
-    const age = currentYear - nicBirthYear
-    if (age < 18 || age > 80) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `NIC indicates Age is ${age}. Must be between 18 and 80.`, path: ["nicNumber"] })
-    }
-
-    // 2. DOB Match Gate
-    if (nicBirthYear !== dobYear) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `NIC birth year (${nicBirthYear}) doesn't match your DOB (${dobYear}).`, path: ["nicNumber"] })
-    }
-})
+    return nicBirthYear === dobYear;
+}, {
+    message: "Date of Birth year does not match your NIC.",
+    path: ["dob"]
+});
 
 import { headers } from 'next/headers'
 import { registrationRateLimit } from '../../lib/rateLimit'
@@ -184,19 +185,27 @@ export async function registerWorkerAction(rawData: any) {
             ]);
 
         if (error) {
-            // Log full error for production diagnosis
             console.error('Supabase Insert Error:', error);
 
+            // Handle Postgres Unique Violation (Code 23505)
             if (error.code === '23505') {
-                const constraint = error.message.toLowerCase()
-                if (constraint.includes('nic_number')) return { success: false, errors: { nicNumber: 'NIC already registered.' } }
-                if (constraint.includes('phone')) return { success: false, errors: { phone: 'WhatsApp number already registered.' } }
-                if (constraint.includes('email')) return { success: false, errors: { email: 'Email address already registered.' } }
+                const msg = error.message.toLowerCase();
                 
-                // Generic unique violation
-                return { success: false, error: 'One of your details (Email/Phone/NIC) is already registered.' };
+                if (msg.includes('phone') || msg.includes('workers_phone_key')) {
+                    return { success: false, errors: { phone: "This phone number is already registered." } };
+                }
+                if (msg.includes('nic') || msg.includes('workers_nic_number_key')) {
+                    return { success: false, errors: { nicNumber: "This NIC is already registered." } };
+                }
+                if (msg.includes('email') || msg.includes('workers_email_key')) {
+                    return { success: false, errors: { email: "This email is already registered." } };
+                }
+                
+                return { success: false, error: "One of your unique details is already registered." };
             }
-            throw error
+
+            // Generic Database Error Catch-all
+            return { success: false, error: "Database error during registration." };
         }
 
         return { success: true }
