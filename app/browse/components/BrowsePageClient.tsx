@@ -187,31 +187,74 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
                             MOBILE LAYOUT  (< md)
                     ══════════════════════════════════════════ */}
                 <div className="md:hidden">
-                    {/* Compact Sticky Filter Block */}
-                    <div className="bg-white p-4 border-b border-[#e2e8f0] space-y-3 sticky top-[68px] z-40 shadow-sm">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
-                            <input type="text" placeholder="Search by name, skill or area..."
-                                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-[#f8fafc] border border-[#e2e8f0] rounded-xl py-3 pl-11 pr-4 text-sm text-[#0f172a] placeholder:text-[#94a3b8] outline-none focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#dbeafe] transition-all font-medium"
-                            />
+                    {/* Native App Search & Filter Header */}
+                    <div className="bg-white sticky top-[68px] z-40 shadow-[0_4px_12px_rgba(0,0,0,0.03)] border-b border-[#e2e8f0]">
+                        {/* Search Bar */}
+                        <div className="px-5 pt-4 pb-3">
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#94a3b8]" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Search Baas, Service or Area..."
+                                    value={searchQuery} 
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-11 pr-4 text-xs text-[#0f172a] placeholder:text-slate-400 outline-none focus:bg-white focus:border-blue-200 focus:ring-4 focus:ring-blue-50 transition-all font-bold"
+                                />
+                            </div>
                         </div>
-                        <div className="flex overflow-x-auto gap-2 no-scrollbar pb-1">
-                            <CustomSelect value={selectedTrade} placeholder="All Services" searchPlaceholder="Search services..."
-                                onChange={(val) => { setSelectedTrade(val); setSelectedSkill('All Skills'); router.replace(`/browse?service=${val}&skill=All Skills&district=${selectedDistrict}`, { scroll: false }); }}
-                                options={tradesOptions} className="flex-shrink-0 w-40 z-50" />
+
+                        {/* Filter Row (Chips) */}
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-5 pb-4 snap-x">
+                            <CustomSelect 
+                                variant="pill"
+                                value={selectedTrade} 
+                                placeholder="Service" 
+                                searchPlaceholder="Search services..."
+                                onChange={(val) => { 
+                                    setSelectedTrade(val); 
+                                    setSelectedSkill('All Skills'); 
+                                    router.replace(`/browse?service=${val}&skill=All Skills&district=${selectedDistrict}`, { scroll: false }); 
+                                }}
+                                options={tradesOptions} 
+                                className="flex-shrink-0 w-32 snap-start" 
+                            />
+
                             {availableSkills.length > 0 && selectedTrade !== 'All Services' && (
-                                <CustomSelect value={selectedSkill} placeholder="All Skills" searchPlaceholder="Search skills..."
-                                    onChange={(val) => { const v = val || 'All Skills'; setSelectedSkill(v); router.replace(`/browse?service=${selectedTrade}&skill=${v}&district=${selectedDistrict}`, { scroll: false }); }}
-                                    options={["All Skills", ...availableSkills]} className="flex-shrink-0 w-36 z-40" />
+                                <CustomSelect 
+                                    variant="pill"
+                                    value={selectedSkill} 
+                                    placeholder="Skill" 
+                                    searchPlaceholder="Search skills..."
+                                    onChange={(val) => { 
+                                        const v = val || 'All Skills'; 
+                                        setSelectedSkill(v); 
+                                        router.replace(`/browse?service=${selectedTrade}&skill=${v}&district=${selectedDistrict}`, { scroll: false }); 
+                                    }}
+                                    options={["All Skills", ...availableSkills]} 
+                                    className="flex-shrink-0 w-28 snap-start" 
+                                />
                             )}
-                            <CustomSelect value={selectedDistrict} placeholder="All Districts" searchPlaceholder="Search districts..."
-                                onChange={(val) => { setSelectedDistrict(val); router.replace(`/browse?service=${selectedTrade}&district=${val}`, { scroll: false }); }}
-                                options={["All Districts", ...DISTRICTS]} className="flex-shrink-0 w-36 z-30" />
-                            <button onClick={detectLocation} disabled={detecting}
-                                className="flex-shrink-0 w-10 h-10 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl flex items-center justify-center text-[#64748b] hover:text-[#1d4ed8] transition-all disabled:opacity-30"
-                                title="Auto-detect my district" aria-label="Detect my location">
-                                {detecting ? <Loader2 className="w-4 h-4 animate-spin text-[#1d4ed8]" /> : <Navigation className="w-4 h-4" />}
+
+                            <CustomSelect 
+                                variant="pill"
+                                value={selectedDistrict} 
+                                placeholder="Area" 
+                                searchPlaceholder="Search districts..."
+                                onChange={(val) => { 
+                                    setSelectedDistrict(val); 
+                                    router.replace(`/browse?service=${selectedTrade}&district=${val}`, { scroll: false }); 
+                                }}
+                                options={["All Districts", ...DISTRICTS]} 
+                                className="flex-shrink-0 w-28 snap-start" 
+                            />
+
+                            <button 
+                                onClick={detectLocation} 
+                                disabled={detecting}
+                                className="flex-shrink-0 w-10 h-10 bg-slate-50 border border-slate-200 rounded-full flex items-center justify-center text-slate-500 hover:text-blue-600 active:scale-90 transition-all disabled:opacity-30 snap-start"
+                                title="Auto-detect my district"
+                            >
+                                {detecting ? <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> : <Navigation className="w-4 h-4" />}
                             </button>
                         </div>
                     </div>
