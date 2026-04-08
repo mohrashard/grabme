@@ -76,8 +76,8 @@ export default function StepIdentity({ formData, handleInputChange, fieldErrors 
                 {/* Address */}
                 <div className="space-y-1.5 md:col-span-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Home Address</label>
-                    <input name="address" value={formData.address} onChange={handleInputChange} placeholder="Current residence address" className={`w-full px-5 py-4 bg-white border rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm transition-all placeholder:text-slate-300 ${fieldErrors.address ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : 'border-slate-200'}`} />
-                    {renderHint('address', 'Full address required for trust verification')}
+                    <input name="address" title="Please enter your full address as printed on the back of your National Identity Card." value={formData.address} onChange={handleInputChange} placeholder="e.g., F/H/1, Demel Wattha Road, Maharagama" className={`w-full px-5 py-4 bg-white border rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm transition-all placeholder:text-slate-300 ${fieldErrors.address ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : 'border-slate-200'}`} />
+                    {renderHint('address', 'Must match NIC exactly • Include commas')}
                 </div>
             </div>
         </m.div>
