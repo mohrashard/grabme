@@ -118,3 +118,14 @@ select option {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Utility to hide scrollbar but keep functionality */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

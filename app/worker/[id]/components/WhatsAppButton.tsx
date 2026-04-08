@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback } from 'react'
-import { MessageSquare, Loader2 } from 'lucide-react'
+import { MessageSquare, Loader2, Share2 } from 'lucide-react'
 import { logWhatsAppClickAction } from '../actions'
 import { getWorkerContactAction } from '../actions/getWorkerContactAction'
 import LeadCaptureModal from './LeadCaptureModal'
@@ -67,29 +67,40 @@ export default function WhatsAppButton({ workerId, workerTrade }: WhatsAppButton
 
     return (
         <>
-            <div className="space-y-3">
+            <div className="flex items-center gap-3 w-full">
                 <button 
                     onClick={handleContact}
                     disabled={isRedirecting}
-                    className="w-full min-h-[64px] bg-[#16a34a] text-white rounded-2xl font-bold text-lg shadow-lg hover:bg-[#15803d] hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                    className="flex-1 min-h-[56px] bg-[#16a34a] text-white rounded-2xl font-bold text-base shadow-lg hover:bg-[#15803d] hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
                 >
                     {isRedirecting ? (
                         <>
-                            <Loader2 className="w-6 h-6 animate-spin" />
+                            <Loader2 className="w-5 h-5 animate-spin" />
                             Connecting...
                         </>
                     ) : (
                         <>
-                            <span className="text-2xl">💬</span>
+                            <span className="text-xl">💬</span>
                             Chat on WhatsApp
                         </>
                     )}
                 </button>
 
                 <button 
-                    className="w-full min-h-[56px] bg-white border-2 border-[#e2e8f0] text-[#334155] rounded-2xl font-bold text-sm hover:border-[#1d4ed8] hover:text-[#1d4ed8] transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                    onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: 'Grab Me Pro Profile',
+                            url: window.location.href,
+                          }).catch(() => {});
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success('Link copied to clipboard!');
+                        }
+                    }}
+                    className="w-14 h-14 shrink-0 bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] rounded-2xl flex items-center justify-center hover:bg-[#f1f5f9] active:scale-[0.95] transition-all"
                 >
-                    Share Profile
+                    <Share2 className="w-5 h-5" />
                 </button>
             </div>
 

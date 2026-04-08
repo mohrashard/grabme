@@ -19,63 +19,56 @@ export default function WorkerProfileError({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] text-[#0f172a] flex flex-col items-center justify-center p-6 text-center">
-      {/* Background decoration */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-red-500/5 blur-[120px] rounded-full" />
-      </div>
+    <div className="min-h-[100dvh] bg-white flex flex-col relative overflow-hidden font-outfit">
+      {/* APP HEADER */}
+      <header className="px-5 py-4 flex items-center shrink-0">
+          <Link href="/" className="w-10 h-10 flex items-center justify-center bg-slate-50 border border-slate-100 rounded-xl text-[#0f172a] active:scale-90 transition-all">
+              <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <span className="ml-4 text-sm font-black uppercase tracking-widest text-[#0f172a]">Error</span>
+      </header>
 
       <m.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="relative z-10 max-w-md w-full space-y-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex-1 flex flex-col items-center justify-center px-6 max-w-md mx-auto w-full text-center"
       >
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-3 mb-12">
-            <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-white/10">
-                <Image src="/grabme.png" alt="Grab Me" fill className="object-cover" />
+        {/* Error Icon Block */}
+        <div className="relative mb-10 group">
+            <div className="absolute -inset-4 bg-red-500/5 blur-2xl rounded-full" />
+            <div className="relative w-28 h-28 bg-white border border-red-100 shadow-xl shadow-red-500/5 rounded-[2.5rem] flex items-center justify-center">
+                <AlertTriangle className="w-12 h-12 text-red-500" />
             </div>
-            <span className="text-lg font-black tracking-tight text-[#0f172a] uppercase tracking-[0.2em]">Grab Me</span>
         </div>
 
-        {/* Error Icon */}
-        <div className="w-24 h-24 bg-red-500/10 border border-red-500/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8">
-          <AlertTriangle className="w-10 h-10 text-red-500" />
-        </div>
-
-        <div className="space-y-4">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight">Profile Not Found</h1>
-          <p className="text-[#0f172a]/60 text-sm font-medium leading-relaxed">
-            The profile you are looking for may have been deactivated, suspended, or simply doesn't exist anymore. 
+        <div className="space-y-4 mb-12">
+          <h1 className="text-3xl font-black tracking-tight text-[#0f172a]">Profile Missing</h1>
+          <p className="text-slate-500 text-sm font-medium leading-relaxed px-4">
+            We couldn't find the professional you're looking for. They may have stepped away or updated their profile link.
           </p>
         </div>
 
-        <div className="flex flex-col gap-4 pt-6">
+        {/* ACTIONS */}
+        <div className="w-full flex flex-col gap-4 mt-auto md:mt-0">
           <Link 
             href="/browse"
-            className="w-full py-4 bg-[#1d4ed8] text-white rounded-full font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-[#1e3a8a] transition-all shadow-xl active:scale-95"
+            className="w-full py-5 bg-[#1d4ed8] text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all"
           >
             <Search className="w-4 h-4" /> Browse Professionals
           </Link>
           
           <button
             onClick={() => reset()}
-            className="w-full py-4 bg-[#1d4ed8] text-white rounded-full font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-[#1e3a8a] transition-all shadow-xl active:scale-95"
+            className="w-full py-5 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-slate-50 active:scale-[0.98] transition-all"
           >
             <RefreshCcw className="w-4 h-4" /> Try Again
           </button>
         </div>
 
-        <div className="pt-12">
-          <Link href="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#0f172a]/40 hover:text-[#0f172a] transition-colors">
-            <ArrowLeft className="w-3 h-3" /> Back to Home
-          </Link>
+        <div className="mt-16 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+            Grab Me Infrastructure
         </div>
       </m.div>
-
-      <div className="mt-20 text-[9px] font-black uppercase tracking-[0.3em] text-[#0f172a]/20">
-        Security Infrastructure by Mr² Labs
-      </div>
     </div>
   )
 }

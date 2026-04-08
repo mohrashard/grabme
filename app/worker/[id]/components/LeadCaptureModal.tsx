@@ -108,7 +108,7 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+                <div className="fixed inset-0 z-[100] flex flex-col justify-end">
                     {/* Overlay */}
                     <m.div 
                         initial={{ opacity: 0 }}
@@ -118,17 +118,21 @@ export default function LeadCaptureModal({ isOpen, workerTrade, onClose, onSucce
                         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                     />
 
-                    {/* Modal Content */}
+                    {/* Modal Content (Bottom Sheet) */}
                     <m.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-md bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+                        initial={{ y: "100%" }}
+                        animate={{ y: 0 }}
+                        exit={{ y: "100%" }}
+                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        className="relative w-full max-w-md mx-auto bg-white rounded-t-[2rem] rounded-b-none p-6 shadow-2xl overflow-hidden pb-safe"
                     >
+                        {/* Drag Handle Indicator */}
+                        <div className="w-12 h-1.5 bg-[#e2e8f0] rounded-full mx-auto mb-6" />
+
                         {/* Glow */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#1d4ed8]/5 blur-[80px] rounded-full" />
 
-                        <div className="relative z-10 space-y-8">
+                        <div className="relative z-10 space-y-6">
                             {/* Header */}
                             <div className="flex items-start justify-between">
                                 <div className="space-y-2">
