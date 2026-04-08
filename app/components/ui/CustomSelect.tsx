@@ -145,7 +145,7 @@ export function CustomSelect({
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     onClick={() => setIsOpen(false)}
-                                    className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+                                    className="absolute inset-0 bg-black/60"
                                 />
                                 
                                 {/* Sheet */}
@@ -153,8 +153,8 @@ export function CustomSelect({
                                     initial={{ y: "100%" }}
                                     animate={{ y: 0 }}
                                     exit={{ y: "100%" }}
-                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                    className="relative bg-white rounded-t-[2.5rem] p-6 shadow-2xl pb-safe outline-none"
+                                    transition={{ duration: 0.25, ease: "easeOut" }}
+                                    className="relative bg-white rounded-t-[2.5rem] p-6 shadow-2xl pb-safe outline-none will-change-transform"
                                     onClick={(e) => e.stopPropagation()}
                                 >
                                     {/* Drag Handle */}
@@ -199,10 +199,10 @@ export function CustomSelect({
                                                         key={option.value}
                                                         type="button"
                                                         onClick={() => handleSelect(option.value)}
-                                                        className={`w-full flex items-center justify-between p-5 rounded-2xl text-sm font-bold transition-all
+                                                        className={`w-full flex items-center justify-between p-5 rounded-2xl text-sm font-bold active:bg-blue-100/50
                                                             ${isSelected(option.value)
                                                                 ? 'bg-blue-50 text-blue-600 border border-blue-100' 
-                                                                : 'bg-slate-50 text-slate-600 border border-transparent hover:bg-slate-100'
+                                                                : 'bg-slate-50 text-slate-600 border border-transparent'
                                                             }
                                                         `}
                                                     >
