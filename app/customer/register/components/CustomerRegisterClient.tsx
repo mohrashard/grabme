@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { m } from 'framer-motion'
 import {
     User, Phone, MapPin, Navigation, Loader2,
-    CheckCircle2, ArrowLeft, Bell
+    CheckCircle2, ArrowLeft, Bell, ChevronLeft, Search
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -13,7 +13,6 @@ import { DISTRICTS } from '@/app/register/constants'
 import { registerCustomerAction } from '../actions'
 import { toast } from 'sonner'
 import { fetchTaxonomyAction } from '@/app/lib/taxonomyActions'
-import Footer from '@/app/components/Footer'
 
 export default function CustomerRegisterClient() {
     const searchParams = useSearchParams()
@@ -140,15 +139,8 @@ export default function CustomerRegisterClient() {
 
     if (success) {
         return (
-            <div className="min-h-screen flex flex-col font-outfit bg-slate-50 relative overflow-x-hidden">
-                {/* Premium Background Mesh */}
-                <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
-                    <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                    <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                    <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
-                </div>
-
-                <div className="flex-1 flex items-center justify-center px-6 py-24">
+            <div className="min-h-[100dvh] font-outfit flex flex-col bg-white relative overflow-x-hidden">
+                <div className="flex-1 flex items-center justify-center px-6">
                     <m.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -185,38 +177,23 @@ export default function CustomerRegisterClient() {
                         </Link>
                     </m.div>
                 </div>
-                <Footer />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen font-outfit flex flex-col bg-slate-50 relative overflow-x-hidden">
-            {/* Premium Background Mesh */}
-            <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
-            </div>
+        <div className="min-h-[100dvh] font-outfit flex flex-col bg-white relative">
+            {/* Native App Top Header */}
+            <header className="fixed top-0 w-full z-50 bg-white pt-4 pb-3 px-5 flex items-center justify-between border-b border-[#e2e8f0] shadow-sm">
+                <Link href="/" className="w-10 h-10 rounded-full bg-[#f8fafc] flex items-center justify-center border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
+                    <ChevronLeft className="w-5 h-5 text-[#0f172a]" />
+                </Link>
 
-            {/* Fixed Nav */}
-            <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-xl border-b border-[#e2e8f0]">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3">
-                        <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-sm border border-[#e2e8f0]">
-                            <Image src="/grabme.png" alt="Grab Me Sri Lanka" fill sizes="32px" className="object-cover" />
-                        </div>
-                        <span className="text-[#1d4ed8] text-lg font-bold tracking-tight">Grab Me</span>
-                    </Link>
-                    <Link
-                        href="/browse"
-                        className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#64748b] hover:text-[#1d4ed8] transition-colors"
-                    >
-                        <ArrowLeft className="w-3 h-3" />
-                        Back to Browse
-                    </Link>
-                </div>
-            </nav>
+                <Link href="/browse" className="flex items-center gap-2 rounded-full bg-[#f8fafc] px-4 py-2 border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
+                    <Search className="w-4 h-4 text-[#1d4ed8]" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a]">Browse</span>
+                </Link>
+            </header>
 
             <div className="flex-1 pt-40 pb-24 px-6 flex justify-center items-center relative">
                 <m.div
@@ -229,10 +206,8 @@ export default function CustomerRegisterClient() {
                         {/* Card header */}
                         <div className="pt-14 pb-8 px-10 text-center relative">
                             <div className="relative z-10">
-                                <div className="w-16 h-16 bg-blue-50 rounded-2xl border border-blue-100 flex items-center justify-center mx-auto mb-6 shadow-sm">
-                                    <Bell className="w-8 h-8 text-[#1d4ed8]" />
-                                </div>
-                                <h1 className="text-2xl font-bold tracking-tight text-[#0f172a] mb-2 uppercase">
+                                <Bell className="w-12 h-12 text-[#1d4ed8] mx-auto mb-4" />
+                                <h1 className="text-3xl font-black tracking-tight text-[#0f172a] mb-2 uppercase">
                                     Get Notified
                                 </h1>
                                 <p className="text-[#64748b] text-[10px] font-bold uppercase tracking-[0.3em]">
@@ -258,7 +233,7 @@ export default function CustomerRegisterClient() {
                                         placeholder="e.g. Kasun Perera"
                                         value={formData.full_name}
                                         onChange={e => setFormData(p => ({ ...p, full_name: e.target.value }))}
-                                        className={`w-full pl-14 pr-5 py-4 bg-[#f8fafc] border rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#dbeafe] text-sm transition-all placeholder:text-[#94a3b8] text-[#0f172a] font-medium ${
+                                        className={`w-full pl-14 pr-5 py-4 md:py-5 bg-[#f8fafc] border rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#dbeafe] text-base transition-all placeholder:text-[#94a3b8] text-[#0f172a] font-medium ${
                                             fieldErrors.full_name
                                                 ? 'border-red-300'
                                                 : 'border-[#e2e8f0] focus:border-[#1d4ed8]'
@@ -287,7 +262,7 @@ export default function CustomerRegisterClient() {
                                         placeholder="0771234567"
                                         value={formData.phone}
                                         onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                                        className={`w-full pl-14 pr-5 py-4 bg-[#f8fafc] border rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#dbeafe] text-sm transition-all placeholder:text-[#94a3b8] text-[#0f172a] font-bold ${
+                                        className={`w-full pl-14 pr-5 py-4 md:py-5 bg-[#f8fafc] border rounded-xl focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#dbeafe] text-base transition-all placeholder:text-[#94a3b8] text-[#0f172a] font-bold ${
                                             fieldErrors.phone
                                                 ? 'border-red-300'
                                                 : 'border-[#e2e8f0] focus:border-[#1d4ed8]'
@@ -390,12 +365,12 @@ export default function CustomerRegisterClient() {
                         </form>
                     </div>
 
-                    <p className="text-center text-[10px] text-[#94a3b8] font-bold uppercase tracking-widest mt-8">
-                        Powered by Mr2 Labs
-                    </p>
                 </m.div>
             </div>
-            <Footer />
+
+            <p className="mt-auto pt-8 pb-4 text-center text-[10px] text-[#94a3b8] font-bold uppercase tracking-widest">
+                Powered by Mr2 Labs
+            </p>
         </div>
     )
 }

@@ -2,13 +2,11 @@
 
 import React from 'react'
 import { m } from 'framer-motion'
-import { ArrowRight, User, Fingerprint } from 'lucide-react'
+import { ArrowRight, User, Fingerprint, ChevronLeft, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
 // Hooks & Navigation
 import { useLogin } from '../hooks/useLogin'
-import RegisterHeader from '../../register/components/RegisterHeader'
-import Footer from '../../components/Footer'
 
 export default function LoginClient() {
     const { 
@@ -17,18 +15,20 @@ export default function LoginClient() {
     } = useLogin();
 
     return (
-        <div className="min-h-screen font-outfit overflow-x-hidden flex flex-col bg-slate-50 relative">
-            {/* Premium Background Mesh */}
-            <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
-            </div>
+        <div className="min-h-[100dvh] font-outfit flex flex-col bg-white relative">
+            {/* Native App Top Header */}
+            <header className="fixed top-0 w-full z-50 bg-white pt-4 pb-3 px-5 flex items-center justify-between">
+                <Link href="/" className="w-10 h-10 rounded-full bg-[#f8fafc] flex items-center justify-center border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
+                    <ChevronLeft className="w-5 h-5 text-[#0f172a]" />
+                </Link>
 
-            {/* Nav Reuse */}
-            <RegisterHeader scrolled={true} mobileOpen={false} setMobileOpen={() => {}} />
+                <Link href="/how-it-works" className="flex items-center gap-2 rounded-full bg-[#f8fafc] px-4 py-2 border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
+                    <BookOpen className="w-4 h-4 text-[#1d4ed8]" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a]">Guide</span>
+                </Link>
+            </header>
 
-            <div className="flex-1 pt-40 pb-24 px-6 flex justify-center relative items-center">
+            <div className="flex-1 pt-24 pb-12 px-6 flex justify-center relative items-center">
 
                 <m.div 
                     initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -37,13 +37,11 @@ export default function LoginClient() {
                     {/* Header Section */}
                     <div className="pt-12 pb-8 px-10 text-center relative">
                         <div className="relative z-10">
-                            <div className="w-16 h-16 bg-blue-50 border border-blue-100 flex items-center justify-center mx-auto mb-6 shadow-sm rounded-2xl transition-transform hover:scale-110">
-                                <Fingerprint className="w-8 h-8 text-[#1d4ed8]" />
-                            </div>
+                            <Fingerprint className="w-12 h-12 text-[#1d4ed8] mx-auto mb-4" />
                             <div className="flex items-center justify-center gap-2 mb-2">
                                 <span className="text-[#1d4ed8] text-xl font-bold tracking-tight uppercase">Grab Me</span>
                             </div>
-                            <h1 className="text-2xl font-bold tracking-tight text-[#0f172a] uppercase">Partner Login</h1>
+                            <h1 className="text-3xl font-black tracking-tight text-[#0f172a] uppercase">Partner Login</h1>
                             <p className="text-[#64748b] text-[10px] font-bold uppercase tracking-[0.3em] mt-1">Worker Dashboard Entry</p>
                         </div>
                     </div>
@@ -71,7 +69,7 @@ export default function LoginClient() {
                                         value={identifier}
                                         onChange={(e) => setIdentifier(e.target.value)}
                                         placeholder="partner@email.com / 98xxxxxV" 
-                                        className="w-full pl-14 pr-5 py-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl focus:bg-white focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#dbeafe] outline-none text-sm transition-all text-[#0f172a] placeholder:text-[#94a3b8] font-medium" 
+                                        className="w-full pl-14 pr-5 py-4 md:py-5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl focus:bg-white focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#dbeafe] outline-none text-base transition-all text-[#0f172a] placeholder:text-[#94a3b8] font-medium" 
                                     />
                                 </div>
                             </div>
@@ -92,7 +90,7 @@ export default function LoginClient() {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         placeholder="••••••••" 
-                                        className="w-full pl-14 pr-5 py-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl focus:bg-white focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#dbeafe] outline-none text-sm transition-all text-[#0f172a] placeholder:text-[#94a3b8] font-bold" 
+                                        className="w-full pl-14 pr-5 py-4 md:py-5 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl focus:bg-white focus:border-[#1d4ed8] focus:ring-2 focus:ring-[#dbeafe] outline-none text-base transition-all text-[#0f172a] placeholder:text-[#94a3b8] font-bold" 
                                     />
                                 </div>
                             </div>
@@ -115,17 +113,15 @@ export default function LoginClient() {
                                 This portal is for registered workers and partners only. If you are not registered yet, please apply below.
                             </p>
                         </div>
-
-                        <div className="mt-10 text-center">
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-[#64748b]">
-                                Don&apos;t have an account? <Link href="/register" className="text-[#1d4ed8] font-semibold hover:text-[#1e3a8a] transition-colors ml-1">Apply as Worker</Link>
-                            </p>
-                        </div>
                     </div>
                 </m.div>
             </div>
 
-            <Footer />
+            <div className="mt-auto pt-8 pb-4 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-[#64748b]">
+                    Don&apos;t have an account? <Link href="/register" className="text-[#1d4ed8] font-semibold hover:text-[#1e3a8a] transition-colors ml-1">Apply as Worker</Link>
+                </p>
+            </div>
         </div>
     );
 }

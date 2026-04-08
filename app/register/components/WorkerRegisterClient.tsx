@@ -3,13 +3,11 @@
 import React from 'react'
 import dynamic from 'next/dynamic'
 import { m, AnimatePresence } from 'framer-motion'
-import { ShieldCheck, CheckCircle2, ArrowLeft } from 'lucide-react'
+import { ShieldCheck, CheckCircle2, ArrowLeft, ChevronLeft, User } from 'lucide-react'
 import Link from 'next/link'
 
 // Hooks & Components
 import { useRegistrationForm } from '../hooks/useRegistrationForm'
-import RegisterHeader from '../components/RegisterHeader'
-import Footer from '../../components/Footer'
 import StepIndicator from '../components/StepIndicator'
 import StepNavigation from '../components/StepNavigation'
 
@@ -58,15 +56,11 @@ export default function WorkerRegisterClient() {
 
     if (registrationSuccess) {
         return (
-            <div className="min-h-screen flex items-center justify-center px-6 font-sans bg-gradient-to-br from-[#eff6ff] via-white to-[#eff6ff] relative overflow-hidden">
-                {/* Decorative Background Elements */}
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-400/5 blur-[120px] rounded-full -mr-48 -mt-48" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-400/5 blur-[120px] rounded-full -ml-48 -mb-48" />
-                
+            <div className="min-h-[100dvh] flex items-center justify-center px-6 font-outfit bg-white relative overflow-hidden">
                 <m.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative z-10 w-full max-w-md text-center bg-white border border-[#e2e8f0] rounded-[2.5rem] p-12 shadow-2xl space-y-8"
+                    className="relative z-10 w-full max-w-sm text-center bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 shadow-2xl space-y-8"
                 >
                     <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto border-4 border-white shadow-xl shadow-green-500/10">
                         <CheckCircle2 className="w-12 h-12 text-[#16a34a]" />
@@ -92,20 +86,20 @@ export default function WorkerRegisterClient() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 relative font-outfit selection:bg-[#1d4ed8]/10 overflow-x-hidden md:pb-24">
-            {/* Premium Background Mesh */}
-            <div className="absolute top-0 left-0 right-0 h-full w-full pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] bg-[#dbeafe]/40 blur-[120px] rounded-full" />
-                <div className="absolute top-[40%] left-[25%] w-[40%] h-[40%] bg-white blur-[100px] rounded-full opacity-60" />
-            </div>
-            <RegisterHeader 
-                scrolled={scrolled} 
-                mobileOpen={mobileOpen} 
-                setMobileOpen={setMobileOpen} 
-            />
+        <div className="min-h-[100dvh] font-outfit flex flex-col bg-white relative">
+            {/* Native App Top Header */}
+            <header className="fixed top-0 w-full z-50 bg-white pt-4 pb-3 px-5 flex items-center justify-between border-b border-[#e2e8f0] shadow-sm">
+                <Link href="/" className="w-10 h-10 rounded-full bg-[#f8fafc] flex items-center justify-center border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
+                    <ChevronLeft className="w-5 h-5 text-[#0f172a]" />
+                </Link>
 
-            <main className="max-w-2xl mx-auto px-6 pt-32 pb-24 relative z-10">
+                <Link href="/login" className="flex items-center gap-2 rounded-full bg-[#f8fafc] px-4 py-2 border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
+                    <User className="w-4 h-4 text-[#1d4ed8]" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a]">Login</span>
+                </Link>
+            </header>
+
+            <main className="max-w-2xl mx-auto px-6 pt-24 pb-24 relative z-10">
                 <div className="space-y-8">
                     {/* Header Info */}
                     <div className="space-y-4">
@@ -158,8 +152,6 @@ export default function WorkerRegisterClient() {
                     />
                 </div>
             </main>
-
-            <Footer />
         </div>
     )
 }
