@@ -1,9 +1,10 @@
-'use client'
 import { Check } from 'lucide-react'
+import { m } from 'framer-motion'
 
 interface StepIndicatorProps {
     step: number;
     setStep: (step: number) => void;
+    canMoveToNext: () => boolean;
 }
 
 const STEPS = [
@@ -15,35 +16,64 @@ const STEPS = [
     { id: 6, label: 'Review', detail: 'Final Declaration' }
 ]
 
-export default function StepIndicator({ step, setStep }: StepIndicatorProps) {
-    return (
-        <div className="flex justify-between items-start mb-8 md:mb-12 px-1 lg:px-2 max-w-2xl mx-auto gap-1 sm:gap-2 lg:gap-8 pb-4">
-            {STEPS.map((it) => (
-                <button 
-                    key={it.id} 
-                    onClick={() => setStep(it.id)}
-                    className="flex flex-col items-center gap-2 md:gap-3 relative flex-1 group transition-all"
-                >
-                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-[0.8rem] md:rounded-2xl flex items-center justify-center text-xs md:text-sm font-black transition-all duration-500 ${step === it.id
-                        ? 'bg-blue-600 text-white shadow-lg shadow-blue-100 scale-110 ring-4 ring-blue-50'
-                        : step > it.id
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-100 text-slate-400'
-                        }`}>
-                        {step > it.id ? <Check className="w-5 h-5" /> : it.id}
-                    </div>
-                    
-                    <div className="hidden lg:block space-y-0.5 text-center transition-all">
-                        <p className={`text-[9px] font-black uppercase tracking-[0.15em] ${step === it.id ? 'text-blue-700' : 'text-slate-600'}`}>{it.label}</p>
-                        <p className={`text-[7px] font-bold lowercase tracking-widest text-slate-500 whitespace-nowrap overflow-hidden max-w-[80px] truncate ${step === it.id ? 'opacity-100' : 'opacity-40'}`}>{it.detail}</p>
-                    </div>
+export default function StepIndicator({ step, setStep, canMoveToNext }: StepIndicatorProps) {
+    const handleStepClick = (targetId: number) => {
+        // Always allow jumping back to fix "wrong went section"
+        if (targetId < step) {
+            setStep(targetId);
+            return;
+        }
+        
+        // Allow jumping forward ONLY if the current step is valid (prevent skipping required data)
+        if (targetId === step + 1 && canMoveToNext()) {
+            setStep(targetId);
+        }
+    };
 
-                    {/* Progress Bar Connector */}
-                    {it.id < 6 && (
-                        <div className={`hidden lg:block absolute left-full top-5 w-[calc(100%-80%)] h-[2px] transition-colors duration-500 ${step > it.id ? 'bg-blue-600' : 'bg-slate-200'}`} />
-                    )}
-                </button>
-            ))}
+    return (
+        <div className="w-full px-6 pt-2 pb-6">
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1d4ed8]">Navigation Progress</span>
+                    <span className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest leading-none">
+                        {STEPS[step - 1]?.label} <span className="mx-1 text-slate-200">|</span> {STEPS[step - 1]?.detail}
+                    </span>
+                </div>
+                <div className="flex flex-col items-end">
+                    <span className="text-xl font-black text-[#0f172a] tabular-nums tracking-tighter">
+                        {step}<span className="text-slate-200 mx-1 font-light">/</span>{STEPS.length}
+                    </span>
+                </div>
+            </div>
+
+            {/* Progress Bar Container - Now Interactive */}
+            <div className="relative h-2.5 w-full bg-slate-100/50 rounded-full flex gap-1.5 p-1 ring-1 ring-slate-100">
+                {STEPS.map((it) => {
+                    const isPassed = it.id < step;
+                    const isCurrent = it.id === step;
+                    const isClickable = it.id < step || (it.id === step + 1 && canMoveToNext());
+
+                    return (
+                        <button 
+                            key={it.id}
+                            onClick={() => handleStepClick(it.id)}
+                            disabled={!isClickable && !isCurrent}
+                            className={`flex-1 h-full rounded-full transition-all duration-300 relative group
+                                ${isPassed ? 'bg-blue-600' : isCurrent ? 'bg-blue-600' : 'bg-slate-200'}
+                                ${isClickable ? 'cursor-pointer hover:scale-y-125 hover:bg-blue-400' : 'cursor-not-allowed'}
+                            `}
+                            title={it.label}
+                        >
+                            {isCurrent && (
+                                <m.div 
+                                    layoutId="active-nav"
+                                    className="absolute inset-0 bg-blue-600 rounded-full shadow-[0_0_12px_rgba(37,99,235,0.4)]"
+                                />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
         </div>
     );
 }

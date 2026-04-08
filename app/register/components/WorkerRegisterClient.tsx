@@ -86,50 +86,57 @@ export default function WorkerRegisterClient() {
     }
 
     return (
-        <div className="min-h-[100dvh] font-outfit flex flex-col bg-white relative">
-            {/* Native App Top Header */}
-            <header className="fixed top-0 w-full z-50 bg-white pt-4 pb-3 px-5 flex items-center justify-between border-b border-[#e2e8f0] shadow-sm">
-                <Link href="/" className="w-10 h-10 rounded-full bg-[#f8fafc] flex items-center justify-center border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
-                    <ChevronLeft className="w-5 h-5 text-[#0f172a]" />
-                </Link>
-
-                <Link href="/login" className="flex items-center gap-2 rounded-full bg-[#f8fafc] px-4 py-2 border border-[#e2e8f0] hover:bg-[#e2e8f0] active:scale-95 transition-all shadow-sm">
-                    <User className="w-4 h-4 text-[#1d4ed8]" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-[#0f172a]">Login</span>
+        <div className="min-h-[100dvh] font-outfit flex flex-col bg-[#f8fafc] text-[#0f172a] relative overflow-hidden">
+            {/* Native App Header */}
+            <header className="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-md px-5 py-4 flex items-center justify-end border-b border-[#e2e8f0] shadow-sm">
+                <Link href="/login" className="flex items-center gap-2 rounded-full bg-slate-50 pl-3 pr-1.5 py-1.5 border border-slate-100 active:scale-95 transition-all shadow-sm">
+                    <div className="flex flex-col text-right">
+                        <span className="text-[8px] font-bold text-[#64748b] uppercase tracking-wider leading-none mb-0.5">Partner</span>
+                        <span className="text-[11px] font-black text-[#0f172a] leading-none">Login</span>
+                    </div>
+                    <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-sm">
+                        <User className="w-3.5 h-3.5 text-[#1d4ed8]" />
+                    </div>
                 </Link>
             </header>
 
-            <main className="max-w-2xl mx-auto px-6 pt-24 pb-24 relative z-10">
-                <div className="space-y-8">
-                    {/* Header Info */}
-                    <div className="space-y-4">
+            {/* Floating Back Button */}
+            <div className="fixed top-4 left-5 z-[60]">
+                <Link href="/" className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-200 shadow-xl shadow-slate-200/60 hover:border-blue-200 hover:bg-blue-50 active:scale-90 transition-all group">
+                    <ChevronLeft className="w-5 h-5 text-slate-600 transition-transform group-hover:-translate-x-0.5" />
+                </Link>
+            </div>
+
+            <main className="flex-1 w-full max-w-xl mx-auto flex flex-col pt-24 pb-12 px-5 md:px-0">
+                {/* Step Progress Component */}
+                <StepIndicator step={step} setStep={setStep} canMoveToNext={canMoveToNext} />
+
+                {/* Main Content Area - Premium Card Pattern inspired by Login Page */}
+                <div className="flex-1 bg-white rounded-[2rem] border-t-4 border-[#1d4ed8] shadow-2xl shadow-blue-500/5 px-6 md:px-12 py-10 md:py-12 relative z-10 min-h-[580px] transition-all duration-500">
+                    <div className="mb-10 space-y-5">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-sm">
-                                <ShieldCheck className="w-5 h-5 text-[#1d4ed8]" />
+                            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shadow-lg shadow-blue-500/5">
+                                <ShieldCheck className="w-6 h-6 text-[#1d4ed8]" />
                             </div>
-                            <h1 className="text-2xl font-bold text-[#0f172a] uppercase tracking-tight">Worker Registration</h1>
+                            <div className="flex flex-col">
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1d4ed8]">Phase {step} of 6</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 italic lowercase">Worker Onboarding Portal</span>
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <h2 className="text-3xl md:text-4xl font-bold text-[#0f172a] tracking-tight">{getStepTitle()}</h2>
-                            <p className="text-[#64748b] text-sm font-medium">{getStepDescription()}</p>
+                        <div className="space-y-1.5">
+                            <h2 className="text-3xl font-black text-[#0f172a] tracking-tight uppercase">{getStepTitle()}</h2>
+                            <p className="text-[#64748b] text-xs font-semibold uppercase tracking-widest leading-relaxed opacity-80">{getStepDescription()}</p>
                         </div>
                     </div>
 
-                    {/* Step Progress */}
-                    <StepIndicator step={step} setStep={setStep} />
-
-                    {/* Form Content */}
-                    <div className="relative mt-12 bg-white border border-slate-200/60 border-t-8 border-t-[#1d4ed8] rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-slate-200/50 overflow-hidden min-h-[460px]">
-                        {/* Background Glow */}
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/5 blur-[80px] rounded-full pointer-events-none" />
-                        
+                    <div className="relative min-h-[380px]">
                         <AnimatePresence mode="wait">
                             <m.div
                                 key={step}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -15 }}
+                                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                             >
                                 {step === 1 && <StepIdentity formData={formData} handleInputChange={handleInputChange} fieldErrors={fieldErrors} />}
                                 {step === 2 && <StepPhotos formData={formData} handleFileUpload={handleFileUpload} handleFileRemove={handleFileRemove} uploading={uploading} previews={previews} />}
@@ -140,18 +147,21 @@ export default function WorkerRegisterClient() {
                             </m.div>
                         </AnimatePresence>
                     </div>
-
-                    {/* Navigation */}
-                    <StepNavigation 
-                        step={step} 
-                        setStep={setStep} 
-                        canMoveToNext={canMoveToNext} 
-                        submitForm={submitForm}
-                        loading={loading || !!uploading} 
-                        formData={formData}
-                    />
                 </div>
+
+                {/* Spacing for sticky navigation */}
+                <div className="h-32" />
             </main>
+
+            {/* Navigation (Fixed Bottom) */}
+            <StepNavigation 
+                step={step} 
+                setStep={setStep} 
+                canMoveToNext={canMoveToNext} 
+                submitForm={submitForm}
+                loading={loading || !!uploading} 
+                formData={formData}
+            />
         </div>
     )
 }

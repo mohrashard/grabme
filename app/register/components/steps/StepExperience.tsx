@@ -48,19 +48,15 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
     });
 
     return (
-        <m.div key="3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <div className="space-y-1">
-                <h2 className="text-xl font-bold text-[#0f172a]">Experience & Skills</h2>
-                <p className="text-sm text-[#64748b]">Highlight your expertise and background.</p>
-            </div>
-            
-            <div className="space-y-6">
-                <div className="space-y-3">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Primary Trade</label>
+        <m.div key="3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
+            <div className="space-y-8">
+                {/* Primary Trade Selector */}
+                <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Primary Trade</label>
                     {loadingTaxonomy ? (
-                        <div className="w-full px-5 py-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl flex items-center gap-3 text-[#64748b] text-sm">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Loading services...
+                        <div className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center gap-3 text-slate-400 text-sm font-bold">
+                            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                            Loading specialized services...
                         </div>
                     ) : (
                         <CustomSelect
@@ -68,35 +64,35 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
                             value={formData.tradeCategory}
                             onChange={(val: string) => {
                                 handleInputChange({ target: { name: 'tradeCategory', value: val } } as any);
-                                // Clear subskills when trade changes to ensure consistency
                                 setSubSkills([]);
                             }}
-                            placeholder="Search and select trade..."
+                            placeholder="Select your main profession"
                         />
                     )}
                 </div>
 
+                {/* Sub-Skills (Fixed Height Display) */}
                 {formData.tradeCategory && (
                     <div className="space-y-4">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Specific Skills (Search or Select)</label>
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Specialized Skills</label>
                         
                         <CustomSelect
                             isMulti
                             options={availableSubSkills}
                             value={formData.subSkills}
                             onChange={(vals: string[]) => setSubSkills(vals)}
-                            placeholder="Search and select skills..."
+                            placeholder="Add your specific skills..."
                         />
 
                         {formData.subSkills.length > 0 && (
-                            <div className="flex flex-wrap gap-2 pt-2">
+                            <div className="flex overflow-x-auto gap-2 no-scrollbar pb-2 px-1 snap-x">
                                 {formData.subSkills.map((s: string) => (
                                     <button
                                         key={s}
                                         onClick={() => toggleSubSkill(s)}
-                                        className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all bg-blue-50 border border-blue-100 text-blue-700 flex items-center gap-2 group hover:bg-red-50 hover:border-red-100 hover:text-red-600 shadow-sm"
+                                        className="flex-shrink-0 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-50 border border-blue-100 text-blue-700 flex items-center gap-2 active:bg-red-50 active:border-red-100 active:text-red-600 transition-all snap-start"
                                     >
-                                        {s} <X className="w-3 h-3 opacity-40 group-hover:opacity-100" />
+                                        {s} <X className="w-3 h-3 text-blue-400" />
                                     </button>
                                 ))}
                             </div>
@@ -104,27 +100,49 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
                     </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Years Active</label>
-                        <input type="number" name="yearsExperience" value={formData.yearsExperience} onChange={handleInputChange} className={`w-full px-5 py-4 bg-white border rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm transition-all placeholder:text-slate-300 ${fieldErrors.yearsExperience ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : 'border-slate-200'}`} />
+                {/* Experience & Bio */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Years Active</label>
+                        <div className="relative">
+                            <input 
+                                type="number" 
+                                name="yearsExperience" 
+                                value={formData.yearsExperience} 
+                                onChange={handleInputChange} 
+                                placeholder="0"
+                                className={`w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold transition-all placeholder:text-slate-300 ${fieldErrors.yearsExperience ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : ''}`} 
+                            />
+                            <Briefcase className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                        </div>
                         {renderHint('yearsExperience', 'Numerical value only')}
                     </div>
+
                     <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Last Employer</label>
-                        <input name="previousEmployer" value={formData.previousEmployer} onChange={handleInputChange} placeholder="Company or House Name" className="w-full px-5 py-4 bg-white border border-slate-200 rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm placeholder:text-slate-300" />
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Last Employer</label>
+                        <div className="relative">
+                            <input 
+                                name="previousEmployer" 
+                                value={formData.previousEmployer} 
+                                onChange={handleInputChange} 
+                                placeholder="Company or Individual" 
+                                className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold placeholder:text-slate-300" 
+                            />
+                            <GraduationCap className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                        </div>
                     </div>
-                    <div className="md:col-span-2 space-y-1.5">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Short Bio / About You</label>
+
+                    <div className="md:col-span-2 space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Professional Bio</label>
                         <textarea
                             name="shortBio"
                             value={formData.shortBio}
                             onChange={handleInputChange}
-                            placeholder="Tell customers why they should hire you (e.g. 'I am a master electrician with 10 years experience in house wiring...')"
-                            rows={3}
-                            className={`w-full px-5 py-4 bg-white border rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm resize-none transition-all placeholder:text-slate-300 ${fieldErrors.shortBio ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : 'border-slate-200'}`}
+                            placeholder="Tell customers why they should hire you..."
+                            rows={4}
+                            className={`w-full px-6 py-5 bg-slate-50 border border-slate-100 rounded-3xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-medium leading-relaxed resize-none transition-all placeholder:text-slate-300 ${fieldErrors.shortBio ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : ''}`}
                         />
-                        {renderHint('shortBio', 'Min 20 chars • Avoid profanity')}
+                        {renderHint('shortBio', 'Min 20 characters required')}
                     </div>
                 </div>
             </div>

@@ -16,21 +16,29 @@ export default function StepReference({ formData, handleInputChange, fieldErrors
         </div>
     );
     return (
-        <m.div key="5" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-            <div className="space-y-1">
-                <h2 className="text-xl font-bold text-slate-900">Reference</h2>
-                <p className="text-sm text-slate-500">Provide one contact for verification.</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Contact Name</label>
-                    <input name="referenceName" value={formData.referenceName} onChange={handleInputChange} placeholder="Name of referee" className={`w-full px-5 py-4 bg-white border rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm transition-all placeholder:text-slate-300 ${fieldErrors.referenceName ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : 'border-slate-200'}`} />
-                    {renderHint('referenceName', 'Min 2 characters')}
+        <m.div key="5" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Referee Name</label>
+                    <input 
+                        name="referenceName" 
+                        value={formData.referenceName} 
+                        onChange={handleInputChange} 
+                        placeholder="e.g. Ruwan Perera" 
+                        className={`w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold transition-all placeholder:text-slate-300 ${fieldErrors.referenceName ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : ''}`} 
+                    />
+                    {renderHint('referenceName', 'Contact for verification')}
                 </div>
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Contact Phone</label>
-                    <input name="referencePhone" value={formData.referencePhone} onChange={handleInputChange} placeholder=" referee's phone" className={`w-full px-5 py-4 bg-white border rounded-2xl focus:border-blue-600 focus:ring-4 focus:ring-blue-100 outline-none text-sm transition-all placeholder:text-slate-300 ${fieldErrors.referencePhone ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : 'border-slate-200'}`} />
-                    {renderHint('referencePhone', 'Cannot be your own number')}
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Referee Phone</label>
+                    <input 
+                        name="referencePhone" 
+                        value={formData.referencePhone} 
+                        onChange={handleInputChange} 
+                        placeholder="07x xxxxxxx" 
+                        className={`w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold transition-all placeholder:text-slate-300 ${fieldErrors.referencePhone ? 'border-[#dc2626] bg-[#fef2f2] focus:ring-[#fecaca]' : ''}`} 
+                    />
+                    {renderHint('referencePhone', 'Cannot use your own number')}
                 </div>
             </div>
         </m.div>
