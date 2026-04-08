@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import HomeClient from './components/HomeClient'
+import { fetchTaxonomyAction } from './lib/taxonomyActions'
 
 export const metadata: Metadata = {
   title: "Find Verified Workers in Sri Lanka | Electricians, Plumbers, AC Repair",
@@ -30,6 +31,8 @@ export const metadata: Metadata = {
   }
 }
 
-export default function Home() {
-  return <HomeClient />
+export default async function Home() {
+  const taxonomy = await fetchTaxonomyAction();
+
+  return <HomeClient taxonomy={taxonomy} />
 }
