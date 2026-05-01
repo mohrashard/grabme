@@ -141,7 +141,8 @@ export async function fetchAdminDataAction() {
                 id, full_name, phone, email, nic_number,
                 trade_category, account_status, profile_photo_url,
                 nic_front_url, nic_back_url, selfie_url,
-                certificate_url, past_work_photos,
+                certificate_url, video_pitch_url,
+                instagram_url, tiktok_url, facebook_url,
                 home_district, specific_areas, districts_covered,
                 short_bio, is_featured, is_identity_verified,
                 is_reference_checked, is_certificate_verified, 
@@ -261,7 +262,6 @@ export async function getSignedUrlAction(path: string) {
     }
 
     try {
-        // Extract the actual path after the bucket name if needed
         const { data, error } = await supabaseAdmin.storage
             .from('worker-documents')
             .createSignedUrl(path, 300);

@@ -145,6 +145,69 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
                         {renderHint('shortBio', 'Min 20 characters required')}
                     </div>
                 </div>
+
+                {/* Social & Video Pitch */}
+                <div className="space-y-6 pt-6 border-t border-slate-100">
+                    <div className="bg-gradient-to-br from-indigo-800 to-indigo-600 border border-indigo-500 rounded-xl px-5 py-4 shadow-[0_0_16px_rgba(99,102,241,0.3)]">
+                        <p className="text-indigo-100 text-sm leading-relaxed m-0">
+                            💡 <strong>Pro Tip:</strong> You can skip this step for now to finish registering quickly! However, partners who add a TikTok/YouTube video and social media links later build massive trust and get hired 80% more often. You can update these anytime in your Partner Portal.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Video Pitch URL (Optional)</label>
+                            <div className="relative">
+                                <input 
+                                    name="video_pitch_url" 
+                                    value={formData.video_pitch_url} 
+                                    onChange={handleInputChange} 
+                                    placeholder="e.g. https://youtube.com/..." 
+                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold placeholder:text-slate-300" 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Facebook URL (Optional)</label>
+                            <div className="relative">
+                                <input 
+                                    name="facebook_url" 
+                                    value={formData.facebook_url} 
+                                    onChange={handleInputChange} 
+                                    placeholder="e.g. https://facebook.com/yourpage" 
+                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold placeholder:text-slate-300" 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Instagram URL (Optional)</label>
+                            <div className="relative">
+                                <input 
+                                    name="instagram_url" 
+                                    value={formData.instagram_url} 
+                                    onChange={handleInputChange} 
+                                    placeholder="e.g. https://instagram.com/yourhandle" 
+                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold placeholder:text-slate-300" 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">TikTok URL (Optional)</label>
+                            <div className="relative">
+                                <input 
+                                    name="tiktok_url" 
+                                    value={formData.tiktok_url} 
+                                    onChange={handleInputChange} 
+                                    placeholder="e.g. https://tiktok.com/@yourhandle" 
+                                    className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:border-[#1d4ed8] focus:ring-4 focus:ring-blue-50 outline-none text-sm font-bold placeholder:text-slate-300" 
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </m.div>
     );

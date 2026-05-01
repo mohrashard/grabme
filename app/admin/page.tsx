@@ -56,7 +56,10 @@ type Worker = {
     nic_back_url: string;
     selfie_url: string;
     certificate_url: string;
-    past_work_photos: string[];
+    video_pitch_url: string;
+    instagram_url: string;
+    tiktok_url: string;
+    facebook_url: string;
     home_district: string;
     short_bio: string;
     is_featured: boolean;
@@ -512,40 +515,47 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                         </div>
                                     </div>
 
-                                    {/* Past Work Photos */}
+                                    {/* Social Media & Video Pitch */}
                                     <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
-                                            <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">Past Work Gallery</label>
-                                            <span className="text-[9px] font-black text-white/20 uppercase">{(formData.past_work_photos || []).length} / 5</span>
+                                        <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">Video Pitch URL</label>
+                                        <input
+                                            type="url"
+                                            placeholder="https://youtube.com/..."
+                                            value={formData.video_pitch_url || ''}
+                                            onChange={e => handleFieldChange('video_pitch_url', e.target.value)}
+                                            className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">Instagram URL</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://instagram.com/..."
+                                                value={formData.instagram_url || ''}
+                                                onChange={e => handleFieldChange('instagram_url', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
+                                            />
                                         </div>
-                                        <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
-                                            {(formData.past_work_photos || []).map((url: string, idx: number) => (
-                                                <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group border border-white/5">
-                                                    <Image src={url} alt="Work" fill className="object-cover" />
-                                                    <button 
-                                                        onClick={() => {
-                                                            const current = formData.past_work_photos || [];
-                                                            handleFieldChange('past_work_photos', current.filter((_: any, i: number) => i !== idx));
-                                                        }}
-                                                        className="absolute top-2 right-2 p-1.5 bg-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-lg"
-                                                    >
-                                                        <Trash className="w-3.5 h-3.5 text-white" />
-                                                    </button>
-                                                </div>
-                                            ))}
-                                            {(formData.past_work_photos || []).length < 5 && (
-                                                <label className="aspect-square rounded-2xl border border-dashed border-white/10 bg-white/[0.02] flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-white/[0.04] transition-all">
-                                                    <Plus className="w-5 h-5 text-white/20" />
-                                                    <span className="text-[8px] font-black text-white/30 uppercase">Add Photo</span>
-                                                    <input type="file" className="hidden" accept="image/*" onChange={async e => {
-                                                        const file = e.target.files?.[0];
-                                                        if (file) {
-                                                            const url = await handleFileUpload(file, 'portfolio');
-                                                            if (url) handleFieldChange('past_work_photos', [...(formData.past_work_photos || []), url]);
-                                                        }
-                                                    }} />
-                                                </label>
-                                            )}
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">TikTok URL</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://tiktok.com/..."
+                                                value={formData.tiktok_url || ''}
+                                                onChange={e => handleFieldChange('tiktok_url', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black text-white/30 uppercase tracking-widest">Facebook URL</label>
+                                            <input
+                                                type="url"
+                                                placeholder="https://facebook.com/..."
+                                                value={formData.facebook_url || ''}
+                                                onChange={e => handleFieldChange('facebook_url', e.target.value)}
+                                                className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
+                                            />
                                         </div>
                                     </div>
 
@@ -697,16 +707,8 @@ export default function AdminPage() {
             if (clickData) setClicks(clickData);
             setStats(newStats);
 
-            // AUTO-SIGN: Proactively sign all PRIVATE images
-            workerList.forEach(w => {
-                // Profile photo is PUBLIC (avatars bucket) - no signing needed
-                
-                // Only pipeline workers need NIC/Selfie signed to save bandwidth
-                if (['pending', 'whatsapp_pinged', 'under_review'].includes(w.account_status)) {
-                    if (w.nic_front_url) getSignedUrl(w.nic_front_url);
-                    if (w.selfie_url) getSignedUrl(w.selfie_url);
-                }
-            });
+            // The original logic kept private documents (NIC/Selfie) locked by default.
+            // They are only fetched and unlocked on-demand when the admin clicks them.
         } else {
             console.error('Fetch Error:', error);
         }
@@ -720,13 +722,18 @@ export default function AdminPage() {
     const getSignedUrl = async (path: string) => {
         if (!path) return;
 
-        // Only generate signed URLs for the 'worker-documents' bucket (NIC, selfie).
-        // Never generate signed URLs for the 'avatars' bucket — those are already
-        // publicly accessible via their full public URL and require no signing.
-        // Extract relative path if stored as full URL
+        // GUARD: Only sign paths that belong to worker-documents (private bucket).
+        // Profile photos (avatars), certificates, and other public files must NOT be signed.
+        const isWorkerDoc = !path.startsWith('http')
+            || path.includes('/worker-documents/');
+        if (!isWorkerDoc) return;
+
+        // Extract the relative path from any full Supabase storage URL
         let relativePath = path;
         if (path.includes('/storage/v1/object/public/worker-documents/')) {
             relativePath = path.split('/storage/v1/object/public/worker-documents/')[1];
+        } else if (path.includes('/storage/v1/object/authenticated/worker-documents/')) {
+            relativePath = path.split('/storage/v1/object/authenticated/worker-documents/')[1];
         } else if (path.includes('/worker-documents/')) {
             relativePath = path.split('/worker-documents/')[1];
         }
@@ -736,17 +743,25 @@ export default function AdminPage() {
             setSignedUrls(prev => ({ ...prev, [path]: res.signedUrl! }));
             return res.signedUrl;
         } else {
-            console.error('Failed to sign URL:', res.error);
+            console.error('Failed to sign URL:', res.error, '| path:', relativePath);
         }
     };
 
     const openLightbox = async (path: string, label: string) => {
+        if (!path) {
+            return; // No image exists to open
+        }
+
         const isLocked = path.includes('worker-documents') || !path.startsWith('http');
         
         if (isLocked && !signedUrls[path]) {
+            const toastId = toast.loading('Unlocking secure document...');
             const signed = await getSignedUrl(path);
             if (signed) {
+                toast.dismiss(toastId);
                 setSelectedImage({ url: signed, label, isLocked: true });
+            } else {
+                toast.error('Failed to access secure document. It may be corrupted or deleted.', { id: toastId });
             }
         } else {
             setSelectedImage({ 
@@ -1317,7 +1332,16 @@ export default function AdminPage() {
                                                     { url: w.nic_front_url, label: 'NIC Front', bucket: 'worker-documents' },
                                                     { url: w.nic_back_url, label: 'NIC Back', bucket: 'worker-documents' },
                                                     { url: w.selfie_url, label: 'Selfie+NIC', bucket: 'worker-documents' },
-                                                    { url: w.certificate_url, label: 'Certificate', bucket: 'worker-documents' }
+                                                    { 
+                                                        // Certificate is always in the public avatars bucket.
+                                                        // Old rows may have stored a relative path — resolve to full public URL.
+                                                        url: w.certificate_url && !w.certificate_url.startsWith('http')
+                                                            ? supabase.storage.from('avatars').getPublicUrl(w.certificate_url).data.publicUrl
+                                                            : w.certificate_url,
+                                                        label: 'Certificate',
+                                                        bucket: 'avatars'
+                                                    }
+
                                                 ].map((img, i) => (
                                                     <div key={i} className="space-y-1">
                                                         <p className="text-[8px] font-black uppercase tracking-widest text-white/20">{img.label}</p>
@@ -1358,20 +1382,32 @@ export default function AdminPage() {
                                                 <StatusBadge status={w.account_status} />
                                             </div>
 
-                                            {/* Portfolio */}
-                                            {getValidPhotos(w.past_work_photos).length > 0 && (
+
+                                            {/* Social Links */}
+                                            {(w.video_pitch_url || w.instagram_url || w.tiktok_url || w.facebook_url) && (
                                                 <div className="space-y-2">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400/60">Portfolio</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400/60">Social / Portfolio</p>
                                                     <div className="flex flex-wrap gap-2">
-                                                        {getValidPhotos(w.past_work_photos).map((p, idx) => (
-                                                            <div 
-                                                                key={idx}
-                                                                className="relative group cursor-pointer w-12 h-12 rounded-lg overflow-hidden border border-white/5 hover:border-indigo-500/50 transition-all bg-white/5"
-                                                                onClick={() => openLightbox(p, `Work ${idx+1}`)}
-                                                            >
-                                                                <img src={p} className="w-full h-full object-cover" alt="" />
-                                                            </div>
-                                                        ))}
+                                                        {w.video_pitch_url && (
+                                                            <a href={w.video_pitch_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 text-red-400 border border-red-500/20 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all">
+                                                                <Globe className="w-3 h-3" /> Video Pitch
+                                                            </a>
+                                                        )}
+                                                        {w.instagram_url && (
+                                                            <a href={w.instagram_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-pink-500/20 transition-all">
+                                                                <ExternalLink className="w-3 h-3" /> Instagram
+                                                            </a>
+                                                        )}
+                                                        {w.tiktok_url && (
+                                                            <a href={w.tiktok_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 text-white/60 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all">
+                                                                <ExternalLink className="w-3 h-3" /> TikTok
+                                                            </a>
+                                                        )}
+                                                        {w.facebook_url && (
+                                                            <a href={w.facebook_url} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/20 transition-all">
+                                                                <ExternalLink className="w-3 h-3" /> Facebook
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}

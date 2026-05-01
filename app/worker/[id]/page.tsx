@@ -6,15 +6,185 @@ import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft, Globe,
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import WhatsAppButton from './components/WhatsAppButton'
-import PortfolioGallery from './components/PortfolioGallery'
 
 interface WorkerPageProps {
     params: Promise<{ id: string }>;
 }
 
-/**
- * 1. SEO: Progressive Metadata Generation
- */
+// ─────────────────────────────────────────────
+// FACADE VIDEO PLAYER — Premium Cinema Overlay
+// ─────────────────────────────────────────────
+async function VideoPlayer({ url }: { url: string }) {
+    if (!url) return null;
+
+    let embedUrl = url;
+    let type = 'unknown';
+    let thumbnailUrl = '';
+
+    try {
+        const urlObj = new URL(url);
+
+        if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+            let videoId = '';
+            if (urlObj.hostname.includes('youtu.be')) {
+                videoId = urlObj.pathname.slice(1);
+                type = 'youtube';
+            } else if (urlObj.pathname.startsWith('/shorts/')) {
+                videoId = urlObj.pathname.split('/')[2];
+                type = 'shorts';
+            } else {
+                videoId = urlObj.searchParams.get('v') || '';
+                type = 'youtube';
+            }
+            if (videoId) {
+                embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+            }
+        } else if (urlObj.hostname.includes('tiktok.com')) {
+            const pathParts = urlObj.pathname.split('/').filter(Boolean);
+            if (pathParts.length >= 3 && pathParts[1] === 'video') {
+                const videoId = pathParts[2];
+                if (videoId) {
+                    embedUrl = `https://www.tiktok.com/embed/v2/${videoId}`;
+                    type = 'tiktok';
+                }
+            }
+        } else if (urlObj.hostname.includes('instagram.com')) {
+            const pathParts = urlObj.pathname.split('/').filter(Boolean);
+            if (pathParts.length >= 2 && (pathParts[0] === 'p' || pathParts[0] === 'reel')) {
+                const shortcode = pathParts[1];
+                if (shortcode) {
+                    embedUrl = `https://www.instagram.com/p/${shortcode}/embed/?hidecaption=true`;
+                    type = pathParts[0] === 'reel' ? 'reel' : 'instagram';
+                }
+            }
+        } else if (urlObj.hostname.includes('facebook.com') || urlObj.hostname.includes('fb.watch')) {
+            let finalUrl = url;
+            // Facebook video.php plugin strictly requires canonical URLs. It fails on /share/v/ shortlinks.
+            // We resolve the redirect server-side to get the true canonical URL (e.g. /reel/12345)
+            if (urlObj.pathname.includes('/share/v/') || urlObj.hostname.includes('fb.watch')) {
+                try {
+                    const response = await fetch(url, { redirect: 'follow', next: { revalidate: 3600 } });
+                    finalUrl = response.url;
+                } catch (e) { /* ignore and fallback */ }
+            }
+
+            type = finalUrl.includes('/reel/') ? 'facebook-reel' : 'facebook';
+            // Always convert web.facebook to www.facebook for the plugin to be safe
+            finalUrl = finalUrl.replace('web.facebook.com', 'www.facebook.com');
+            embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(finalUrl)}&show_text=0&autoplay=1`;
+        }
+    } catch (e) { /* ignore invalid URL */ }
+
+    const isVertical = type === 'shorts' || type === 'tiktok' || type === 'reel' || type === 'facebook-reel';
+    const isInstagram = type === 'instagram';
+
+    // We adjust paddingTop to perfectly fit the native UI without letterboxing or scrollbars
+    // TikTok/Shorts are pure 9:16 (177.77%)
+    // Instagram Reels have a forced header/footer, making their total aspect ratio much taller (~235%)
+    // Standard Instagram posts are often 1:1 video + header/footer (~170%)
+    let paddingTop = '56.25%';
+    if (type === 'shorts' || type === 'tiktok' || type === 'facebook-reel') paddingTop = '177.77%';
+    else if (type === 'reel') paddingTop = '143.4%';
+    else if (type === 'instagram') paddingTop = '170%';
+
+    const maxWidth = isVertical ? 'max-w-[300px]' : isInstagram ? 'max-w-[420px]' : 'max-w-full';
+
+    const iframeStyle = "display:none;position:absolute;top:0;left:0;width:100%;height:100%;border:none;";
+
+    // Facade overlay — hides ugly embeds until click (especially Instagram)
+    // Uses a client-side onclick to swap the overlay with the real iframe
+    const facadeId = `vf-${Math.random().toString(36).slice(2, 8)}`;
+
+    const facadeHtml = `
+      <div id="${facadeId}-wrap" class="absolute inset-0 cursor-pointer group" onclick="
+        var w=document.getElementById('${facadeId}-wrap');
+        var f=document.getElementById('${facadeId}-frame');
+        w.style.display='none';
+        f.style.display='block';
+      ">
+        ${thumbnailUrl ? `<img src="${thumbnailUrl}" alt="Video thumbnail" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" />` : ''}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="relative">
+            <div class="absolute inset-0 bg-white/20 rounded-full blur-2xl scale-150 opacity-60"></div>
+            <div class="relative w-16 h-16 md:w-20 md:h-20 bg-white/95 rounded-full flex items-center justify-center shadow-2xl shadow-black/40 transition-transform duration-200 group-hover:scale-110">
+              <svg class="w-6 h-6 md:w-7 md:h-7 text-[#1d4ed8] ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="absolute bottom-4 left-4 right-4 flex items-center gap-2">
+          <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+          <span class="text-white/80 text-xs font-bold uppercase tracking-widest">Video Pitch</span>
+        </div>
+      </div>
+      <iframe
+        id="${facadeId}-frame"
+        src="${embedUrl}"
+        title="Worker Video Pitch"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen
+        style="${iframeStyle}"
+        scrolling="no"
+      ></iframe>
+    `;
+
+    // Only use the facade for YouTube/Shorts because:
+    // 1. We can fetch their HD thumbnails.
+    // 2. They support autoplay=1 (so clicking the facade plays it immediately).
+    // TikTok, Instagram, and Facebook do NOT support this natively, so using a facade
+    // causes blank thumbnails and forces a double-click. We bypass the facade for them.
+    const useFacade = type === 'youtube' || type === 'shorts';
+
+    if (!useFacade) {
+        return (
+            <div className={`${maxWidth} mx-auto mb-8`}>
+                <div className="relative p-[1px] rounded-2xl bg-gradient-to-br from-blue-500/40 via-indigo-500/20 to-transparent shadow-[0_0_40px_rgba(29,78,216,0.25)]">
+                    <div
+                        className="relative rounded-2xl overflow-hidden bg-black"
+                        style={{ paddingTop }}
+                    >
+                        <iframe
+                            src={embedUrl}
+                            title="Worker Video Pitch"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="absolute top-0 left-0 w-full h-full border-none"
+                            scrolling="no"
+                        />
+                    </div>
+                </div>
+                <div className="mt-2 flex items-center justify-center gap-2 opacity-50">
+                    <div className="h-px w-12 bg-gradient-to-r from-transparent to-blue-400/60" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Professional Introduction</span>
+                    <div className="h-px w-12 bg-gradient-to-l from-transparent to-blue-400/60" />
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`${maxWidth} mx-auto mb-8`}>
+            {/* Outer glow frame */}
+            <div className="relative p-[1px] rounded-2xl bg-gradient-to-br from-blue-500/40 via-indigo-500/20 to-transparent shadow-[0_0_40px_rgba(29,78,216,0.25)]">
+                <div
+                    className="relative rounded-2xl overflow-hidden bg-black"
+                    style={{ paddingTop }}
+                    dangerouslySetInnerHTML={{ __html: facadeHtml }}
+                />
+            </div>
+            <div className="mt-2 flex items-center justify-center gap-2 opacity-50">
+                <div className="h-px w-12 bg-gradient-to-r from-transparent to-blue-400/60" />
+                <span className="text-[9px] font-black uppercase tracking-[0.25em] text-slate-400">Professional Introduction</span>
+                <div className="h-px w-12 bg-gradient-to-l from-transparent to-blue-400/60" />
+            </div>
+        </div>
+    );
+}
+
+// ─────────────────────────────────────────────
+// METADATA (unchanged)
+// ─────────────────────────────────────────────
 export async function generateMetadata({ params }: WorkerPageProps): Promise<Metadata> {
     try {
         const { id } = await params;
@@ -25,13 +195,10 @@ export async function generateMetadata({ params }: WorkerPageProps): Promise<Met
             .from('workers')
             .select('full_name, trade_category, home_district, profile_photo_url, account_status')
             .eq('id', id);
-        
-        if (!isAdmin) {
-            query = query.eq('account_status', 'active');
-        }
+
+        if (!isAdmin) query = query.eq('account_status', 'active');
 
         const { data: worker } = await query.single();
-
         if (!worker) return { title: 'Worker Profile | Grab Me' };
 
         const title = `${worker.full_name} - ${worker.trade_category} in ${worker.home_district} | Grab Me`;
@@ -41,88 +208,44 @@ export async function generateMetadata({ params }: WorkerPageProps): Promise<Met
             title,
             description,
             openGraph: {
-                title,
-                description,
-                type: 'profile',
+                title, description, type: 'profile',
                 url: `https://www.grabme.page/worker/${id}`,
-                images: worker.profile_photo_url ? [
-                    {
-                        url: worker.profile_photo_url,
-                        width: 1200,
-                        height: 630,
-                        alt: worker.full_name,
-                    }
-                ] : [
-                    {
-                        url: '/grabme.png',
-                        width: 1200,
-                        height: 630,
-                        alt: 'Grab Me Sri Lanka'
-                    }
-                ],
+                images: worker.profile_photo_url
+                    ? [{ url: worker.profile_photo_url, width: 1200, height: 630, alt: worker.full_name }]
+                    : [{ url: '/grabme.png', width: 1200, height: 630, alt: 'Grab Me Sri Lanka' }],
             },
-            twitter: {
-                card: 'summary_large_image',
-                title,
-                description,
-            }
+            twitter: { card: 'summary_large_image', title, description }
         };
     } catch {
         return { title: 'Worker Profile | Grab Me' };
     }
 }
 
-/**
- * 2. Public Profile Page Content (Server Component)
- */
+// ─────────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────────
 export default async function WorkerProfilePage({ params }: WorkerPageProps) {
     const { id } = await params;
     const cookieStore = await cookies();
     const isAdmin = !!cookieStore.get('grabme_admin_token')?.value;
 
-    // SECURITY: Use admin client to bypass RLS (needed to fetch by ID + status filter),
-    // but apply the approved public whitelist — NEVER include phone, nic_number, password,
-    // email, nic_front_url, nic_back_url, selfie_url, reference_phone, emergency_contact, address.
     let query = supabaseAdmin
         .from('workers')
         .select(`
-            id,
-            full_name,
-            trade_category,
-            sub_skills,
-            years_experience,
-            short_bio,
-            home_district,
-            districts_covered,
-            specific_areas,
-            profile_photo_url,
-            past_work_photos,
-            certificate_url,
-            is_identity_verified,
-            is_reference_checked,
-            is_certificate_verified,
-            is_experience_verified,
-            is_featured,
-            account_status,
-            facebook_url,
-            instagram_url,
-            tiktok_url,
-            created_at
+            id, full_name, trade_category, sub_skills, years_experience, short_bio,
+            home_district, districts_covered, specific_areas, profile_photo_url,
+            certificate_url, is_identity_verified, is_reference_checked,
+            is_certificate_verified, is_experience_verified, is_featured,
+            account_status, video_pitch_url, facebook_url, instagram_url,
+            tiktok_url, created_at
         `)
         .eq('id', id);
 
-    // If not admin, restrict to active profiles only
-    if (!isAdmin) {
-        query = query.eq('account_status', 'active');
-    }
+    if (!isAdmin) query = query.eq('account_status', 'active');
 
     const { data: worker, error } = await query.single();
+    if (error || !worker) notFound();
 
-    if (error || !worker) {
-        notFound();
-    }
-
-    // Structured Data (JSON-LD) for Person and ProfessionalService
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "Person",
@@ -136,266 +259,357 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
         },
         "description": worker.short_bio || `Professional ${worker.trade_category} in ${worker.home_district}`,
         "image": worker.profile_photo_url || "https://www.grabme.page/grabme.png",
-        "hasCredential": [
-          {
-            "@type": "EducationalOccupationalCredential",
-            "credentialCategory": "Professional Verification"
-          }
-        ],
-        "mainEntityOfPage": {
-          "@type": "WebPage",
-          "@id": `https://www.grabme.page/worker/${id}`
-        }
+        "hasCredential": [{ "@type": "EducationalOccupationalCredential", "credentialCategory": "Professional Verification" }],
+        "mainEntityOfPage": { "@type": "WebPage", "@id": `https://www.grabme.page/worker/${id}` }
     };
 
-    return (
-        <div className="min-h-[100dvh] bg-[#f8fafc] text-[#0f172a] font-outfit pb-28 relative">
-                <script
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-                />
+    const trustBadges = [
+        { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck, accent: '#16a34a', glow: 'rgba(22,163,74,0.3)', bg: 'from-emerald-950/80 to-emerald-900/60', border: 'border-emerald-700/40' },
+        { label: 'Reference', val: worker.is_reference_checked, icon: Star, accent: '#3b82f6', glow: 'rgba(59,130,246,0.3)', bg: 'from-blue-950/80 to-blue-900/60', border: 'border-blue-700/40' },
+        { label: 'Documents', val: worker.is_certificate_verified, icon: Award, accent: '#f59e0b', glow: 'rgba(245,158,11,0.3)', bg: 'from-amber-950/80 to-amber-900/60', border: 'border-amber-700/40' },
+        { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase, accent: '#8b5cf6', glow: 'rgba(139,92,246,0.3)', bg: 'from-violet-950/80 to-violet-900/60', border: 'border-violet-700/40' },
+    ];
 
-            <header className="sticky top-0 z-50 bg-white border-b border-[#e2e8f0] px-5 py-4 flex items-center justify-between shadow-sm">
-                <Link href="/browse" className="w-10 h-10 flex items-center">
-                    <ChevronLeft className="w-5 h-5 text-[#0f172a]" />
+    const hasSocials = worker.facebook_url || worker.instagram_url || worker.tiktok_url;
+
+    return (
+        <div className="min-h-[100dvh] bg-[#050b18] text-white font-outfit pb-32 md:pb-0 relative overflow-x-hidden">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+
+            {/* ── Global ambient glow ── */}
+            <div className="pointer-events-none fixed inset-0 z-0">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-indigo-600/8 rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[300px] bg-emerald-600/6 rounded-full blur-[120px]" />
+            </div>
+
+            {/* ── HEADER ── */}
+            <header className="sticky top-0 z-50 border-b border-white/5 bg-[#050b18]/80 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
+                <Link href="/browse" className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                    <ChevronLeft className="w-4 h-4 text-white/70" />
                 </Link>
-                <span className="text-sm font-black uppercase tracking-widest text-[#0f172a]">Profile</span>
-                {worker.account_status !== 'active' ? (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-                ) : (
-                    <div className="w-10" />
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/50">Verified Profile</span>
+                </div>
+                {worker.account_status !== 'active' && (
+                    <div className="px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/30">
+                        <span className="text-[9px] font-black text-blue-400 uppercase tracking-wider">Preview</span>
+                    </div>
                 )}
+                {worker.account_status === 'active' && <div className="w-9" />}
             </header>
 
-            <main className="relative z-10 w-full">
-                {/* ══════════════════════════════════════════
-                            MOBILE LAYOUT  (< md)
-                    ══════════════════════════════════════════ */}
-                <div className="md:hidden bg-white min-h-screen pb-28">
-                    {/* Header Section (Centered) */}
-                    <div className="px-5 pt-8 pb-6 flex flex-col items-center text-center">
-                        {/* Profile Image */}
-                        <div className="relative mb-4">
-                            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-[#e2e8f0] ring-4 ring-[#eff6ff] shadow-sm relative mx-auto">
+            <main className="relative z-10">
+
+                {/* ══════════════════════════════════
+                        HERO SECTION
+                    ══════════════════════════════════ */}
+                <section className="relative px-5 pt-10 pb-8 md:pt-16 md:pb-12 max-w-5xl mx-auto">
+                    {/* Subtle grid texture */}
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
+                        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
+
+                    <div className="relative flex flex-col md:flex-row md:items-end gap-8 md:gap-12">
+
+                        {/* Profile Photo */}
+                        <div className="relative mx-auto md:mx-0 flex-shrink-0">
+                            {/* Glow ring */}
+                            <div className="absolute inset-0 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-500/30 via-indigo-500/20 to-transparent blur-xl scale-110" />
+                            <div className="relative w-28 h-28 md:w-44 md:h-44 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl shadow-blue-900/30">
                                 {worker.profile_photo_url ? (
-                                    <Image src={worker.profile_photo_url} alt={worker.full_name} fill sizes="96px" className="object-cover" />
+                                    <Image src={worker.profile_photo_url} alt={worker.full_name} fill sizes="(max-width:768px) 112px, 176px" className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-[#f8fafc] flex items-center justify-center text-3xl font-black text-[#cbd5e1]">
+                                    <div className="w-full h-full bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-5xl font-black text-white/30">
                                         {worker.full_name[0]}
                                     </div>
                                 )}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 bg-[#16a34a] text-white p-1 rounded-lg border-2 border-white shadow-lg">
-                                <ShieldCheck className="w-4 h-4" />
+                            {/* Verified badge */}
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl border-2 border-[#050b18] shadow-lg shadow-emerald-500/40">
+                                <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
+                            </div>
+                            {worker.is_featured && (
+                                <div className="absolute -top-2 -left-2 bg-amber-500 text-white px-2 py-1 rounded-lg border-2 border-[#050b18] shadow-lg">
+                                    <span className="text-[8px] font-black uppercase tracking-wider">Featured</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Hero Text */}
+                        <div className="flex-1 text-center md:text-left space-y-4 md:pb-2">
+                            {/* Trade pill */}
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">
+                                <Briefcase className="w-3 h-3" />
+                                {worker.trade_category}
+                            </div>
+
+                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.05]">
+                                {worker.full_name}
+                            </h1>
+
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm">
+                                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+                                    <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                    {worker.home_district}
+                                </span>
+                                <div className="w-px h-4 bg-white/10 hidden md:block" />
+                                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+                                    <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                    On platform since {new Date(worker.created_at).getFullYear()}
+                                </span>
+                                {worker.years_experience && (
+                                    <>
+                                        <div className="w-px h-4 bg-white/10 hidden md:block" />
+                                        <span className="flex items-center gap-1.5 text-slate-400 font-medium">
+                                            <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                                            {worker.years_experience} yrs experience
+                                        </span>
+                                    </>
+                                )}
                             </div>
                         </div>
-
-                        <h1 className="text-2xl font-black text-[#0f172a] tracking-tight mt-3">{worker.full_name}</h1>
-                        
-                        <div className="flex flex-col items-center gap-2 mt-3">
-                            <p className="flex items-center gap-2 text-[#1d4ed8] text-[10px] font-black uppercase tracking-[0.15em] leading-none bg-[#eff6ff] px-3 py-1.5 rounded-full border border-[#dbeafe]">
-                                <Briefcase className="w-3 h-3" /> {worker.trade_category}
-                            </p>
-                            <p className="flex items-center gap-2 text-[#64748b] text-[10px] font-black uppercase tracking-[0.15em] leading-none">
-                                <MapPin className="w-3 h-3 text-[#3b82f6]" /> {worker.home_district}
-                            </p>
-                        </div>
-
-                        <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            <Calendar className="w-3 h-3" /> Since {new Date(worker.created_at).getFullYear()}
-                        </div>
                     </div>
+                </section>
 
-                    {/* TRUST SCORE SUMMARY (2x2 Grid) */}
-                    <div className="grid grid-cols-2 gap-3 px-5 py-6">
-                        {[
-                            { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck, colors: 'bg-[#dcfce7] text-[#16a34a] border-[#bbf7d0]' },
-                            { label: 'Reference', val: worker.is_reference_checked, icon: Star, colors: 'bg-[#dbeafe] text-[#1e3a8a] border-[#93c5fd]' },
-                            { label: 'Documents', val: worker.is_certificate_verified, icon: Award, colors: 'bg-[#fef9c3] text-[#854d0e] border-[#fde68a]' },
-                            { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase, colors: 'bg-[#f8fafc] text-[#1d4ed8] border-[#e2e8f0]' },
-                        ].map((badge, i) => (
-                            <div key={i} className={`p-4 rounded-2xl border ${badge.val ? badge.colors : 'bg-[#f8fafc] border-[#e2e8f0] text-[#94a3b8]'} flex flex-col items-center gap-1.5 text-center transition-all`}>
-                                <badge.icon className={`w-4 h-4 ${badge.val ? 'animate-pulse' : ''}`} />
-                                <span className="text-[9px] font-black uppercase tracking-wider">{badge.label}</span>
-                                <span className="text-[8px] font-bold uppercase opacity-60 tracking-wider">{badge.val ? 'Verified' : 'Pending'}</span>
+                {/* ══════════════════════════════════
+                        TRUST BADGES — Full Width Strip
+                    ══════════════════════════════════ */}
+                <section className="px-5 pb-8 max-w-5xl mx-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {trustBadges.map((badge, i) => (
+                            <div key={i} className="relative group overflow-hidden">
+                                {badge.val && (
+                                    <div className="absolute inset-0 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                        style={{ background: badge.glow }} />
+                                )}
+                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${badge.val
+                                    ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
+                                    : 'bg-white/[0.03] border-white/5'
+                                    }`}>
+                                    <badge.icon
+                                        className="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
+                                        style={{ color: badge.val ? badge.accent : '#475569' }}
+                                    />
+                                    <div className="text-center">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em]"
+                                            style={{ color: badge.val ? '#e2e8f0' : '#475569' }}>
+                                            {badge.label}
+                                        </div>
+                                        <div className="text-[8px] font-bold uppercase tracking-wider mt-0.5"
+                                            style={{ color: badge.val ? badge.accent : '#334155' }}>
+                                            {badge.val ? '✓ Verified' : 'Pending'}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
+                </section>
 
-                    {/* Bio Section */}
-                    <div className="px-5 py-6 space-y-4">
-                        <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1d4ed8] mb-3">About Me</h3>
-                            <p className="text-[#334155] leading-relaxed text-sm font-medium">
-                                {worker.short_bio || "No professional bio provided."}
+                {/* ══════════════════════════════════
+                        MAIN CONTENT — 2 Column (Desktop)
+                    ══════════════════════════════════ */}
+                <section className="px-5 pb-12 max-w-5xl mx-auto">
+                    <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 items-start">
+
+                        {/* ── LEFT COLUMN ── */}
+                        <div className="space-y-5">
+
+                            {/* About */}
+                            <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400 mb-4">About</h3>
+                                <p className="text-slate-300 leading-[1.8] text-[15px] font-medium">
+                                    {worker.short_bio || "No professional bio provided yet."}
+                                </p>
+                            </div>
+
+                            {/* Expertise */}
+                            {worker.sub_skills && worker.sub_skills.length > 0 && (
+                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400 mb-5">Expertise & Services</h3>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {worker.sub_skills.map((skill: string) => (
+                                            <div key={skill}
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-200 uppercase tracking-wider hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200">
+                                                <CheckCircle2 className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                                {skill}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Service Coverage */}
+                            {(worker.districts_covered?.length > 0 || worker.specific_areas) && (
+                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-400 mb-5">Service Coverage</h3>
+                                    {worker.districts_covered?.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {worker.districts_covered.map((d: string) => (
+                                                <div key={d}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-wider">
+                                                    <MapPin className="w-2.5 h-2.5" />
+                                                    {d}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {worker.specific_areas && (
+                                        <p className="text-slate-400 text-sm font-medium">{worker.specific_areas}</p>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Video Player */}
+                            {worker.video_pitch_url && (
+                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400 mb-5">Video Introduction</h3>
+                                    <VideoPlayer url={worker.video_pitch_url} />
+                                </div>
+                            )}
+
+                            {/* Social Links */}
+                            {hasSocials && (
+                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-400 mb-5">Social Profiles</h3>
+                                    <div className="flex flex-wrap gap-3">
+                                        {worker.facebook_url && (
+                                            <a href={worker.facebook_url} target="_blank" rel="noopener noreferrer"
+                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#1877f2]/15 border border-[#1877f2]/30 text-[#60a5fa] font-bold text-sm hover:bg-[#1877f2]/25 transition-all">
+                                                <Share2 className="w-4 h-4" />
+                                                Facebook
+                                            </a>
+                                        )}
+                                        {worker.instagram_url && (
+                                            <a href={worker.instagram_url} target="_blank" rel="noopener noreferrer"
+                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#e1306c]/15 border border-[#e1306c]/30 text-[#f472b6] font-bold text-sm hover:bg-[#e1306c]/25 transition-all">
+                                                <Globe className="w-4 h-4" />
+                                                Instagram
+                                            </a>
+                                        )}
+                                        {worker.tiktok_url && (
+                                            <a href={worker.tiktok_url} target="_blank" rel="noopener noreferrer"
+                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white/5 border border-white/15 text-slate-200 font-bold text-sm hover:bg-white/10 transition-all">
+                                                <Music className="w-4 h-4" />
+                                                TikTok
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ── RIGHT COLUMN — Sticky CTA ── */}
+                        <div className="lg:sticky lg:top-20 space-y-4">
+
+                            {/* Premium CTA Card */}
+                            <div className="relative rounded-2xl overflow-hidden">
+                                {/* Multi-layer glow */}
+                                <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/40 via-blue-600/20 to-indigo-600/30 rounded-2xl blur-md" />
+                                <div className="relative bg-gradient-to-b from-[#0a1628] to-[#060e1c] border border-white/10 rounded-2xl p-6 md:p-8 space-y-6">
+                                    {/* Top shimmer */}
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+
+                                    <div className="text-center space-y-2">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 mb-3">
+                                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Available for Hire</span>
+                                        </div>
+                                        <h4 className="text-xl md:text-2xl font-black text-white tracking-tight">Ready to collaborate?</h4>
+                                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                                            Start a direct conversation on WhatsApp — no middlemen, no delays.
+                                        </p>
+                                    </div>
+
+                                    {/* Catalog tip */}
+                                    <div className="relative rounded-xl overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/80 to-emerald-800/60" />
+                                        <div className="absolute inset-0 border border-emerald-600/30 rounded-xl" />
+                                        <div className="relative px-4 py-4">
+                                            <p className="text-emerald-100/90 text-sm leading-relaxed font-medium">
+                                                💡 <strong className="text-white">See their past work</strong> — tap 'Contact on WhatsApp' to access their full business catalog.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* WhatsApp CTA */}
+                                    <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
+
+                                    {/* Trust footer */}
+                                    <div className="flex items-center justify-center gap-3 pt-1">
+                                        {['Verified Partner', 'Direct Contact', 'High Trust'].map((t, i) => (
+                                            <span key={i} className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-slate-500">
+                                                {i > 0 && <span className="text-white/10">·</span>}
+                                                {t}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quick Stats Card */}
+                            <div className="rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm p-5">
+                                <div className="grid grid-cols-3 gap-3 text-center">
+                                    <div>
+                                        <div className="text-lg font-black text-white">
+                                            {trustBadges.filter(b => b.val).length}<span className="text-blue-400">/4</span>
+                                        </div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-0.5">Verified</div>
+                                    </div>
+                                    <div className="border-x border-white/5">
+                                        <div className="text-lg font-black text-white">
+                                            {new Date().getFullYear() - new Date(worker.created_at).getFullYear() || '1'}<span className="text-blue-400">y</span>
+                                        </div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-0.5">On Platform</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-lg font-black text-white">
+                                            {worker.districts_covered?.length || 1}<span className="text-blue-400">+</span>
+                                        </div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-0.5">Districts</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            {/* ══════════════════════════════════
+                    MOBILE FIXED BOTTOM ACTION BAR
+                ══════════════════════════════════ */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#050b18] via-[#050b18]/95 to-transparent" />
+                <div className="relative px-4 pt-4 pb-6 space-y-3">
+                    {/* Ambient glow behind button */}
+                    <div className="absolute inset-x-8 bottom-4 h-12 bg-emerald-500/20 blur-xl rounded-full" />
+
+                    <div className="relative rounded-xl overflow-hidden border border-emerald-700/40">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/90 to-emerald-800/80" />
+                        <div className="relative px-4 py-3">
+                            <p className="text-emerald-100/90 text-xs leading-relaxed font-medium">
+                                💡 <strong className="text-white">See their past work</strong> — tap below to access their WhatsApp business catalog.
                             </p>
                         </div>
                     </div>
 
-                    {/* Skills Selection */}
-                    <div className="px-5 py-6 space-y-4">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1d4ed8]">Expertise</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {worker.sub_skills && worker.sub_skills.length > 0 ? (
-                                worker.sub_skills.map((skill: string) => (
-                                    <div key={skill} className="px-4 py-2 bg-white border border-[#e2e8f0] rounded-xl text-[10px] font-bold text-[#0f172a] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-[#1d4ed8]" /> {skill}
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-[#94a3b8] text-[10px] font-bold uppercase italic">General Services</p>
-                            )}
-                        </div>
+                    <div className="relative">
+                        <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
                     </div>
 
-                    {/* Portfolio */}
-                    <div className="px-5 py-6">
-                        <PortfolioGallery 
-                            photos={worker.past_work_photos || []}
-                            certificateUrl={worker.certificate_url}
-                            isVerified={worker.is_certificate_verified}
-                        />
-                    </div>
-
-                </div>
-
-                {/* ══════════════════════════════════════════
-                            DESKTOP LAYOUT  (md+)
-                    ══════════════════════════════════════════ */}
-                <div className="hidden md:block max-w-4xl mx-auto py-12 px-6">
-                    <div className="relative bg-white border border-[#e2e8f0] border-t-8 border-t-[#1d4ed8] rounded-[3rem] p-12 shadow-2xl overflow-hidden">
-                        {/* Desktop Hero Section */}
-                        <div className="flex items-start gap-12">
-                            <div className="relative flex-shrink-0">
-                                <div className="w-48 h-48 rounded-[2.5rem] overflow-hidden border-2 border-[#e2e8f0] ring-8 ring-[#eff6ff] shadow-xl relative">
-                                    {worker.profile_photo_url ? (
-                                        <Image src={worker.profile_photo_url} alt={worker.full_name} fill sizes="192px" className="object-cover" />
-                                    ) : (
-                                        <div className="w-full h-full bg-[#f8fafc] flex items-center justify-center text-6xl font-black text-[#cbd5e1]">
-                                            {worker.full_name[0]}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="absolute -bottom-2 -right-2 bg-[#16a34a] text-white p-2 rounded-2xl border-4 border-white shadow-2xl">
-                                    <ShieldCheck className="w-6 h-6" />
-                                </div>
-                            </div>
-
-                            <div className="flex-1 space-y-6 pt-2">
-                                <div className="space-y-2">
-                                    <h1 className="text-4xl font-black text-[#0f172a] tracking-tight">{worker.full_name}</h1>
-                                    <div className="flex items-center gap-6">
-                                        <p className="flex items-center gap-2 text-[#1d4ed8] text-xs font-black uppercase tracking-widest leading-none bg-[#eff6ff] px-4 py-2 rounded-full border border-[#dbeafe]">
-                                            <Briefcase className="w-4 h-4" /> {worker.trade_category}
-                                        </p>
-                                        <p className="flex items-center gap-2 text-[#64748b] text-xs font-black uppercase tracking-widest leading-none">
-                                            <MapPin className="w-4 h-4 text-[#3b82f6]" /> {worker.home_district}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-6 pt-2">
-                                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                        <Calendar className="w-4 h-4" /> Since {new Date(worker.created_at).getFullYear()}
-                                    </div>
-                                    {(worker.facebook_url || worker.instagram_url || worker.tiktok_url) && (
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black text-[#94a3b8] uppercase tracking-widest mr-2">Profiles:</span>
-                                            {worker.instagram_url && (
-                                                <a href={worker.instagram_url} target="_blank" rel="noopener noreferrer" className="p-2 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-[#1d4ed8] hover:bg-[#1d4ed8] hover:text-white transition-all">
-                                                    <Globe className="w-4 h-4" />
-                                                </a>
-                                            )}
-                                            {worker.facebook_url && (
-                                                <a href={worker.facebook_url} target="_blank" rel="noopener noreferrer" className="p-2 bg-[#f8fafc] border border-[#e2e8f0] rounded-xl text-[#1d4ed8] hover:bg-[#1d4ed8] hover:text-white transition-all">
-                                                    <Share2 className="w-4 h-4" />
-                                                </a>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* TRUST SCORE SUMMARY (4 Columns) */}
-                        <div className="grid grid-cols-4 gap-4 mt-12 mb-12">
-                            {[
-                                { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck, colors: 'bg-[#dcfce7] text-[#16a34a] border-[#bbf7d0]' },
-                                { label: 'Reference', val: worker.is_reference_checked, icon: Star, colors: 'bg-[#dbeafe] text-[#1e3a8a] border-[#93c5fd]' },
-                                { label: 'Documents', val: worker.is_certificate_verified, icon: Award, colors: 'bg-[#fef9c3] text-[#854d0e] border-[#fde68a]' },
-                                { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase, colors: 'bg-[#f8fafc] text-[#1d4ed8] border-[#e2e8f0]' },
-                            ].map((badge, i) => (
-                                <div key={i} className={`p-6 rounded-[2rem] border ${badge.val ? badge.colors : 'bg-[#f8fafc] border-[#e2e8f0] text-[#94a3b8]'} flex flex-col items-center gap-2 text-center transition-all`}>
-                                    <badge.icon className={`w-6 h-6 ${badge.val ? 'animate-pulse' : ''}`} />
-                                    <span className="text-[10px] font-black uppercase tracking-wider">{badge.label}</span>
-                                    <span className="text-[9px] font-bold uppercase opacity-60 tracking-wider">{badge.val ? 'Verified' : 'Pending'}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                            <div className="space-y-12">
-                                {/* Bio Section */}
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#1d4ed8]">Professional Bio</h3>
-                                    <p className="text-[#334155] leading-relaxed text-base font-medium">
-                                        {worker.short_bio || "No professional bio provided."}
-                                    </p>
-                                </div>
-
-                                {/* Skills Section */}
-                                <div className="space-y-4">
-                                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[#1d4ed8]">Expertise & Services</h3>
-                                    <div className="flex flex-wrap gap-2">
-                                        {worker.sub_skills && worker.sub_skills.length > 0 ? (
-                                            worker.sub_skills.map((skill: string) => (
-                                                <div key={skill} className="px-5 py-3 bg-white border border-[#e2e8f0] rounded-2xl text-xs font-bold text-[#0f172a] uppercase tracking-widest flex items-center gap-3 hover:border-[#1d4ed8]/30 transition-all shadow-sm">
-                                                    <CheckCircle2 className="w-4 h-4 text-[#1d4ed8]" /> {skill}
-                                                </div>
-                                            ))
-                                        ) : (
-                                            <p className="text-[#94a3b8] text-xs font-bold uppercase italic">General Services</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-12">
-                                {/* PORTFOLIO */}
-                                <PortfolioGallery 
-                                    photos={worker.past_work_photos || []}
-                                    certificateUrl={worker.certificate_url}
-                                    isVerified={worker.is_certificate_verified}
-                                />
-
-                                {/* Main CTA */}
-                                <div className="p-8 bg-blue-50 border border-blue-100 rounded-[2.5rem] space-y-6">
-                                    <div className="space-y-2 text-center">
-                                        <h4 className="text-xl font-black text-[#1e3a8a] tracking-tight">Ready to collaborate?</h4>
-                                        <p className="text-sm text-[#64748b] font-medium italic">Click below to start a direct WhatsApp chat.</p>
-                                    </div>
-                                    <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
-                                    <p className="text-center text-[10px] font-bold uppercase tracking-widest text-[#94a3b8]">Verified Partner • High Trust • Direct Contact</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-
-            {/* MOBILE FIXED BOTTOM ACTION BAR */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#e2e8f0] p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-safe">
-                <div className="space-y-3">
-                    <WhatsAppButton 
-                        workerId={worker.id} 
-                        workerTrade={worker.trade_category}
-                    />
-                    <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-400 px-8 leading-relaxed">
-                        By contacting this worker, you agree to our 
-                        <Link href="/terms" className="text-[#1d4ed8] underline mx-1">Terms of Service</Link>
+                    <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-600 px-6 leading-relaxed">
+                        By contacting, you agree to our{' '}
+                        <Link href="/terms" className="text-blue-500 underline">Terms of Service</Link>
                     </p>
                 </div>
             </div>
         </div>
     );
 }
+

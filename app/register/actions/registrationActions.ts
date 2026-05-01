@@ -166,7 +166,10 @@ export async function registerWorkerAction(rawData: any) {
                     nic_front_url: data.nicFrontUrl,
                     nic_back_url: data.nicBackUrl,
                     selfie_url: data.selfieUrl,
-                    past_work_photos: rawData.pastWorkPhotos || [],
+                    video_pitch_url: rawData.video_pitch_url || null,
+                    facebook_url: rawData.facebook_url || null,
+                    instagram_url: rawData.instagram_url || null,
+                    tiktok_url: rawData.tiktok_url || null,
                     certificate_url: rawData.certificateUrl || '',
                     trade_category: data.tradeCategory,
                     sub_skills: rawData.subSkills || [],
@@ -205,7 +208,7 @@ export async function registerWorkerAction(rawData: any) {
             }
 
             // Generic Database Error Catch-all
-            return { success: false, error: "Database error during registration." };
+            return { success: false, error: `Database error: [${error.code}] ${error.message}` };
         }
 
         return { success: true }

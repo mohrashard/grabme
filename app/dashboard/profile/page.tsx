@@ -2,14 +2,14 @@
 
 import React, { useEffect, useState } from 'react'
 import { m } from 'framer-motion'
-import { 
-    LayoutDashboard, 
-    Briefcase, 
-    User, 
-    Settings, 
-    LogOut, 
-    ShieldCheck, 
-    MapPin, 
+import {
+    LayoutDashboard,
+    Briefcase,
+    User,
+    Settings,
+    LogOut,
+    ShieldCheck,
+    MapPin,
     Phone,
     CheckCircle2,
     Clock,
@@ -40,6 +40,7 @@ export default function WorkerProfilePage() {
     const [loading, setLoading] = useState(true);
     const [savingSocials, setSavingSocials] = useState(false);
     const [socialLinks, setSocialLinks] = useState({
+        video_pitch_url: '',
         instagram_url: '',
         tiktok_url: '',
         facebook_url: ''
@@ -55,7 +56,7 @@ export default function WorkerProfilePage() {
 
             const localUser = JSON.parse(localUserRaw);
             setUser(localUser);
-            
+
             // Fetch the FULL profile
             const { data, error } = await supabase
                 .from('workers')
@@ -77,7 +78,7 @@ export default function WorkerProfilePage() {
   nic_back_url,
   selfie_url,
   certificate_url,
-  past_work_photos,
+  video_pitch_url,
   account_status,
   is_featured,
   is_identity_verified,
@@ -101,6 +102,7 @@ export default function WorkerProfilePage() {
             if (data) {
                 setFullProfile(data);
                 setSocialLinks({
+                    video_pitch_url: data.video_pitch_url || '',
                     instagram_url: data.instagram_url || '',
                     tiktok_url: data.tiktok_url || '',
                     facebook_url: data.facebook_url || ''
@@ -108,7 +110,7 @@ export default function WorkerProfilePage() {
                 // Sync session just in case
                 localStorage.setItem('grabme_user', JSON.stringify({ ...localUser, ...data }));
             }
-            
+
             setLoading(false);
         };
         fetchProfile();
@@ -179,8 +181,8 @@ export default function WorkerProfilePage() {
                         { icon: LayoutDashboard, label: 'Overview', href: '/dashboard', active: false },
                         { icon: User, label: 'Profile', href: '/dashboard/profile', active: true },
                     ].map((item, i) => (
-                        <Link 
-                            key={i} 
+                        <Link
+                            key={i}
                             href={item.href}
                             className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${item.active ? 'bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/20' : 'text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]'}`}
                         >
@@ -190,7 +192,7 @@ export default function WorkerProfilePage() {
                 </nav>
 
                 <div className="p-4 border-t border-[#e2e8f0]">
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
                     >
@@ -212,7 +214,7 @@ export default function WorkerProfilePage() {
 
                 <div className="p-8 lg:p-12 max-w-5xl mx-auto space-y-12">
                     {/* Public Preview Info Banner */}
-                    <m.div 
+                    <m.div
                         initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
                         className="bg-[#eff6ff] border border-[#bfdbfe] rounded-3xl p-6 flex items-center gap-6 shadow-sm"
                     >
@@ -229,23 +231,23 @@ export default function WorkerProfilePage() {
                     {/* Profile Hero section */}
                     <div className="relative pt-20">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-gradient-to-b from-[#dbeafe]/50 to-transparent blur-[80px] rounded-full pointer-events-none" />
-                        
+
                         <div className="relative flex flex-col md:flex-row items-center md:items-end gap-8">
                             <div className="relative group">
                                 <div className="absolute inset-0 bg-[#bfdbfe] blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-all pointer-events-none" />
                                 <div className="relative w-40 h-40 rounded-[2.5rem] overflow-hidden border-4 border-white shadow-xl bg-white">
-                                    <Image 
-                                        src={fullProfile?.profile_photo_url || '/grabme.png'} 
-                                        alt={fullProfile?.full_name || 'Profile'} 
-                                        fill 
-                                        className="object-cover" 
+                                    <Image
+                                        src={fullProfile?.profile_photo_url || '/grabme.png'}
+                                        alt={fullProfile?.full_name || 'Profile'}
+                                        fill
+                                        className="object-cover"
                                     />
                                 </div>
                                 <div className={`absolute -bottom-2 -right-2 w-10 h-10 ${statusVis.bg} ${statusVis.border} border rounded-2xl flex items-center justify-center shadow-md bg-white`}>
                                     {fullProfile?.account_status === 'active' ? <CheckCircle2 className="w-5 h-5 text-emerald-500" /> : <Clock className="w-5 h-5 text-amber-500" />}
                                 </div>
                             </div>
-                            
+
                             <div className="flex-1 text-center md:text-left space-y-3 pb-2">
                                 <span className={`inline-flex items-center gap-2 px-3 py-1 ${statusVis.bg} ${statusVis.border} border rounded-full text-xs font-black uppercase tracking-widest ${statusVis.text} bg-white shadow-sm`}>
                                     {statusVis.label}
@@ -302,12 +304,12 @@ export default function WorkerProfilePage() {
                             {/* SOCIAL MEDIA HUB */}
                             <div className="bg-white border border-[#e2e8f0] rounded-[2.5rem] p-8 space-y-6 relative overflow-hidden group shadow-sm">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#eff6ff] blur-3xl group-hover:scale-150 transition-transform" />
-                                
+
                                 <div className="flex items-center justify-between relative z-10">
                                     <h3 className="text-xs font-black uppercase tracking-widest text-[#1d4ed8] flex items-center gap-2">
                                         <Share2 className="w-4 h-4" /> Digital Footprint
                                     </h3>
-                                    <button 
+                                    <button
                                         onClick={handleSocialSave}
                                         disabled={savingSocials}
                                         className="text-[10px] font-black uppercase tracking-widest text-[#1d4ed8] hover:text-[#1e3a8a] transition-colors disabled:opacity-50 flex items-center gap-1.5"
@@ -325,6 +327,7 @@ export default function WorkerProfilePage() {
 
                                 <div className="space-y-5 relative z-10">
                                     {[
+                                        { id: 'video_pitch_url', icon: Globe, label: 'Video Pitch URL', placeholder: 'https://youtube.com/...' },
                                         { id: 'instagram_url', icon: Globe, label: 'Instagram URL', placeholder: 'https://instagram.com/work...' },
                                         { id: 'tiktok_url', icon: Music, label: 'TikTok URL', placeholder: 'https://tiktok.com/@yourname...' },
                                         { id: 'facebook_url', icon: Share2, label: 'Facebook URL', placeholder: 'https://facebook.com/page...' },
@@ -333,7 +336,7 @@ export default function WorkerProfilePage() {
                                             <label className="flex items-center gap-2 text-[10px] font-black text-[#64748b] uppercase tracking-[0.2em] ml-1">
                                                 <social.icon className="w-3 h-3 text-[#1d4ed8]" /> {social.label}
                                             </label>
-                                            <input 
+                                            <input
                                                 type="url"
                                                 value={(socialLinks as any)[social.id]}
                                                 onChange={(e) => setSocialLinks((prev: any) => ({ ...prev, [social.id]: e.target.value }))}
@@ -392,7 +395,7 @@ export default function WorkerProfilePage() {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="p-4 bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl">
                                         <p className="text-xs font-bold text-[#64748b] uppercase tracking-widest mb-3 px-2">Districts Covered</p>
                                         <div className="flex flex-wrap gap-2">
@@ -430,8 +433,8 @@ export default function WorkerProfilePage() {
                 </div>
 
                 <div className="px-12 py-10 border-t border-[#e2e8f0] flex justify-between items-center text-xs font-bold text-[#64748b] uppercase tracking-widest mt-12">
-                     <span>© 2026 Grab Me Professional Portal</span>
-                     <span className="text-[#334155]">Powered by Mr² Labs</span>
+                    <span>© 2026 Grab Me Professional Portal</span>
+                    <span className="text-[#334155]">Powered by Mr² Labs</span>
                 </div>
             </main>
 

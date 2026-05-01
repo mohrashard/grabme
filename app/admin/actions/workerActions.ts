@@ -15,7 +15,7 @@ export async function deleteWorkerAction(id: string) {
         // 1. Fetch worker to get their file paths for cleanup
         const { data: worker, error: fetchError } = await supabaseAdmin
             .from('workers')
-            .select('profile_photo_url, nic_front_url, nic_back_url, selfie_url, certificate_url, past_work_photos')
+            .select('profile_photo_url, nic_front_url, nic_back_url, selfie_url, certificate_url')
             .eq('id', id)
             .single();
         
@@ -39,16 +39,11 @@ export async function deleteWorkerAction(id: string) {
 
         const avatarFiles = [worker.profile_photo_url].filter((url: string | null): url is string => !!url).map((url: string) => url.split('/').pop()!);
 
-        const portfolioFiles = (worker.past_work_photos || []).filter((url: string | null): url is string => !!url).map((url: string) => url.split('/').pop()!);
-
         if (documentFiles.length > 0) {
             await supabaseAdmin.storage.from('worker-documents').remove(documentFiles);
         }
         if (avatarFiles.length > 0) {
             await supabaseAdmin.storage.from('avatars').remove(avatarFiles);
-        }
-        if (portfolioFiles.length > 0) {
-            await supabaseAdmin.storage.from('portfolio').remove(portfolioFiles);
         }
 
         return { success: true };

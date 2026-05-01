@@ -5,6 +5,7 @@ import { z } from 'zod'
 
 const SocialSchema = z.object({
     workerId: z.string().uuid(),
+    video_pitch_url: z.string().url().or(z.literal('')).nullable(),
     instagram_url: z.string().url().or(z.literal('')).nullable(),
     tiktok_url: z.string().url().or(z.literal('')).nullable(),
     facebook_url: z.string().url().or(z.literal('')).nullable(),

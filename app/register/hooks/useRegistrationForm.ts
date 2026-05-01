@@ -77,7 +77,10 @@ export function useRegistrationForm() {
         nicFrontUrl: '',
         nicBackUrl: '',
         selfieUrl: '',
-        pastWorkPhotos: [] as string[],
+        video_pitch_url: '',
+        facebook_url: '',
+        instagram_url: '',
+        tiktok_url: '',
         certificateUrl: '',
         tradeCategory: '',
         subSkills: [] as string[],
@@ -220,20 +223,6 @@ export function useRegistrationForm() {
 
         if (files.length === 0) return;
 
-        // Synchronous check for max photos before starting
-        if (type === 'pastWorkPhotos') {
-            const currentCount = formData.pastWorkPhotos.length;
-            if (currentCount >= 5) {
-                toast.error('Maximum 5 photos allowed for past work.');
-                return;
-            }
-            if (currentCount + files.length > 5) {
-                const allowedCount = 5 - currentCount;
-                toast.warning(`Only ${allowedCount} more photos allowed. Some files will be skipped.`);
-                files = files.slice(0, allowedCount);
-            }
-        }
-
         setUploading(type);
         try {
             const TARGET_SIZE_MB = 0.3;
@@ -297,36 +286,25 @@ export function useRegistrationForm() {
                     const PRIVATE_TYPES = ['nicFrontUrl', 'nicBackUrl', 'selfieUrl'];
                     const bucket = PRIVATE_TYPES.includes(type) ? 'worker-documents' : 'avatars';
 
-                    const previewKey = type === 'pastWorkPhotos' ? `pastWorkPhotos_${filePath}` : type;
+                    const previewKey = type;
                     
                     // For single-upload fields, revoke the previous preview if it exists
-                    if (type !== 'pastWorkPhotos') {
-                        setPreviews(prev => {
-                            if (prev[type]) {
-                                try { URL.revokeObjectURL(prev[type]); } catch(e) {}
-                            }
-                            return prev;
-                        });
-                    }
+                    setPreviews(prev => {
+                        if (prev[type]) {
+                            try { URL.revokeObjectURL(prev[type]); } catch(e) {}
+                        }
+                        return prev;
+                    });
                     
                     const previewUrl = URL.createObjectURL(fileBlob);
                     setPreviews(prev => ({ ...prev, [previewKey]: previewUrl }));
 
                     setPendingFiles(prev => {
-                        const filtered = type === 'pastWorkPhotos' 
-                            ? prev 
-                            : prev.filter(p => p.type !== type);
-                        
+                        const filtered = prev.filter(p => p.type !== type);
                         return [...filtered, { file: fileBlob, type, path: filePath, bucket }];
                     });
 
-                    setFormData(prev => {
-                        if (type === 'pastWorkPhotos') {
-                            if (prev.pastWorkPhotos.length >= 5) return prev;
-                            return { ...prev, pastWorkPhotos: [...prev.pastWorkPhotos, filePath] };
-                        }
-                        return { ...prev, [type]: filePath };
-                    });
+                    setFormData(prev => ({ ...prev, [type]: filePath }));
                 } catch (fileError: any) {
                     console.error('File Error [Raw]:', fileError);
                     let errorMessage = 'Image processing error';
@@ -346,7 +324,7 @@ export function useRegistrationForm() {
     };
 
     const handleFileRemove = (type: string, path?: string) => {
-        const previewKey = type === 'pastWorkPhotos' ? `pastWorkPhotos_${path}` : type;
+        const previewKey = type;
         const previewUrl = previews[previewKey];
         
         if (previewUrl) {
@@ -361,12 +339,7 @@ export function useRegistrationForm() {
         const targetPath = path || (formData as any)[type];
         setPendingFiles(prev => prev.filter(p => p.path !== targetPath));
 
-        setFormData(prev => {
-            if (type === 'pastWorkPhotos') {
-                return { ...prev, pastWorkPhotos: prev.pastWorkPhotos.filter(p => p !== path) };
-            }
-            return { ...prev, [type]: '' };
-        });
+        setFormData(prev => ({ ...prev, [type]: '' }));
     };
 
     const canMoveToNext = (): boolean => {
@@ -391,7 +364,6 @@ export function useRegistrationForm() {
             const finalFormData = { ...formData };
             
             // Rebuild the array fields to ensure only the final uploaded paths are included
-            finalFormData.pastWorkPhotos = [];
             finalFormData.subSkills = [...formData.subSkills];
             finalFormData.districtsCovered = [...formData.districtsCovered];
 
@@ -431,9 +403,7 @@ export function useRegistrationForm() {
                 }
 
                 // 4. Update the specific field in our submission object
-                if (type === 'pastWorkPhotos') {
-                    finalFormData.pastWorkPhotos.push(finalValue);
-                } else if (type === 'profilePhotoUrl') {
+                if (type === 'profilePhotoUrl') {
                     finalFormData.profilePhotoUrl = finalValue;
                 } else if (type === 'certificateUrl') {
                     finalFormData.certificateUrl = finalValue;
@@ -448,7 +418,6 @@ export function useRegistrationForm() {
                 nic: finalFormData.nicNumber,
                 email: finalFormData.email,
                 phone: finalFormData.phone,
-                photosCount: finalFormData.pastWorkPhotos.length
             });
 
             const result = await registerWorkerAction(finalFormData);

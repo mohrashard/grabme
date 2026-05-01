@@ -875,3 +875,9 @@ ALTER TABLE public.skills ADD CONSTRAINT skills_service_id_name_en_key UNIQUE (s
 -- Fix the Keywords table unique constraint
 ALTER TABLE public.search_keywords DROP CONSTRAINT IF EXISTS search_keywords_service_id_keyword_key;
 ALTER TABLE public.search_keywords ADD CONSTRAINT search_keywords_service_id_keyword_key UNIQUE (service_id, keyword);
+
+-- Add the video pitch URL column (the only missing column)
+ALTER TABLE workers
+  ADD COLUMN IF NOT EXISTS video_pitch_url TEXT;
+
+ALTER TABLE workers DROP COLUMN past_work_photos;
