@@ -6,6 +6,8 @@ import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft, Globe,
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import WhatsAppButton from './components/WhatsAppButton'
+import WorkerProfileClientWrapper from './components/WorkerProfileClientWrapper'
+import ThemeToggle from './components/ThemeToggle'
 
 interface WorkerPageProps {
     params: Promise<{ id: string }>;
@@ -264,40 +266,45 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
     };
 
     const trustBadges = [
-        { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck, accent: '#16a34a', glow: 'rgba(22,163,74,0.3)', bg: 'from-emerald-950/80 to-emerald-900/60', border: 'border-emerald-700/40' },
-        { label: 'Reference', val: worker.is_reference_checked, icon: Star, accent: '#3b82f6', glow: 'rgba(59,130,246,0.3)', bg: 'from-blue-950/80 to-blue-900/60', border: 'border-blue-700/40' },
-        { label: 'Documents', val: worker.is_certificate_verified, icon: Award, accent: '#f59e0b', glow: 'rgba(245,158,11,0.3)', bg: 'from-amber-950/80 to-amber-900/60', border: 'border-amber-700/40' },
-        { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase, accent: '#8b5cf6', glow: 'rgba(139,92,246,0.3)', bg: 'from-violet-950/80 to-violet-900/60', border: 'border-violet-700/40' },
+        { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck, accent: '#16a34a', glow: 'rgba(22,163,74,0.3)', bg: 'from-emerald-50 to-emerald-100/50 dark:from-emerald-950/80 dark:to-emerald-900/60', border: 'border-emerald-200 dark:border-emerald-700/40' },
+        { label: 'Reference', val: worker.is_reference_checked, icon: Star, accent: '#3b82f6', glow: 'rgba(59,130,246,0.3)', bg: 'from-blue-50 to-blue-100/50 dark:from-blue-950/80 dark:to-blue-900/60', border: 'border-blue-200 dark:border-blue-700/40' },
+        { label: 'Documents', val: worker.is_certificate_verified, icon: Award, accent: '#f59e0b', glow: 'rgba(245,158,11,0.3)', bg: 'from-amber-50 to-amber-100/50 dark:from-amber-950/80 dark:to-amber-900/60', border: 'border-amber-200 dark:border-amber-700/40' },
+        { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase, accent: '#8b5cf6', glow: 'rgba(139,92,246,0.3)', bg: 'from-violet-50 to-violet-100/50 dark:from-violet-950/80 dark:to-violet-900/60', border: 'border-violet-200 dark:border-violet-700/40' },
     ];
 
     const hasSocials = worker.facebook_url || worker.instagram_url || worker.tiktok_url;
 
     return (
-        <div className="min-h-[100dvh] bg-[#050b18] text-white font-outfit pb-32 md:pb-0 relative overflow-x-hidden">
+        <WorkerProfileClientWrapper>
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
             {/* ── Global ambient glow ── */}
-            <div className="pointer-events-none fixed inset-0 z-0">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
-                <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-indigo-600/8 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[300px] bg-emerald-600/6 rounded-full blur-[120px]" />
+            <div className="pointer-events-none fixed inset-0 z-0 opacity-40 dark:opacity-100 transition-opacity">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/10 dark:bg-blue-600/10 rounded-full blur-[120px]" />
+                <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-indigo-600/8 dark:bg-indigo-600/8 rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[300px] bg-emerald-600/6 dark:bg-emerald-600/6 rounded-full blur-[120px]" />
             </div>
 
             {/* ── HEADER ── */}
-            <header className="sticky top-0 z-50 border-b border-white/5 bg-[#050b18]/80 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
-                <Link href="/browse" className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                    <ChevronLeft className="w-4 h-4 text-white/70" />
+            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#050b18]/80 backdrop-blur-xl px-5 py-4 flex items-center justify-between transition-colors">
+                <Link href="/browse" className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
+                    <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-white/70" />
                 </Link>
-                <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white/50">Verified Profile</span>
-                </div>
-                {worker.account_status !== 'active' && (
-                    <div className="px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/30">
-                        <span className="text-[9px] font-black text-blue-400 uppercase tracking-wider">Preview</span>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-50/50 dark:bg-transparent border border-blue-100 dark:border-transparent transition-colors">
+                        <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#1D4ED8] dark:text-white/50">Verified Profile</span>
                     </div>
+                    <div className="w-px h-4 bg-slate-200 dark:bg-white/10 mx-1" />
+                    <ThemeToggle />
+                </div>
+                {worker.account_status !== 'active' ? (
+                    <div className="px-2 py-1 rounded-full bg-blue-500/20 border border-blue-500/30">
+                        <span className="text-[9px] font-black text-blue-400 dark:text-blue-400 uppercase tracking-wider">Preview</span>
+                    </div>
+                ) : (
+                    <div className="w-9" />
                 )}
-                {worker.account_status === 'active' && <div className="w-9" />}
             </header>
 
             <main className="relative z-10">
@@ -307,8 +314,8 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                     ══════════════════════════════════ */}
                 <section className="relative px-5 pt-10 pb-8 md:pt-16 md:pb-12 max-w-5xl mx-auto">
                     {/* Subtle grid texture */}
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.03]"
-                        style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.03]"
+                        style={{ backgroundImage: 'linear-gradient(currentColor 1px,transparent 1px),linear-gradient(90deg,currentColor 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
 
                     <div className="relative flex flex-col md:flex-row md:items-end gap-8 md:gap-12">
 
@@ -316,21 +323,21 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         <div className="relative mx-auto md:mx-0 flex-shrink-0">
                             {/* Glow ring */}
                             <div className="absolute inset-0 rounded-[2rem] md:rounded-[2.5rem] bg-gradient-to-br from-blue-500/30 via-indigo-500/20 to-transparent blur-xl scale-110" />
-                            <div className="relative w-28 h-28 md:w-44 md:h-44 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl shadow-blue-900/30">
+                            <div className="relative w-28 h-28 md:w-44 md:h-44 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl shadow-blue-900/10 dark:shadow-blue-900/30">
                                 {worker.profile_photo_url ? (
                                     <Image src={worker.profile_photo_url} alt={worker.full_name} fill sizes="(max-width:768px) 112px, 176px" className="object-cover" />
                                 ) : (
-                                    <div className="w-full h-full bg-gradient-to-br from-blue-900 to-indigo-900 flex items-center justify-center text-5xl font-black text-white/30">
+                                    <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-blue-900 dark:to-indigo-900 flex items-center justify-center text-5xl font-black text-slate-400 dark:text-white/30">
                                         {worker.full_name[0]}
                                     </div>
                                 )}
                             </div>
                             {/* Verified badge */}
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl border-2 border-[#050b18] shadow-lg shadow-emerald-500/40">
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl border-2 border-[#f8fafc] dark:border-[#050b18] shadow-lg shadow-emerald-500/40 transition-colors">
                                 <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
                             </div>
                             {worker.is_featured && (
-                                <div className="absolute -top-2 -left-2 bg-amber-500 text-white px-2 py-1 rounded-lg border-2 border-[#050b18] shadow-lg">
+                                <div className="absolute -top-2 -left-2 bg-amber-500 text-white px-2 py-1 rounded-lg border-2 border-[#f8fafc] dark:border-[#050b18] shadow-lg transition-colors">
                                     <span className="text-[8px] font-black uppercase tracking-wider">Featured</span>
                                 </div>
                             )}
@@ -339,30 +346,30 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         {/* Hero Text */}
                         <div className="flex-1 text-center md:text-left space-y-4 md:pb-2">
                             {/* Trade pill */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">
                                 <Briefcase className="w-3 h-3" />
                                 {worker.trade_category}
                             </div>
 
-                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.05]">
+                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-[#0f172a] dark:text-white tracking-tight leading-[1.05] transition-colors">
                                 {worker.full_name}
                             </h1>
 
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm">
-                                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-                                    <MapPin className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
+                                    <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
                                     {worker.home_district}
                                 </span>
-                                <div className="w-px h-4 bg-white/10 hidden md:block" />
-                                <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-                                    <Calendar className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                                <div className="w-px h-4 bg-slate-200 dark:bg-white/10 hidden md:block" />
+                                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
+                                    <Calendar className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
                                     On platform since {new Date(worker.created_at).getFullYear()}
                                 </span>
                                 {worker.years_experience && (
                                     <>
-                                        <div className="w-px h-4 bg-white/10 hidden md:block" />
-                                        <span className="flex items-center gap-1.5 text-slate-400 font-medium">
-                                            <Star className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                                        <div className="w-px h-4 bg-slate-200 dark:bg-white/10 hidden md:block" />
+                                        <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
+                                            <Star className="w-4 h-4 text-amber-500 dark:text-amber-400 flex-shrink-0" />
                                             {worker.years_experience} yrs experience
                                         </span>
                                     </>
@@ -385,19 +392,18 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 )}
                                 <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${badge.val
                                     ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
-                                    : 'bg-white/[0.03] border-white/5'
+                                    : 'bg-slate-100/50 dark:bg-white/[0.03] border-slate-200 dark:border-white/5'
                                     }`}>
                                     <badge.icon
                                         className="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
                                         style={{ color: badge.val ? badge.accent : '#475569' }}
                                     />
                                     <div className="text-center">
-                                        <div className="text-[10px] font-black uppercase tracking-[0.2em]"
-                                            style={{ color: badge.val ? '#e2e8f0' : '#475569' }}>
+                                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${badge.val ? 'text-blue-900 dark:text-slate-200' : 'text-slate-500 dark:text-slate-600'}`}>
                                             {badge.label}
                                         </div>
                                         <div className="text-[8px] font-bold uppercase tracking-wider mt-0.5"
-                                            style={{ color: badge.val ? badge.accent : '#334155' }}>
+                                            style={{ color: badge.val ? badge.accent : '#94a3b8' }}>
                                             {badge.val ? '✓ Verified' : 'Pending'}
                                         </div>
                                     </div>
@@ -416,25 +422,25 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         {/* ── LEFT COLUMN ── */}
                         <div className="space-y-5">
 
-                            {/* About */}
-                            <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                             {/* About */}
+                            <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
                                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400 mb-4">About</h3>
-                                <p className="text-slate-300 leading-[1.8] text-[15px] font-medium">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-4 transition-colors">About</h3>
+                                <p className="text-slate-600 dark:text-slate-300 leading-[1.8] text-[15px] font-medium transition-colors">
                                     {worker.short_bio || "No professional bio provided yet."}
                                 </p>
                             </div>
 
-                            {/* Expertise */}
+                             {/* Expertise */}
                             {worker.sub_skills && worker.sub_skills.length > 0 && (
-                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400 mb-5">Expertise & Services</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 transition-colors">Expertise & Services</h3>
                                     <div className="flex flex-wrap gap-2.5">
                                         {worker.sub_skills.map((skill: string) => (
                                             <div key={skill}
-                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[11px] font-bold text-slate-200 uppercase tracking-wider hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200">
-                                                <CheckCircle2 className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200">
+                                                <CheckCircle2 className="w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                                                 {skill}
                                             </div>
                                         ))}
@@ -442,16 +448,16 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 </div>
                             )}
 
-                            {/* Service Coverage */}
+                             {/* Service Coverage */}
                             {(worker.districts_covered?.length > 0 || worker.specific_areas) && (
-                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-400 mb-5">Service Coverage</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-5 transition-colors">Service Coverage</h3>
                                     {worker.districts_covered?.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             {worker.districts_covered.map((d: string) => (
                                                 <div key={d}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 uppercase tracking-wider">
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 uppercase tracking-wider transition-colors">
                                                     <MapPin className="w-2.5 h-2.5" />
                                                     {d}
                                                 </div>
@@ -459,43 +465,43 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                         </div>
                                     )}
                                     {worker.specific_areas && (
-                                        <p className="text-slate-400 text-sm font-medium">{worker.specific_areas}</p>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium transition-colors">{worker.specific_areas}</p>
                                     )}
                                 </div>
                             )}
 
-                            {/* Video Player */}
+                             {/* Video Player */}
                             {worker.video_pitch_url && (
-                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-400 mb-5">Video Introduction</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400 mb-5 transition-colors">Video Introduction</h3>
                                     <VideoPlayer url={worker.video_pitch_url} />
                                 </div>
                             )}
 
-                            {/* Social Links */}
+                             {/* Social Links */}
                             {hasSocials && (
-                                <div className="relative rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-400 mb-5">Social Profiles</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-600 dark:text-pink-400 mb-5 transition-colors">Social Profiles</h3>
                                     <div className="flex flex-wrap gap-3">
                                         {worker.facebook_url && (
                                             <a href={worker.facebook_url} target="_blank" rel="noopener noreferrer"
-                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#1877f2]/15 border border-[#1877f2]/30 text-[#60a5fa] font-bold text-sm hover:bg-[#1877f2]/25 transition-all">
+                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#1877f2]/10 dark:bg-[#1877f2]/15 border border-[#1877f2]/20 dark:border-[#1877f2]/30 text-[#1877f2] dark:text-[#60a5fa] font-bold text-sm hover:bg-[#1877f2]/20 transition-all">
                                                 <Share2 className="w-4 h-4" />
                                                 Facebook
                                             </a>
                                         )}
                                         {worker.instagram_url && (
                                             <a href={worker.instagram_url} target="_blank" rel="noopener noreferrer"
-                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#e1306c]/15 border border-[#e1306c]/30 text-[#f472b6] font-bold text-sm hover:bg-[#e1306c]/25 transition-all">
+                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-[#e1306c]/10 dark:bg-[#e1306c]/15 border border-[#e1306c]/20 dark:border-[#e1306c]/30 text-[#e1306c] dark:text-[#f472b6] font-bold text-sm hover:bg-[#e1306c]/20 transition-all">
                                                 <Globe className="w-4 h-4" />
                                                 Instagram
                                             </a>
                                         )}
                                         {worker.tiktok_url && (
                                             <a href={worker.tiktok_url} target="_blank" rel="noopener noreferrer"
-                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-white/5 border border-white/15 text-slate-200 font-bold text-sm hover:bg-white/10 transition-all">
+                                                className="flex items-center gap-2.5 px-5 py-3 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                                                 <Music className="w-4 h-4" />
                                                 TikTok
                                             </a>
@@ -512,67 +518,58 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             <div className="relative rounded-2xl overflow-hidden">
                                 {/* Multi-layer glow */}
                                 <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/40 via-blue-600/20 to-indigo-600/30 rounded-2xl blur-md" />
-                                <div className="relative bg-gradient-to-b from-[#0a1628] to-[#060e1c] border border-white/10 rounded-2xl p-6 md:p-8 space-y-6">
+                                <div className="relative bg-white dark:bg-gradient-to-b dark:from-[#0a1628] dark:to-[#060e1c] border border-slate-200 dark:border-white/10 rounded-2xl p-6 md:p-8 space-y-6 transition-colors shadow-xl shadow-blue-900/5 dark:shadow-none">
                                     {/* Top shimmer */}
-                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 dark:via-white/30 to-transparent" />
 
                                     <div className="text-center space-y-2">
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 mb-3">
-                                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-400">Available for Hire</span>
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 dark:border-emerald-500/30 mb-3">
+                                            <div className="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse" />
+                                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Available for Hire</span>
                                         </div>
-                                        <h4 className="text-xl md:text-2xl font-black text-white tracking-tight">Ready to collaborate?</h4>
-                                        <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                                        <h4 className="text-xl md:text-2xl font-black text-[#0f172a] dark:text-white tracking-tight transition-colors">Ready to collaborate?</h4>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed transition-colors">
                                             Start a direct conversation on WhatsApp — no middlemen, no delays.
                                         </p>
                                     </div>
 
                                     {/* Catalog tip */}
                                     <div className="relative rounded-xl overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/80 to-emerald-800/60" />
-                                        <div className="absolute inset-0 border border-emerald-600/30 rounded-xl" />
+                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-900/80 dark:to-emerald-800/60" />
+                                        <div className="absolute inset-0 border border-emerald-500/30 dark:border-emerald-600/30 rounded-xl" />
                                         <div className="relative px-4 py-4">
-                                            <p className="text-emerald-100/90 text-sm leading-relaxed font-medium">
+                                            <p className="text-white dark:text-emerald-100/90 text-sm leading-relaxed font-medium">
                                                 💡 <strong className="text-white">See their past work</strong> — tap 'Contact on WhatsApp' to access their full business catalog.
                                             </p>
                                         </div>
                                     </div>
 
-                                    {/* WhatsApp CTA */}
-                                    <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
-
-                                    {/* Trust footer */}
-                                    <div className="flex items-center justify-center gap-3 pt-1">
-                                        {['Verified Partner', 'Direct Contact', 'High Trust'].map((t, i) => (
-                                            <span key={i} className="flex items-center gap-1 text-[8px] font-black uppercase tracking-widest text-slate-500">
-                                                {i > 0 && <span className="text-white/10">·</span>}
-                                                {t}
-                                            </span>
-                                        ))}
+                                    <div className="relative">
+                                        <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
                                     </div>
                                 </div>
                             </div>
 
                             {/* Quick Stats Card */}
-                            <div className="rounded-2xl border border-white/8 bg-white/[0.03] backdrop-blur-sm p-5">
+                            <div className="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm p-5 transition-colors">
                                 <div className="grid grid-cols-3 gap-3 text-center">
                                     <div>
-                                        <div className="text-lg font-black text-white">
-                                            {trustBadges.filter(b => b.val).length}<span className="text-blue-400">/4</span>
+                                        <div className="text-lg font-black text-[#0f172a] dark:text-white">
+                                            {trustBadges.filter(b => b.val).length}<span className="text-blue-600 dark:text-blue-400">/4</span>
                                         </div>
-                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-0.5">Verified</div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-0.5">Verified</div>
                                     </div>
-                                    <div className="border-x border-white/5">
-                                        <div className="text-lg font-black text-white">
-                                            {new Date().getFullYear() - new Date(worker.created_at).getFullYear() || '1'}<span className="text-blue-400">y</span>
+                                    <div className="border-x border-slate-100 dark:border-white/5">
+                                        <div className="text-lg font-black text-[#0f172a] dark:text-white">
+                                            {new Date().getFullYear() - new Date(worker.created_at).getFullYear() || '1'}<span className="text-blue-600 dark:text-blue-400">y</span>
                                         </div>
-                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-0.5">On Platform</div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-0.5">On Platform</div>
                                     </div>
                                     <div>
-                                        <div className="text-lg font-black text-white">
-                                            {worker.districts_covered?.length || 1}<span className="text-blue-400">+</span>
+                                        <div className="text-lg font-black text-[#0f172a] dark:text-white">
+                                            {worker.districts_covered?.length || 1}<span className="text-blue-600 dark:text-blue-400">+</span>
                                         </div>
-                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mt-0.5">Districts</div>
+                                        <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-0.5">Districts</div>
                                     </div>
                                 </div>
                             </div>
@@ -582,18 +579,18 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             </main>
 
             {/* ══════════════════════════════════
-                    MOBILE FIXED BOTTOM ACTION BAR
-                ══════════════════════════════════ */}
+                        MOBILE FIXED BOTTOM ACTION BAR
+                ══════════════════════════════════ */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#050b18] via-[#050b18]/95 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] via-[#f8fafc]/95 dark:from-[#050b18] dark:via-[#050b18]/95 to-transparent transition-colors" />
                 <div className="relative px-4 pt-4 pb-6 space-y-3">
                     {/* Ambient glow behind button */}
                     <div className="absolute inset-x-8 bottom-4 h-12 bg-emerald-500/20 blur-xl rounded-full" />
 
-                    <div className="relative rounded-xl overflow-hidden border border-emerald-700/40">
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/90 to-emerald-800/80" />
+                    <div className="relative rounded-xl overflow-hidden border border-emerald-500/20 dark:border-emerald-700/40">
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-900/90 dark:to-emerald-800/80" />
                         <div className="relative px-4 py-3">
-                            <p className="text-emerald-100/90 text-xs leading-relaxed font-medium">
+                            <p className="text-white dark:text-emerald-100/90 text-xs leading-relaxed font-medium">
                                 💡 <strong className="text-white">See their past work</strong> — tap below to access their WhatsApp business catalog.
                             </p>
                         </div>
@@ -603,13 +600,13 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
                     </div>
 
-                    <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-600 px-6 leading-relaxed">
+                    <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 px-6 leading-relaxed transition-colors">
                         By contacting, you agree to our{' '}
-                        <Link href="/terms" className="text-blue-500 underline">Terms of Service</Link>
+                        <Link href="/terms" className="text-blue-600 dark:text-blue-500 underline">Terms of Service</Link>
                     </p>
                 </div>
             </div>
-        </div>
+        </WorkerProfileClientWrapper>
     );
 }
 

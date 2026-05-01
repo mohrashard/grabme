@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Tailwind 4: class-based dark mode — applied when `.dark` class is on any ancestor */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* Primary Blues - trust + authority */
   --color-brand-blue: #1d4ed8;
