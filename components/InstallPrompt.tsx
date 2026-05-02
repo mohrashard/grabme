@@ -22,6 +22,11 @@ export default function InstallPrompt() {
       setDeferredPrompt(e);
     };
 
+    // Check if the event already fired before React hydrated
+    if ((window as any).deferredPWAEvent) {
+      setDeferredPrompt((window as any).deferredPWAEvent);
+    }
+
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     return () => {
