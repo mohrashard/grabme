@@ -7,7 +7,8 @@ export default function InstallPrompt() {
   const [isDismissed, setIsDismissed] = useState(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
-  const { isIOSPromptVisible } = useIOSPWA();
+  const [isAndroid, setIsAndroid] = useState(false);
+  const { isIOSPromptVisible, isStandalone } = useIOSPWA();
 
   useEffect(() => {
     // a) Check localStorage for prompt dismissal
@@ -15,6 +16,9 @@ export default function InstallPrompt() {
     if (!dismissed) {
       setIsDismissed(false);
     }
+
+    // Detect Android
+    setIsAndroid(/android/i.test(navigator.userAgent));
 
     // b) Add event listener for Android install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -74,6 +78,28 @@ export default function InstallPrompt() {
             </svg>
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Android UI (Fallback for Manual Install if event didn't fire)
+  if (isAndroid && !isStandalone) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-black/80 border-t border-gray-200 dark:border-gray-800 p-4 shadow-lg flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <p className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed">
+            To install the app, tap your browser's <strong className="font-bold">3-dot menu</strong> and select <strong className="font-bold">Install app</strong> or <strong className="font-bold">Add to Home screen</strong>.
+          </p>
+        </div>
+        <button
+          onClick={handleDismiss}
+          className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 pt-0.5 shrink-0"
+          aria-label="Close"
+        >
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
     );
   }

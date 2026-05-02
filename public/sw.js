@@ -1,4 +1,4 @@
-self.addEventListener('install', () => {
+self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
@@ -7,5 +7,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // A dummy fetch handler is required by some browsers to consider the PWA installable.
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return new Response(
+        'GrabMe is currently offline. Please check your internet connection.',
+        { headers: { 'Content-Type': 'text/plain' } }
+      );
+    })
+  );
 });
