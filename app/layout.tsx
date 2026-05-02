@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from 'sonner';
 import Link from 'next/link';
 import { LazyMotion, domAnimation } from 'framer-motion';
+import InstallPrompt from '@/components/InstallPrompt';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -129,6 +130,7 @@ export default function RootLayout({
         </LazyMotion>
 
         <Toaster theme="light" richColors position="bottom-center" />
+        <InstallPrompt />
       </body>
     </html>
   );
