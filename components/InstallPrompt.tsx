@@ -29,6 +29,8 @@ export default function InstallPrompt() {
 
     // DEBUG FALLBACK: Force the banner to show if URL contains ?debug_pwa=true
     if (window.location.search.includes('debug_pwa=true')) {
+      localStorage.removeItem('pwa_prompt_dismissed');
+      setIsDismissed(false);
       setDeferredPrompt({ prompt: () => alert('Debug mode: Native prompt would open here.') });
     }
 
