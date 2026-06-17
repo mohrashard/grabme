@@ -225,10 +225,10 @@ export function useRegistrationForm() {
 
         setUploading(type);
         try {
-            const TARGET_SIZE_MB = 0.3;
+            const TARGET_SIZE_MB = type === 'certificateUrl' ? 1.5 : 0.3;
             const options = {
                 maxSizeMB: TARGET_SIZE_MB,
-                maxWidthOrHeight: 1024,
+                maxWidthOrHeight: type === 'certificateUrl' ? 2048 : 1024,
                 useWebWorker: false, // Turbopack/Next.js 16 often has issues resolving worker scripts
             };
 

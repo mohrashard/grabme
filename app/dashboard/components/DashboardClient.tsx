@@ -69,7 +69,7 @@ export default function DashboardClient() {
     );
 
     return (
-        <div className="min-h-screen font-sans flex bg-[#f1f5f9] text-[#0f172a]">
+        <div className="h-screen overflow-hidden font-sans flex bg-[#f1f5f9] text-[#0f172a]">
             {/* Sidebar */}
             <aside className="w-64 border-r border-[#e2e8f0] bg-white shadow-sm flex flex-col hidden lg:flex z-30">
                 <div className="p-8">

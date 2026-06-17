@@ -881,3 +881,100 @@ ALTER TABLE workers
   ADD COLUMN IF NOT EXISTS video_pitch_url TEXT;
 
 ALTER TABLE workers DROP COLUMN past_work_photos;
+
+-- ================================================================
+-- GRAB ME — Pricing Transparency Fields (Worker Self-Service)
+-- Run in Supabase SQL Editor
+-- ================================================================
+
+ALTER TABLE workers
+  ADD COLUMN IF NOT EXISTS base_visiting_fee   INTEGER  DEFAULT NULL,
+  -- LKR amount. NULL means worker hasn't set it yet.
+
+  ADD COLUMN IF NOT EXISTS price_estimates     JSONB    DEFAULT '[]';
+  -- Array of objects: [{ "label": "AC Gas Refill", "min": 6000, "max": 8000 }]
+
+
+-- ================================================================
+-- GRAB ME — Worker Trust & Pricing Self-Service Fields
+-- Run this in Supabase SQL Editor
+-- ================================================================
+
+-- 1. Self-service fields workers can edit from their dashboard
+ALTER TABLE workers
+  ADD COLUMN IF NOT EXISTS languages_spoken   TEXT[]    DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS base_visiting_fee  INTEGER   DEFAULT NULL,   -- in LKR
+  ADD COLUMN IF NOT EXISTS service_warranty_days INTEGER DEFAULT NULL,  -- e.g. 7
+  ADD COLUMN IF NOT EXISTS jobs_completed     INTEGER   DEFAULT 0,      -- admin bumps this
+  ADD COLUMN IF NOT EXISTS price_estimates    JSONB     DEFAULT '[]';
+  -- price_estimates shape: [{ "label": "AC Gas Refill", "min": 6000, "max": 8000 }]
+
+-- 2. Worker Reviews table (submitted by customers, approved by admin)
+CREATE TABLE IF NOT EXISTS worker_reviews (
+  id          UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  worker_id   UUID NOT NULL REFERENCES workers(id) ON DELETE CASCADE,
+  reviewer_name TEXT NOT NULL,
+  reviewer_area TEXT,              -- e.g. "Rajagiriya"
+  rating      SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  review_text TEXT,
+  is_approved BOOLEAN DEFAULT FALSE,
+  created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_worker_reviews_worker_id ON worker_reviews(worker_id);
+CREATE INDEX IF NOT EXISTS idx_worker_reviews_approved  ON worker_reviews(is_approved);
+
+-- 3. RLS for worker_reviews
+ALTER TABLE worker_reviews ENABLE ROW LEVEL SECURITY;
+
+-- Customers can submit reviews (insert only)
+CREATE POLICY "Reviews: Public Insert"
+  ON worker_reviews FOR INSERT TO anon, authenticated
+  WITH CHECK (true);
+
+-- Anyone can read approved reviews
+CREATE POLICY "Reviews: Public Read Approved"
+  ON worker_reviews FOR SELECT TO anon, authenticated
+  USING (is_approved = TRUE);
+
+-- 4. Allow workers to update their own self-service fields via service_role
+--    (no anon UPDATE policy — server action uses service_role key)
+
+
+
+
+
+-- Add pricing columns to workers table
+ALTER TABLE workers
+  ADD COLUMN IF NOT EXISTS base_visiting_fee INTEGER DEFAULT NULL,
+  ADD COLUMN IF NOT EXISTS price_estimates JSONB DEFAULT '[]';
+
+
+
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS languages_spoken TEXT[] DEFAULT '{}';
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS service_warranty TEXT DEFAULT '';
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS education_history TEXT[] DEFAULT '{}';
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS certificate_name TEXT DEFAULT '';
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS likes_count INTEGER DEFAULT 0;
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS visits_count INTEGER DEFAULT 0;
+ALTER TABLE workers ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
+
+-- REVIEWS (Verified Lead Anti-Fake System)
+-- A customer can only leave a review if:
+--   1. They appear in whatsapp_clicks for that worker
+--   2. Their click was at least 24 hours ago
+--   3. They have not already reviewed this worker
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  worker_id UUID REFERENCES workers(id) ON DELETE CASCADE NOT NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE NOT NULL,
+  rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+  review_text TEXT DEFAULT '',
+  reviewer_name TEXT DEFAULT 'Verified Client',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE (worker_id, customer_id)   -- One review per customer per worker
+);
+
+-- Index for fast lookups by worker
+CREATE INDEX IF NOT EXISTS idx_reviews_worker_id ON reviews(worker_id);
+

@@ -41,6 +41,7 @@ type Worker = {
     is_reference_checked: boolean;
     years_experience: number;
     sub_skills?: string[];
+    slug?: string;
 };
 
 interface BrowsePageClientProps {
@@ -285,7 +286,7 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
                             ) : filteredWorkers.map((w, i) => (
                                 <m.div key={w.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
                                     <Link 
-                                        href={`/worker/${w.id}`}
+                                        href={`/worker/${w.slug || w.id}`}
                                         className="bg-white border border-[#e2e8f0] rounded-[1.5rem] p-4 flex items-center gap-4 active:scale-[0.98] transition-all shadow-sm group"
                                     >
                                         {/* Left Side: Worker Image */}
@@ -457,7 +458,7 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
                                                 </div>
                                             )}
                                         </div>
-                                        <Link href={`/worker/${w.id}`}
+                                        <Link href={`/worker/${w.slug || w.id}`}
                                             className="w-full group/btn flex items-center justify-between px-6 py-4 bg-white border-2 border-[#e2e8f0] text-[#334155] rounded-2xl transition-all hover:border-[#1d4ed8] hover:bg-[#1d4ed8] hover:text-white hover:shadow-xl hover:shadow-[#1d4ed8]/20">
                                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">View Profile</span>
                                             <ChevronRight className="w-4 h-4 transition-transform group-hover/btn:translate-x-1" />

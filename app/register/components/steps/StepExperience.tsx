@@ -74,10 +74,16 @@ export default function StepExperience({ formData, handleInputChange, toggleSubS
                 {/* Sub-Skills (Fixed Height Display) */}
                 {formData.tradeCategory && (
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Specialized Skills</label>
+                        <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Specialized Skills</label>
+                            <p className="text-[11px] font-medium text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 inline-block w-fit">
+                                💡 <strong>Format Tip:</strong> When adding a custom skill, please use <strong>English (සිංහල)</strong> format.
+                            </p>
+                        </div>
                         
                         <CustomSelect
                             isMulti
+                            allowCustom
                             options={availableSubSkills}
                             value={formData.subSkills}
                             onChange={(vals: string[]) => setSubSkills(vals)}

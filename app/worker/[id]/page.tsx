@@ -2,12 +2,16 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { supabaseAdmin } from '../../lib/supabaseServer'
-import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft, Globe, Music, Share2, Award, Calendar } from 'lucide-react'
+import { fetchTaxonomyAction } from '../../lib/taxonomyActions'
+import { MapPin, Briefcase, Star, ShieldCheck, CheckCircle2, ChevronLeft, Globe, Music, Share2, Award, Calendar, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { cookies } from 'next/headers'
 import WhatsAppButton from './components/WhatsAppButton'
 import WorkerProfileClientWrapper from './components/WorkerProfileClientWrapper'
 import ThemeToggle from './components/ThemeToggle'
+import ProfileInteractions from './components/ProfileInteractions'
+import ReviewsSection from './components/ReviewsSection'
+import { getWorkerReviewsAction } from './actions/reviewActions'
 
 interface WorkerPageProps {
     params: Promise<{ id: string }>;
@@ -239,14 +243,25 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             certificate_url, is_identity_verified, is_reference_checked,
             is_certificate_verified, is_experience_verified, is_featured,
             account_status, video_pitch_url, facebook_url, instagram_url,
-            tiktok_url, created_at
-        `)
-        .eq('id', id);
+            tiktok_url, created_at, base_visiting_fee, price_estimates,
+            languages_spoken, service_warranty, education_history,
+            certificate_url, certificate_name, likes_count, visits_count, slug
+        `);
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+    if (isUuid) {
+        query = query.eq('id', id);
+    } else {
+        query = query.eq('slug', id);
+    }
 
     if (!isAdmin) query = query.eq('account_status', 'active');
 
     const { data: worker, error } = await query.single();
     if (error || !worker) notFound();
+
+    // Fetch reviews server-side for SEO and initial render
+    const { reviews, avgRating, totalReviews } = await getWorkerReviewsAction(worker.id);
 
     const jsonLd = {
         "@context": "https://schema.org",
@@ -262,6 +277,13 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
         "description": worker.short_bio || `Professional ${worker.trade_category} in ${worker.home_district}`,
         "image": worker.profile_photo_url || "https://www.grabme.page/grabme.png",
         "hasCredential": [{ "@type": "EducationalOccupationalCredential", "credentialCategory": "Professional Verification" }],
+        "aggregateRating": totalReviews > 0 ? {
+            "@type": "AggregateRating",
+            "ratingValue": avgRating,
+            "reviewCount": totalReviews,
+            "bestRating": 5,
+            "worstRating": 1
+        } : undefined,
         "mainEntityOfPage": { "@type": "WebPage", "@id": `https://www.grabme.page/worker/${id}` }
     };
 
@@ -317,7 +339,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                     <div className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.03]"
                         style={{ backgroundImage: 'linear-gradient(currentColor 1px,transparent 1px),linear-gradient(90deg,currentColor 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
 
-                    <div className="relative flex flex-col md:flex-row md:items-end gap-8 md:gap-12">
+                    <div className="relative flex flex-col md:flex-row md:items-center gap-8 md:gap-12">
 
                         {/* Profile Photo */}
                         <div className="relative mx-auto md:mx-0 flex-shrink-0">
@@ -355,6 +377,18 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 {worker.full_name}
                             </h1>
 
+                            {worker.languages_spoken?.length > 0 && (
+                                <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1 pb-1">
+                                    {worker.languages_spoken.map((lang: string) => (
+                                        <span key={lang} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors">
+                                            {lang}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+
+
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm">
                                 <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
                                     <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
@@ -375,6 +409,12 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                     </>
                                 )}
                             </div>
+
+                            <ProfileInteractions 
+                                workerId={worker.id} 
+                                initialLikes={worker.likes_count || 0} 
+                                initialVisits={worker.visits_count || 0} 
+                            />
                         </div>
                     </div>
                 </section>
@@ -385,27 +425,29 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                 <section className="px-5 pb-8 max-w-5xl mx-auto">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {trustBadges.map((badge, i) => (
-                            <div key={i} className="relative group overflow-hidden">
+                            <div key={i} className={`relative group overflow-hidden ${!badge.val ? 'opacity-40' : ''}`}>
                                 {badge.val && (
-                                    <div className="absolute inset-0 rounded-2xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                         style={{ background: badge.glow }} />
                                 )}
-                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border backdrop-blur-sm transition-all duration-300 ${badge.val
+                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border transition-all duration-300 ${badge.val
                                     ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
                                     : 'bg-slate-100/50 dark:bg-white/[0.03] border-slate-200 dark:border-white/5'
                                     }`}>
                                     <badge.icon
                                         className="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
-                                        style={{ color: badge.val ? badge.accent : '#475569' }}
+                                        style={{ color: badge.val ? badge.accent : '#94a3b8' }}
                                     />
                                     <div className="text-center">
-                                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${badge.val ? 'text-blue-900 dark:text-slate-200' : 'text-slate-500 dark:text-slate-600'}`}>
+                                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${badge.val ? 'text-blue-900 dark:text-slate-200' : 'text-slate-400 dark:text-slate-600'}`}>
                                             {badge.label}
                                         </div>
-                                        <div className="text-[8px] font-bold uppercase tracking-wider mt-0.5"
-                                            style={{ color: badge.val ? badge.accent : '#94a3b8' }}>
-                                            {badge.val ? '✓ Verified' : 'Pending'}
-                                        </div>
+                                        {badge.val && (
+                                            <div className="text-[8px] font-bold uppercase tracking-wider mt-0.5"
+                                                style={{ color: badge.accent }}>
+                                                ✓ Verified
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -422,8 +464,38 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         {/* ── LEFT COLUMN ── */}
                         <div className="space-y-5">
 
-                             {/* About */}
-                            <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
+                            {/* 1. Video Introduction — strongest trust asset, up first */}
+                            {worker.video_pitch_url && (
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400 mb-5 transition-colors">Video Introduction</h3>
+                                    <VideoPlayer url={worker.video_pitch_url} />
+                                </div>
+                            )}
+
+                            {/* 2. Trust Certification — competence signal before bio */}
+                            {worker.certificate_url && (
+                                <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-900/10 overflow-hidden p-6 md:p-8 transition-colors">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 mb-5 transition-colors flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4" /> Trust Certification
+                                    </h3>
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-amber-200/50 dark:border-white/10 transition-colors">
+                                        <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 text-amber-600 dark:text-amber-400 shadow-sm">
+                                            <Award className="w-6 h-6" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[13px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{worker.certificate_name || 'Verified Certificate'}</p>
+                                            <a href={worker.certificate_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                                                <Eye className="w-3.5 h-3.5" /> View Credential
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 3. About */}
+                            <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
                                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-4 transition-colors">About</h3>
                                 <p className="text-slate-600 dark:text-slate-300 leading-[1.8] text-[15px] font-medium transition-colors">
@@ -431,15 +503,14 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 </p>
                             </div>
 
-                             {/* Expertise */}
+                            {/* 4. Expertise & Services */}
                             {worker.sub_skills && worker.sub_skills.length > 0 && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 transition-colors">Expertise & Services</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 transition-colors">Expertise &amp; Services</h3>
                                     <div className="flex flex-wrap gap-2.5">
                                         {worker.sub_skills.map((skill: string) => (
-                                            <div key={skill}
-                                                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200">
+                                            <div key={skill} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200">
                                                 <CheckCircle2 className="w-3 h-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                                                 {skill}
                                             </div>
@@ -448,16 +519,92 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 </div>
                             )}
 
-                             {/* Service Coverage */}
+                            {/* 5. Pricing & Rates — transparency defuses "will they inflate it" fear */}
+                            {(worker.base_visiting_fee != null || (Array.isArray(worker.price_estimates) && worker.price_estimates.length > 0)) && (
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 mb-5 transition-colors">Pricing &amp; Rates</h3>
+                                    {worker.base_visiting_fee != null && (
+                                        <div className="flex items-center gap-3 mb-5 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30">
+                                            <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-800/40 flex items-center justify-center flex-shrink-0">
+                                                <span className="text-amber-600 dark:text-amber-400 text-xs font-black">₨</span>
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">Base Visiting / Inspection Fee</p>
+                                                <p className="text-base font-black text-slate-800 dark:text-white">LKR {Number(worker.base_visiting_fee).toLocaleString()}</p>
+                                            </div>
+                                            <div className="ml-auto text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 text-right leading-relaxed">
+                                                Charged on<br />arrival
+                                            </div>
+                                        </div>
+                                    )}
+                                    {Array.isArray(worker.price_estimates) && worker.price_estimates.length > 0 && (
+                                        <div className="space-y-2">
+                                            {worker.price_estimates.map((est: { label: string; min: number; max: number }, i: number) => (
+                                                <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-100 dark:border-white/5 last:border-0">
+                                                    <span className="text-[12px] font-bold text-slate-600 dark:text-slate-300">{est.label}</span>
+                                                    <span className="text-[12px] font-black text-slate-800 dark:text-white tabular-nums">
+                                                        LKR {Number(est.min).toLocaleString()}
+                                                        {est.max > est.min ? ` – ${Number(est.max).toLocaleString()}` : ''}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 6. Service Guarantees — risk-reversal right after pricing */}
+                            {worker.service_warranty && (
+                                <div className="relative rounded-2xl border border-emerald-200/50 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-900/10 overflow-hidden p-6 md:p-8 transition-colors">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-4 transition-colors flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4" /> Service Guarantees
+                                    </h3>
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-emerald-900 dark:text-emerald-100 mt-1.5 transition-colors">
+                                        {worker.service_warranty}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* 7. Customer Reviews */}
+                            <ReviewsSection
+                                workerId={worker.id}
+                                workerName={worker.full_name}
+                                reviews={reviews}
+                                avgRating={avgRating}
+                                totalReviews={totalReviews}
+                            />
+
+                            {/* 8. Educational Background */}
+                            {worker.education_history && worker.education_history.length > 0 && (
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 transition-colors flex items-center gap-2">
+                                        <Award className="w-4 h-4" /> Educational Background
+                                    </h3>
+                                    <div className="space-y-3">
+                                        {worker.education_history.map((edu: string, i: number) => (
+                                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400">
+                                                    <Award className="w-4 h-4" />
+                                                </div>
+                                                <p className="text-[12px] font-black text-slate-700 dark:text-slate-200 mt-1.5 uppercase tracking-widest">{edu}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 9. Service Coverage */}
                             {(worker.districts_covered?.length > 0 || worker.specific_areas) && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-5 transition-colors">Service Coverage</h3>
                                     {worker.districts_covered?.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             {worker.districts_covered.map((d: string) => (
-                                                <div key={d}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 uppercase tracking-wider transition-colors">
+                                                <div key={d} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 uppercase tracking-wider transition-colors">
                                                     <MapPin className="w-2.5 h-2.5" />
                                                     {d}
                                                 </div>
@@ -470,18 +617,9 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 </div>
                             )}
 
-                             {/* Video Player */}
-                            {worker.video_pitch_url && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
-                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400 mb-5 transition-colors">Video Introduction</h3>
-                                    <VideoPlayer url={worker.video_pitch_url} />
-                                </div>
-                            )}
-
-                             {/* Social Links */}
+                            {/* 10. Social Profiles — lowest priority */}
                             {hasSocials && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/40 to-transparent" />
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-600 dark:text-pink-400 mb-5 transition-colors">Social Profiles</h3>
                                     <div className="flex flex-wrap gap-3">
@@ -509,6 +647,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                     </div>
                                 </div>
                             )}
+
                         </div>
 
                         {/* ── RIGHT COLUMN — Sticky CTA ── */}
@@ -516,8 +655,8 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                             {/* Premium CTA Card */}
                             <div className="relative rounded-2xl overflow-hidden">
-                                {/* Multi-layer glow */}
-                                <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/40 via-blue-600/20 to-indigo-600/30 rounded-2xl blur-md" />
+                                {/* Multi-layer glow (Removed heavy blur for Android perf) */}
+                                <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/10 via-blue-600/10 to-indigo-600/10 rounded-2xl" />
                                 <div className="relative bg-white dark:bg-gradient-to-b dark:from-[#0a1628] dark:to-[#060e1c] border border-slate-200 dark:border-white/10 rounded-2xl p-6 md:p-8 space-y-6 transition-colors shadow-xl shadow-blue-900/5 dark:shadow-none">
                                     {/* Top shimmer */}
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 dark:via-white/30 to-transparent" />
@@ -551,7 +690,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             </div>
 
                             {/* Quick Stats Card */}
-                            <div className="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] backdrop-blur-sm p-5 transition-colors">
+                            <div className="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] p-5 transition-colors">
                                 <div className="grid grid-cols-3 gap-3 text-center">
                                     <div>
                                         <div className="text-lg font-black text-[#0f172a] dark:text-white">
@@ -561,7 +700,11 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                     </div>
                                     <div className="border-x border-slate-100 dark:border-white/5">
                                         <div className="text-lg font-black text-[#0f172a] dark:text-white">
-                                            {new Date().getFullYear() - new Date(worker.created_at).getFullYear() || '1'}<span className="text-blue-600 dark:text-blue-400">y</span>
+                                            {new Date().getFullYear() - new Date(worker.created_at).getFullYear() === 0 ? (
+                                                <span className="text-emerald-500 dark:text-emerald-400">New</span>
+                                            ) : (
+                                                <>{new Date().getFullYear() - new Date(worker.created_at).getFullYear()}<span className="text-blue-600 dark:text-blue-400">y</span></>
+                                            )}
                                         </div>
                                         <div className="text-[8px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mt-0.5">On Platform</div>
                                     </div>
@@ -584,8 +727,8 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
                 <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] via-[#f8fafc]/95 dark:from-[#050b18] dark:via-[#050b18]/95 to-transparent transition-colors" />
                 <div className="relative px-4 pt-4 pb-6 space-y-3">
-                    {/* Ambient glow behind button */}
-                    <div className="absolute inset-x-8 bottom-4 h-12 bg-emerald-500/20 blur-xl rounded-full" />
+                    {/* Ambient glow behind button (Removed heavy blur for Android perf) */}
+                    <div className="absolute inset-x-8 bottom-4 h-12 bg-emerald-500/10 rounded-full" />
 
                     <div className="relative rounded-xl overflow-hidden border border-emerald-500/20 dark:border-emerald-700/40">
                         <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-emerald-700 dark:from-emerald-900/90 dark:to-emerald-800/80" />

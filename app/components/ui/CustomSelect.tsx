@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Check, Search, X } from 'lucide-react'
+import { ChevronDown, Check, Search, X, Plus } from 'lucide-react'
 import { m, AnimatePresence } from 'framer-motion'
 
 export type SelectOption = string | { label: string; value: string; keywords?: string[] }
@@ -15,6 +15,7 @@ interface CustomSelectProps {
     className?: string
     isMulti?: boolean
     variant?: 'default' | 'pill'
+    allowCustom?: boolean
 }
 
 export function CustomSelect({
@@ -25,12 +26,14 @@ export function CustomSelect({
     searchPlaceholder = 'Search...',
     className = '',
     isMulti = false,
-    variant = 'default'
+    variant = 'default',
+    allowCustom = false
 }: CustomSelectProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
     const [isMobile, setIsMobile] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+    const searchInputRef = useRef<HTMLInputElement>(null)
 
     // Handle Mobile Detection
     useEffect(() => {
@@ -81,6 +84,18 @@ export function CustomSelect({
             setSearchQuery('')
         }
     }
+
+    const handleCustomAdd = () => {
+        if (!searchQuery.trim()) {
+            searchInputRef.current?.focus();
+            return;
+        }
+        const newSkill = searchQuery.trim();
+        handleSelect(newSkill);
+        setSearchQuery(''); // clear it
+    }
+
+    const exactMatchExists = searchQuery.trim() !== '' && filteredOptions.some(opt => opt.label.toLowerCase() === searchQuery.trim().toLowerCase());
 
     const isSelected = (optionValue: string) => {
         if (isMulti) {
@@ -178,8 +193,9 @@ export function CustomSelect({
                                         <div className="relative">
                                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1d4ed8]" />
                                             <input
+                                                ref={searchInputRef}
                                                 type="text"
-                                                placeholder={searchPlaceholder}
+                                                placeholder={allowCustom ? "Type to search or add a new skill..." : searchPlaceholder}
                                                 value={searchQuery}
                                                 onChange={(e) => setSearchQuery(e.target.value)}
                                                 autoFocus
@@ -190,32 +206,47 @@ export function CustomSelect({
 
                                     {/* Options (Mobile Layout) */}
                                     <div className="max-h-[65dvh] overflow-y-auto no-scrollbar pb-32">
-                                        {filteredOptions.length === 0 ? (
-                                            <div className="py-12 text-center text-slate-400 text-sm font-bold uppercase tracking-widest">No results found</div>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                {filteredOptions.map((option) => (
-                                                    <button
-                                                        key={option.value}
-                                                        type="button"
-                                                        onClick={() => handleSelect(option.value)}
-                                                        className={`w-full flex items-center justify-between p-5 rounded-2xl text-sm font-bold active:bg-blue-100/50
-                                                            ${isSelected(option.value)
-                                                                ? 'bg-blue-50 text-blue-600 border border-blue-100' 
-                                                                : 'bg-slate-50 text-slate-600 border border-transparent'
-                                                            }
-                                                        `}
-                                                    >
-                                                        <span>{option.label}</span>
-                                                        {isSelected(option.value) && (
-                                                            <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                                                                <Check className="w-4 h-4 text-white" />
-                                                            </div>
-                                                        )}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
+                                        <div className="space-y-2">
+                                            {filteredOptions.length === 0 && !allowCustom && (
+                                                <div className="py-12 text-center text-slate-400 text-sm font-bold uppercase tracking-widest">No results found</div>
+                                            )}
+                                            {filteredOptions.length === 0 && allowCustom && searchQuery.trim() === '' && (
+                                                <div className="py-12 text-center text-slate-400 text-sm font-bold uppercase tracking-widest">Type to add a custom skill</div>
+                                            )}
+                                            {filteredOptions.map((option) => (
+                                                <button
+                                                    key={option.value}
+                                                    type="button"
+                                                    onClick={() => handleSelect(option.value)}
+                                                    className={`w-full flex items-center justify-between p-5 rounded-2xl text-sm font-bold active:bg-blue-100/50
+                                                        ${isSelected(option.value)
+                                                            ? 'bg-blue-50 text-blue-600 border border-blue-100' 
+                                                            : 'bg-slate-50 text-slate-600 border border-transparent'
+                                                        }
+                                                    `}
+                                                >
+                                                    <span>{option.label}</span>
+                                                    {isSelected(option.value) && (
+                                                        <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
+                                                            <Check className="w-4 h-4 text-white" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+
+                                            {allowCustom && !exactMatchExists && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleCustomAdd}
+                                                    className="w-full flex items-center gap-3 p-5 rounded-2xl text-sm font-bold bg-indigo-50 border border-indigo-100 text-indigo-700 active:bg-indigo-100 transition-colors"
+                                                >
+                                                    <div className="w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center">
+                                                        <Plus className="w-4 h-4 text-white" />
+                                                    </div>
+                                                    {searchQuery.trim() ? `Add "${searchQuery.trim()}"` : "Add a custom skill..."}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </m.div>
                             </div>
@@ -233,8 +264,9 @@ export function CustomSelect({
                                     <div className="relative">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#1d4ed8]" />
                                         <input
+                                            ref={searchInputRef}
                                             type="text"
-                                            placeholder={searchPlaceholder}
+                                            placeholder={allowCustom ? "Type to search or add a new skill..." : searchPlaceholder}
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             onClick={(e) => e.stopPropagation()}
@@ -246,31 +278,50 @@ export function CustomSelect({
 
                                 {/* Options List */}
                                 <div className="max-h-60 overflow-y-auto custom-scrollbar p-2">
-                                    {filteredOptions.length === 0 ? (
+                                    {filteredOptions.length === 0 && !allowCustom && (
                                         <div className="px-4 py-3 text-sm text-[#94a3b8] text-center font-medium">
                                             No results found
                                         </div>
-                                    ) : (
-                                        filteredOptions.map((option) => (
+                                    )}
+
+                                    {filteredOptions.length === 0 && allowCustom && searchQuery.trim() === '' && (
+                                        <div className="px-4 py-3 text-sm text-[#94a3b8] text-center font-medium">
+                                            Type to add a custom skill
+                                        </div>
+                                    )}
+                                    
+                                    {filteredOptions.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => handleSelect(option.value)}
+                                            className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all mb-1 last:mb-0
+                                                ${isSelected(option.value)
+                                                    ? 'bg-[#eff6ff] text-[#1d4ed8]' 
+                                                    : 'text-[#334155] hover:bg-[#f1f5f9] hover:text-[#1d4ed8]'
+                                                }
+                                            `}
+                                        >
+                                            <span className="truncate">{option.label}</span>
+                                            {isSelected(option.value) && (
+                                                <div className="flex items-center justify-center w-5 h-5 bg-[#1d4ed8] rounded-lg">
+                                                    <Check className="w-3.5 h-3.5 text-white" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+
+                                    {allowCustom && !exactMatchExists && (
+                                        <div className="sticky bottom-0 bg-white pt-1">
                                             <button
-                                                key={option.value}
                                                 type="button"
-                                                onClick={() => handleSelect(option.value)}
-                                                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-semibold transition-all mb-1 last:mb-0
-                                                    ${isSelected(option.value)
-                                                        ? 'bg-[#eff6ff] text-[#1d4ed8]' 
-                                                        : 'text-[#334155] hover:bg-[#f1f5f9] hover:text-[#1d4ed8]'
-                                                    }
-                                                `}
+                                                onClick={handleCustomAdd}
+                                                className="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-[#1d4ed8] bg-[#eff6ff] hover:bg-blue-100 transition-all border border-blue-100"
                                             >
-                                                <span className="truncate">{option.label}</span>
-                                                {isSelected(option.value) && (
-                                                    <div className="flex items-center justify-center w-5 h-5 bg-[#1d4ed8] rounded-lg">
-                                                        <Check className="w-3.5 h-3.5 text-white" />
-                                                    </div>
-                                                )}
+                                                <Plus className="w-4 h-4" />
+                                                {searchQuery.trim() ? `Add "${searchQuery.trim()}"` : "Add custom skill..."}
                                             </button>
-                                        ))
+                                        </div>
                                     )}
                                 </div>
                             </m.div>

@@ -150,11 +150,17 @@ export async function registerWorkerAction(rawData: any) {
         // 3. CRYPTOGRAPHIC HASHING
         const hashedPassword = await bcrypt.hash(data.password, 10);
 
+        // 3.5 Generate Slug
+        const baseSlug = data.fullName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const randomString = Math.random().toString(36).substring(2, 6);
+        const uniqueSlug = `${baseSlug}-${randomString}`;
+
         // 4. SECURE ADMINISTRATIVE INSERT (Bypasses RLS)
         const { error } = await supabaseAdmin
             .from('workers')
             .insert([
                 {
+                    slug: uniqueSlug,
                     full_name: data.fullName,
                     email: data.email,
                     password: hashedPassword,

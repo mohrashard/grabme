@@ -51,7 +51,7 @@ export default async function BrowsePage({ searchParams }: PageProps) {
   // but the initial HTML response will contain all worker data for search engines.
   const { data: workers, error } = await supabaseAdmin
     .from('workers')
-    .select('id, full_name, trade_category, home_district, specific_areas, profile_photo_url, short_bio, is_featured, is_identity_verified, is_reference_checked, years_experience, sub_skills')
+    .select('id, slug, full_name, trade_category, home_district, specific_areas, profile_photo_url, short_bio, is_featured, is_identity_verified, is_reference_checked, years_experience, sub_skills')
     .eq('account_status', 'active')
     .order('is_featured', { ascending: false });
 
