@@ -308,12 +308,12 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             </div>
 
             {/* ── HEADER ── */}
-            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#050b18]/80 backdrop-blur-xl px-5 py-4 flex items-center justify-between transition-colors">
+            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#050b18]/80 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
                 <Link href="/browse" className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                     <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-white/70" />
                 </Link>
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-50/50 dark:bg-transparent border border-blue-100 dark:border-transparent transition-colors">
+                    <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-50/50 dark:bg-transparent border border-blue-100 dark:border-transparent">
                         <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-[0.25em] text-[#1D4ED8] dark:text-white/50">Verified Profile</span>
                     </div>
@@ -355,11 +355,11 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 )}
                             </div>
                             {/* Verified badge */}
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl border-2 border-[#f8fafc] dark:border-[#050b18] shadow-lg shadow-emerald-500/40 transition-colors">
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-xl border-2 border-[#f8fafc] dark:border-[#050b18] shadow-lg shadow-emerald-500/40">
                                 <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
                             </div>
                             {worker.is_featured && (
-                                <div className="absolute -top-2 -left-2 bg-amber-500 text-white px-2 py-1 rounded-lg border-2 border-[#f8fafc] dark:border-[#050b18] shadow-lg transition-colors">
+                                <div className="absolute -top-2 -left-2 bg-amber-500 text-white px-2 py-1 rounded-lg border-2 border-[#f8fafc] dark:border-[#050b18] shadow-lg">
                                     <span className="text-[8px] font-black uppercase tracking-wider">Featured</span>
                                 </div>
                             )}
@@ -373,14 +373,14 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 {worker.trade_category}
                             </div>
 
-                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-[#0f172a] dark:text-white tracking-tight leading-[1.05] transition-colors">
+                            <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-[#0f172a] dark:text-white tracking-tight leading-[1.05]">
                                 {worker.full_name}
                             </h1>
 
                             {worker.languages_spoken?.length > 0 && (
                                 <div className="flex flex-wrap justify-center md:justify-start gap-2 pt-1 pb-1">
                                     {worker.languages_spoken.map((lang: string) => (
-                                        <span key={lang} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-300 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors">
+                                        <span key={lang} className="px-2.5 py-1 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 text-blue-600 dark:text-blue-300 rounded-lg text-[10px] font-black uppercase tracking-widest">
                                             {lang}
                                         </span>
                                     ))}
@@ -390,19 +390,19 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
 
                             <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm">
-                                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
+                                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium">
                                     <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
                                     {worker.home_district}
                                 </span>
                                 <div className="w-px h-4 bg-slate-200 dark:bg-white/10 hidden md:block" />
-                                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
+                                <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium">
                                     <Calendar className="w-4 h-4 text-blue-500 dark:text-blue-400 flex-shrink-0" />
                                     On platform since {new Date(worker.created_at).getFullYear()}
                                 </span>
                                 {worker.years_experience && (
                                     <>
                                         <div className="w-px h-4 bg-slate-200 dark:bg-white/10 hidden md:block" />
-                                        <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium transition-colors">
+                                        <span className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 font-medium">
                                             <Star className="w-4 h-4 text-amber-500 dark:text-amber-400 flex-shrink-0" />
                                             {worker.years_experience} yrs experience
                                         </span>
@@ -432,14 +432,14 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 )}
                                 <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border transition-all duration-300 ${badge.val
                                     ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
-                                    : 'bg-slate-100/50 dark:bg-white/[0.03] border-slate-200 dark:border-white/5'
+                                    : 'bg-slate-100/50 dark:bg-[#0a1628] border-slate-200 dark:border-white/5'
                                     }`}>
                                     <badge.icon
                                         className="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
                                         style={{ color: badge.val ? badge.accent : '#94a3b8' }}
                                     />
                                     <div className="text-center">
-                                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] transition-colors ${badge.val ? 'text-blue-900 dark:text-slate-200' : 'text-slate-400 dark:text-slate-600'}`}>
+                                        <div className={`text-[10px] font-black uppercase tracking-[0.2em] ${badge.val ? 'text-blue-900 dark:text-slate-200' : 'text-slate-400 dark:text-slate-600'}`}>
                                             {badge.label}
                                         </div>
                                         {badge.val && (
@@ -466,27 +466,27 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                             {/* 1. Video Introduction — strongest trust asset, up first */}
                             {worker.video_pitch_url && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400 mb-5 transition-colors">Video Introduction</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-600 dark:text-indigo-400 mb-5">Video Introduction</h3>
                                     <VideoPlayer url={worker.video_pitch_url} />
                                 </div>
                             )}
 
                             {/* 2. Trust Certification — competence signal before bio */}
                             {worker.certificate_url && (
-                                <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-900/10 overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-500/20 bg-amber-50/30 dark:bg-amber-900/10 overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 mb-5 transition-colors flex items-center gap-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 mb-5 flex items-center gap-2">
                                         <ShieldCheck className="w-4 h-4" /> Trust Certification
                                     </h3>
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-amber-200/50 dark:border-white/10 transition-colors">
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-white/50 dark:bg-white/5 border border-amber-200/50 dark:border-white/10">
                                         <div className="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 text-amber-600 dark:text-amber-400 shadow-sm">
                                             <Award className="w-6 h-6" />
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-[13px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{worker.certificate_name || 'Verified Certificate'}</p>
-                                            <a href={worker.certificate_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                                            <a href={worker.certificate_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-1.5 text-[11px] font-bold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                                                 <Eye className="w-3.5 h-3.5" /> View Credential
                                             </a>
                                         </div>
@@ -495,19 +495,19 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             )}
 
                             {/* 3. About */}
-                            <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                            <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                 <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-4 transition-colors">About</h3>
-                                <p className="text-slate-600 dark:text-slate-300 leading-[1.8] text-[15px] font-medium transition-colors">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-4">About</h3>
+                                <p className="text-slate-600 dark:text-slate-300 leading-[1.8] text-[15px] font-medium">
                                     {worker.short_bio || "No professional bio provided yet."}
                                 </p>
                             </div>
 
                             {/* 4. Expertise & Services */}
                             {worker.sub_skills && worker.sub_skills.length > 0 && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 transition-colors">Expertise &amp; Services</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5">Expertise &amp; Services</h3>
                                     <div className="flex flex-wrap gap-2.5">
                                         {worker.sub_skills.map((skill: string) => (
                                             <div key={skill} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider hover:border-blue-500/40 hover:bg-blue-500/10 transition-all duration-200">
@@ -521,9 +521,9 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                             {/* 5. Pricing & Rates — transparency defuses "will they inflate it" fear */}
                             {(worker.base_visiting_fee != null || (Array.isArray(worker.price_estimates) && worker.price_estimates.length > 0)) && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 mb-5 transition-colors">Pricing &amp; Rates</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 mb-5">Pricing &amp; Rates</h3>
                                     {worker.base_visiting_fee != null && (
                                         <div className="flex items-center gap-3 mb-5 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30">
                                             <div className="w-9 h-9 rounded-lg bg-amber-100 dark:bg-amber-800/40 flex items-center justify-center flex-shrink-0">
@@ -556,12 +556,12 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                             {/* 6. Service Guarantees — risk-reversal right after pricing */}
                             {worker.service_warranty && (
-                                <div className="relative rounded-2xl border border-emerald-200/50 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-900/10 overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-emerald-200/50 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-900/10 overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-4 transition-colors flex items-center gap-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-4 flex items-center gap-2">
                                         <ShieldCheck className="w-4 h-4" /> Service Guarantees
                                     </h3>
-                                    <p className="text-[12px] font-black uppercase tracking-widest text-emerald-900 dark:text-emerald-100 mt-1.5 transition-colors">
+                                    <p className="text-[12px] font-black uppercase tracking-widest text-emerald-900 dark:text-emerald-100 mt-1.5">
                                         {worker.service_warranty}
                                     </p>
                                 </div>
@@ -578,14 +578,14 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                             {/* 8. Educational Background */}
                             {worker.education_history && worker.education_history.length > 0 && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 transition-colors flex items-center gap-2">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-600 dark:text-blue-400 mb-5 flex items-center gap-2">
                                         <Award className="w-4 h-4" /> Educational Background
                                     </h3>
                                     <div className="space-y-3">
                                         {worker.education_history.map((edu: string, i: number) => (
-                                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 transition-colors">
+                                            <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
                                                 <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 text-blue-600 dark:text-blue-400">
                                                     <Award className="w-4 h-4" />
                                                 </div>
@@ -598,13 +598,13 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                             {/* 9. Service Coverage */}
                             {(worker.districts_covered?.length > 0 || worker.specific_areas) && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-5 transition-colors">Service Coverage</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mb-5">Service Coverage</h3>
                                     {worker.districts_covered?.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-4">
                                             {worker.districts_covered.map((d: string) => (
-                                                <div key={d} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 uppercase tracking-wider transition-colors">
+                                                <div key={d} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 dark:text-emerald-300 uppercase tracking-wider">
                                                     <MapPin className="w-2.5 h-2.5" />
                                                     {d}
                                                 </div>
@@ -612,16 +612,16 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                         </div>
                                     )}
                                     {worker.specific_areas && (
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium transition-colors">{worker.specific_areas}</p>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{worker.specific_areas}</p>
                                     )}
                                 </div>
                             )}
 
                             {/* 10. Social Profiles — lowest priority */}
                             {hasSocials && (
-                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] overflow-hidden p-6 md:p-8 transition-colors">
+                                <div className="relative rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] overflow-hidden p-6 md:p-8">
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-pink-500/40 to-transparent" />
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-600 dark:text-pink-400 mb-5 transition-colors">Social Profiles</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-600 dark:text-pink-400 mb-5">Social Profiles</h3>
                                     <div className="flex flex-wrap gap-3">
                                         {worker.facebook_url && (
                                             <a href={worker.facebook_url} target="_blank" rel="noopener noreferrer"
@@ -657,7 +657,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             <div className="relative rounded-2xl overflow-hidden">
                                 {/* Multi-layer glow (Removed heavy blur for Android perf) */}
                                 <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/10 via-blue-600/10 to-indigo-600/10 rounded-2xl" />
-                                <div className="relative bg-white dark:bg-gradient-to-b dark:from-[#0a1628] dark:to-[#060e1c] border border-slate-200 dark:border-white/10 rounded-2xl p-6 md:p-8 space-y-6 transition-colors shadow-xl shadow-blue-900/5 dark:shadow-none">
+                                <div className="relative bg-white dark:bg-gradient-to-b dark:from-[#0a1628] dark:to-[#060e1c] border border-slate-200 dark:border-white/10 rounded-2xl p-6 md:p-8 space-y-6 shadow-xl shadow-blue-900/5 dark:shadow-none">
                                     {/* Top shimmer */}
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 dark:via-white/30 to-transparent" />
 
@@ -666,8 +666,8 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                             <div className="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full animate-pulse" />
                                             <span className="text-[9px] font-black uppercase tracking-[0.2em] text-emerald-600 dark:text-emerald-400">Available for Hire</span>
                                         </div>
-                                        <h4 className="text-xl md:text-2xl font-black text-[#0f172a] dark:text-white tracking-tight transition-colors">Ready to collaborate?</h4>
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed transition-colors">
+                                        <h4 className="text-xl md:text-2xl font-black text-[#0f172a] dark:text-white tracking-tight">Ready to collaborate?</h4>
+                                        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
                                             Start a direct conversation on WhatsApp — no middlemen, no delays.
                                         </p>
                                     </div>
@@ -690,7 +690,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             </div>
 
                             {/* Quick Stats Card */}
-                            <div className="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-white/[0.03] p-5 transition-colors">
+                            <div className="rounded-2xl border border-slate-200 dark:border-white/8 bg-white dark:bg-[#0a1628] p-5">
                                 <div className="grid grid-cols-3 gap-3 text-center">
                                     <div>
                                         <div className="text-lg font-black text-[#0f172a] dark:text-white">
@@ -725,7 +725,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         MOBILE FIXED BOTTOM ACTION BAR
                 ══════════════════════════════════ */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] via-[#f8fafc]/95 dark:from-[#050b18] dark:via-[#050b18]/95 to-transparent transition-colors" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] via-[#f8fafc]/95 dark:from-[#050b18] dark:via-[#050b18]/95 to-transparent" />
                 <div className="relative px-4 pt-4 pb-6 space-y-3">
                     {/* Ambient glow behind button (Removed heavy blur for Android perf) */}
                     <div className="absolute inset-x-8 bottom-4 h-12 bg-emerald-500/10 rounded-full" />
@@ -743,7 +743,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         <WhatsAppButton workerId={worker.id} workerTrade={worker.trade_category} />
                     </div>
 
-                    <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 px-6 leading-relaxed transition-colors">
+                    <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600 px-6 leading-relaxed">
                         By contacting, you agree to our{' '}
                         <Link href="/terms" className="text-blue-600 dark:text-blue-500 underline">Terms of Service</Link>
                     </p>
