@@ -28,7 +28,7 @@ export default function WorkerProfileClientWrapper({ children }: WorkerProfileCl
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {/* The `.dark` class is placed here so all `dark:` Tailwind classes below it respond */}
       <div className={theme === 'dark' ? 'dark' : ''}>
-        <div className="min-h-[100dvh] bg-[#f8fafc] text-[#0f172a] dark:bg-[#050b18] dark:text-white font-outfit pb-32 md:pb-0 relative overflow-x-hidden transition-colors duration-300">
+        <div className="min-h-[100dvh] bg-[#f8fafc] text-[#0f172a] dark:bg-[#050b18] dark:text-white font-outfit pb-32 md:pb-0 relative overflow-x-hidden">
           {children}
         </div>
       </div>

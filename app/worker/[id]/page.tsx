@@ -300,15 +300,15 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
         <WorkerProfileClientWrapper>
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-            {/* ── Global ambient glow ── */}
-            <div className="pointer-events-none fixed inset-0 z-0 opacity-40 dark:opacity-100 transition-opacity">
+            {/* ── Global ambient glow (Hidden on mobile for performance) ── */}
+            <div className="pointer-events-none fixed inset-0 z-0 opacity-40 dark:opacity-100 transition-opacity hidden md:block">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-blue-600/10 dark:bg-blue-600/10 rounded-full blur-[120px]" />
                 <div className="absolute top-1/3 right-0 w-[400px] h-[400px] bg-indigo-600/8 dark:bg-indigo-600/8 rounded-full blur-[100px]" />
                 <div className="absolute bottom-0 left-0 w-[500px] h-[300px] bg-emerald-600/6 dark:bg-emerald-600/6 rounded-full blur-[120px]" />
             </div>
 
             {/* ── HEADER ── */}
-            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white/80 dark:bg-[#050b18]/80 backdrop-blur-xl px-5 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#050b18] md:bg-white/90 md:dark:bg-[#050b18]/90 md:backdrop-blur-xl px-5 py-4 flex items-center justify-between">
                 <Link href="/browse" className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                     <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-white/70" />
                 </Link>
@@ -430,7 +430,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                     <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                                         style={{ background: badge.glow }} />
                                 )}
-                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border transition-all duration-300 ${badge.val
+                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border ${badge.val
                                     ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
                                     : 'bg-slate-100/50 dark:bg-[#0a1628] border-slate-200 dark:border-white/5'
                                     }`}>
