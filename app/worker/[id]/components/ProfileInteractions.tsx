@@ -61,9 +61,9 @@ export default function ProfileInteractions({ workerId, initialLikes, initialVis
             <button 
                 onClick={handleToggleLike}
                 disabled={isLiking}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-black uppercase tracking-widest transition-all ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-xs font-black uppercase tracking-widest transition-colors ${
                     isLiked 
-                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.2)]' 
+                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-600 dark:text-blue-400 shadow-md shadow-blue-500/20' 
                     : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10'
                 }`}
             >

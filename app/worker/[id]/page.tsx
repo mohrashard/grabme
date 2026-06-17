@@ -335,8 +335,8 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         HERO SECTION
                     ══════════════════════════════════ */}
                 <section className="relative px-5 pt-10 pb-8 md:pt-16 md:pb-12 max-w-5xl mx-auto">
-                    {/* Subtle grid texture */}
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.03] dark:opacity-[0.03]"
+                    {/* Subtle grid texture (z-[-1] fixes Android ghosting bugs) */}
+                    <div className="pointer-events-none absolute inset-0 z-[-1] opacity-[0.03] dark:opacity-[0.03]"
                         style={{ backgroundImage: 'linear-gradient(currentColor 1px,transparent 1px),linear-gradient(90deg,currentColor 1px,transparent 1px)', backgroundSize: '40px 40px' }} />
 
                     <div className="relative flex flex-col md:flex-row md:items-center gap-8 md:gap-12">
