@@ -422,15 +422,22 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                 {/* ══════════════════════════════════
                         TRUST BADGES — Full Width Strip
                     ══════════════════════════════════ */}
-                <section className="px-5 pb-8 max-w-5xl mx-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <section className="px-5 pb-8 max-w-5xl mx-auto w-full">
+                    {/*
+                      Using flex-wrap instead of CSS Grid here.
+                      Android WebView has a known bug where `grid-cols-2` can render
+                      all 4 items in a single overflowing row if grid items don't
+                      have explicit min-width:0. Flex with calc() widths is 100%
+                      predictable — always 2 columns on mobile, 4 on desktop.
+                    */}
+                    <div className="flex flex-wrap gap-3">
                         {trustBadges.map((badge, i) => (
-                            <div key={i} className={`relative group overflow-hidden ${!badge.val ? 'opacity-40' : ''}`}>
+                            <div key={i} className={`relative group overflow-hidden w-[calc(50%-6px)] md:w-[calc(25%-9px)] flex-shrink-0 ${!badge.val ? 'opacity-40' : ''}`}>
                                 {badge.val && (
                                     <div className="absolute inset-0 rounded-2xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500"
                                         style={{ background: badge.glow }} />
                                 )}
-                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border ${badge.val
+                                <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border h-full ${badge.val
                                     ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
                                     : 'bg-slate-100/50 dark:bg-[#0a1628] border-slate-200 dark:border-white/5'
                                     }`}>

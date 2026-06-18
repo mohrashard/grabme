@@ -1,61 +1,53 @@
 'use client';
 
-import React, { useState, useLayoutEffect } from 'react';
+import React, { useState, useLayoutEffect, useRef } from 'react';
 import { ThemeContext } from './ThemeContext';
 
 interface WorkerProfileClientWrapperProps {
   children: React.ReactNode;
 }
 
-// Read theme from localStorage synchronously before first paint.
-// This prevents the "theme flash" glitch on mobile where the page briefly
-// renders in the wrong theme before the useEffect fires.
-function getInitialTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'light';
-  try {
-    const saved = localStorage.getItem('grabme-worker-theme');
-    if (saved === 'dark' || saved === 'light') return saved;
-  } catch {
-    // localStorage not available (e.g. private browsing on some iOS)
-  }
-  return 'light';
-}
-
 export default function WorkerProfileClientWrapper({ children }: WorkerProfileClientWrapperProps) {
-  const [theme, setTheme] = useState<'light' | 'dark'>(getInitialTheme);
+  // Always start 'light' — matches server render. No hydration mismatch.
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const rootRef = useRef<HTMLDivElement>(null);
 
-  // useLayoutEffect fires synchronously after DOM mutations but before the browser paints.
-  // On mobile, this ensures the correct dark/light class is applied before any pixel is shown,
-  // completely eliminating the flash/repaint glitch on Android and iOS.
   useLayoutEffect(() => {
-    const saved = localStorage.getItem('grabme-worker-theme') as 'light' | 'dark' | null;
-    if (saved === 'light' || saved === 'dark') {
-      setTheme(saved);
+    // Runs synchronously before the browser paints.
+    // We apply the dark class directly to the DOM element via classList —
+    // NOT via React state. This means React never does a reconciliation
+    // re-render of the entire page tree, which was causing the mobile glitch.
+    let saved: 'light' | 'dark' = 'light';
+    try {
+      const val = localStorage.getItem('grabme-worker-theme');
+      if (val === 'dark' || val === 'light') saved = val;
+    } catch { /* private browsing on iOS */ }
+
+    if (saved === 'dark' && rootRef.current) {
+      rootRef.current.classList.add('dark');
     }
+    // Only update state for ThemeToggle icon — does NOT re-render children
+    // because children are RSC nodes passed as props (opaque to React reconciler)
+    setTheme(saved);
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    try {
-      localStorage.setItem('grabme-worker-theme', newTheme);
-    } catch { /* ignore */ }
+    const next = theme === 'light' ? 'dark' : 'light';
+    // Toggle class directly on DOM — no React re-render of the page tree
+    rootRef.current?.classList.toggle('dark', next === 'dark');
+    setTheme(next);
+    try { localStorage.setItem('grabme-worker-theme', next); } catch { /* ignore */ }
   };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {/* .dark class drives all dark: Tailwind variants below */}
-      <div className={theme === 'dark' ? 'dark' : ''}>
-        {/*
-          Mobile performance notes:
-          - NO transition on this root div: theme toggling would trigger a full-page
-            repaint on Android/iOS which causes the overlapping-card glitch.
-          - NO transform-gpu here: promoting the root to a GPU layer on low-end
-            Android devices causes excessive VRAM pressure and compositor jank.
-          - overflow-x-hidden is kept to prevent horizontal scroll on narrow screens.
-          - will-change is intentionally omitted — it creates new stacking contexts
-            that break fixed positioning of the sticky header and bottom bar on iOS.
-        */}
+      {/*
+        suppressHydrationWarning: server renders this div without 'dark'.
+        Our useLayoutEffect may add 'dark' before first paint via classList.
+        We tell React to ignore this div's attribute differences during hydration
+        so it never triggers a correction re-render for the class mismatch.
+      */}
+      <div ref={rootRef} suppressHydrationWarning>
         <div className="min-h-[100dvh] bg-[#f8fafc] text-[#0f172a] dark:bg-[#050b18] dark:text-white font-outfit pb-32 md:pb-0 relative overflow-x-hidden">
           {children}
         </div>
