@@ -30,7 +30,8 @@ import {
     DollarSign,
     Tag,
     X,
-    Edit2
+    Edit2,
+    Wrench
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateWorkerSocialsAction } from '../actions/updateWorkerSocialsAction'
@@ -509,6 +510,7 @@ export default function WorkerProfilePage() {
                     {[
                         { icon: LayoutDashboard, label: 'Overview', href: '/dashboard', active: false },
                         { icon: User, label: 'Profile', href: '/dashboard/profile', active: true },
+                        { icon: Wrench, label: 'Tools', href: '/dashboard/tools', active: false },
                     ].map((item, i) => (
                         <Link
                             key={i}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThumbsUp, MessageSquare } from 'lucide-react';
 import { toggleLikeAction } from '../actions';
 
@@ -26,12 +26,15 @@ function getInitialLikedState(workerId: string): boolean {
 export default function ProfileInteractions({ workerId, initialLikes, initialVisits }: ProfileInteractionsProps) {
     const [likes, setLikes] = useState(initialLikes);
     const [visits] = useState(initialVisits);
-    const [isLiked, setIsLiked] = useState(() => getInitialLikedState(workerId));
+    const [isLiked, setIsLiked] = useState(false);
     const [isLiking, setIsLiking] = useState(false);
 
-    // NO useLayoutEffect here — the useState initializer already reads
-    // the correct value. Adding a useLayoutEffect on top caused a second
-    // setIsLiked() call → second re-render → dark mode flicker on mobile.
+    // FIX HYDRATION MISMATCH: The server cannot read localStorage, so it renders 'false'.
+    // If the client synchronously renders 'true', React throws an error.
+    // We must read localStorage AFTER the initial hydration paint using useEffect.
+    React.useEffect(() => {
+        setIsLiked(getInitialLikedState(workerId));
+    }, [workerId]);
 
     const handleToggleLike = async () => {
         if (isLiking) return;
