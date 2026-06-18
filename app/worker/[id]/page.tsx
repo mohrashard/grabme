@@ -288,10 +288,10 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
     };
 
     const trustBadges = [
-        { label: 'Identity', val: worker.is_identity_verified, icon: ShieldCheck, accent: '#16a34a', glow: 'rgba(22,163,74,0.3)', bg: 'from-emerald-50 to-emerald-100/50 dark:from-emerald-950/80 dark:to-emerald-900/60', border: 'border-emerald-200 dark:border-emerald-700/40' },
-        { label: 'Reference', val: worker.is_reference_checked, icon: Star, accent: '#3b82f6', glow: 'rgba(59,130,246,0.3)', bg: 'from-blue-50 to-blue-100/50 dark:from-blue-950/80 dark:to-blue-900/60', border: 'border-blue-200 dark:border-blue-700/40' },
-        { label: 'Documents', val: worker.is_certificate_verified, icon: Award, accent: '#f59e0b', glow: 'rgba(245,158,11,0.3)', bg: 'from-amber-50 to-amber-100/50 dark:from-amber-950/80 dark:to-amber-900/60', border: 'border-amber-200 dark:border-amber-700/40' },
-        { label: 'Experience', val: !!worker.is_experience_verified, icon: Briefcase, accent: '#8b5cf6', glow: 'rgba(139,92,246,0.3)', bg: 'from-violet-50 to-violet-100/50 dark:from-violet-950/80 dark:to-violet-900/60', border: 'border-violet-200 dark:border-violet-700/40' },
+        { label: 'Identity',   val: worker.is_identity_verified,   icon: ShieldCheck, accent: '#16a34a', glow: 'rgba(22,163,74,0.3)',    bg: 'from-emerald-50 to-emerald-100 dark:from-emerald-950 dark:to-emerald-900',   border: 'border-emerald-200 dark:border-emerald-800' },
+        { label: 'Reference',  val: worker.is_reference_checked,   icon: Star,        accent: '#3b82f6', glow: 'rgba(59,130,246,0.3)',   bg: 'from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900',              border: 'border-blue-200 dark:border-blue-800' },
+        { label: 'Documents',  val: worker.is_certificate_verified,icon: Award,       accent: '#f59e0b', glow: 'rgba(245,158,11,0.3)',   bg: 'from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900',          border: 'border-amber-200 dark:border-amber-800' },
+        { label: 'Experience', val: !!worker.is_experience_verified,icon: Briefcase,  accent: '#8b5cf6', glow: 'rgba(139,92,246,0.3)',   bg: 'from-violet-50 to-violet-100 dark:from-violet-950 dark:to-violet-900',      border: 'border-violet-200 dark:border-violet-800' },
     ];
 
     const hasSocials = worker.facebook_url || worker.instagram_url || worker.tiktok_url;
@@ -439,7 +439,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                 )}
                                 <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border h-full ${badge.val
                                     ? `bg-gradient-to-b ${badge.bg} ${badge.border} shadow-lg`
-                                    : 'bg-slate-100/50 dark:bg-[#0a1628] border-slate-200 dark:border-white/5'
+                                    : 'bg-slate-100 dark:bg-[#0a1830] border-slate-200 dark:border-[#1a2d4a]'
                                     }`}>
                                     <badge.icon
                                         className="w-5 h-5"
