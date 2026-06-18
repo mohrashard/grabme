@@ -308,7 +308,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             </div>
 
             {/* ── HEADER ── */}
-            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#050b18] md:bg-white/90 md:dark:bg-[#050b18]/90 md:backdrop-blur-xl px-5 py-4 flex items-center justify-between">
+            <header className="sticky top-0 z-50 border-b border-slate-200 dark:border-white/5 bg-white dark:bg-[#050b18] md:bg-white/90 md:dark:bg-[#050b18]/90 md:backdrop-blur-sm px-5 py-4 flex items-center justify-between">
                 <Link href="/browse" className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition-all">
                     <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-white/70" />
                 </Link>
@@ -427,7 +427,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         {trustBadges.map((badge, i) => (
                             <div key={i} className={`relative group overflow-hidden ${!badge.val ? 'opacity-40' : ''}`}>
                                 {badge.val && (
-                                    <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                                    <div className="absolute inset-0 rounded-2xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500"
                                         style={{ background: badge.glow }} />
                                 )}
                                 <div className={`relative flex flex-col items-center gap-2.5 py-5 px-4 rounded-2xl border ${badge.val
@@ -435,7 +435,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                                     : 'bg-slate-100/50 dark:bg-[#0a1628] border-slate-200 dark:border-white/5'
                                     }`}>
                                     <badge.icon
-                                        className="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
+                                        className="w-5 h-5"
                                         style={{ color: badge.val ? badge.accent : '#94a3b8' }}
                                     />
                                     <div className="text-center">
@@ -725,8 +725,13 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                         MOBILE FIXED BOTTOM ACTION BAR
                 ══════════════════════════════════ */}
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 pb-safe">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#f8fafc] via-[#f8fafc]/95 dark:from-[#050b18] dark:via-[#050b18]/95 to-transparent" />
-                <div className="relative px-4 pt-4 pb-6 space-y-3">
+                {/*
+                  Solid bg instead of gradient-to-transparent: transparent gradients force
+                  the browser to composite every scroll frame on Android, causing jank.
+                  A solid/near-solid bg is hardware-accelerated and fast on all devices.
+                */}
+                <div className="absolute inset-0 bg-[#f8fafc] dark:bg-[#050b18]" />
+                <div className="relative px-4 pt-3 pb-6 space-y-3">
                     {/* Ambient glow behind button (Removed heavy blur for Android perf) */}
                     <div className="absolute inset-x-8 bottom-4 h-12 bg-emerald-500/10 rounded-full" />
 
