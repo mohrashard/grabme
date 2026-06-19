@@ -1,5 +1,7 @@
 'use client'
 
+import { toJpeg } from 'html-to-image'
+
 import React, { useEffect, useState, useRef } from 'react'
 import { m } from 'framer-motion'
 import {
@@ -16,6 +18,13 @@ import {
     Share2,
     Zap,
     ChevronRight,
+    CreditCard,
+    FileText,
+    Lock,
+    Inbox,
+    RefreshCw,
+    Coins,
+    ReceiptText
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -34,6 +43,7 @@ function QRCodeImage({ url, size = 180 }: { url: string; size?: number }) {
             width={size}
             height={size}
             className="rounded-2xl border-4 border-white shadow-xl"
+            crossOrigin="anonymous"
         />
     )
 }
@@ -44,6 +54,7 @@ export default function ToolsPage() {
     const [loading, setLoading] = useState(true)
     const [copiedIdx, setCopiedIdx] = useState<number | null>(null)
     const cardRef = useRef<HTMLDivElement>(null)
+    const [downloadingCard, setDownloadingCard] = useState(false)
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -71,11 +82,7 @@ export default function ToolsPage() {
         checkAuth()
     }, [router])
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut()
-        localStorage.removeItem('grabme_user')
-        router.push('/login')
-    }
+
 
     const profileUrl = user?.slug
         ? `https://www.grabme.page/worker/${user.slug}`
@@ -87,32 +94,36 @@ export default function ToolsPage() {
     // ── Quick Reply Templates ───────────────────────────────────────────────
     const templates = [
         {
-            label: '📥 New Lead Reply',
+            icon: Inbox,
+            label: 'New Lead Reply',
             tag: 'Use when a customer first contacts you',
             color: 'bg-blue-50 border-blue-200',
             tagColor: 'bg-blue-100 text-blue-700',
-            body: `Hi! I'm ${name}, a verified ${trade} registered on Grab Me. I'd be happy to help you! 😊\n\nCould you please send me a photo or short video of the issue? This helps me give you an accurate quote right away.\n\nThank you!`,
+            body: `Hi! I'm ${name}, a verified ${trade} registered on Grab Me. I'd be happy to help you!\n\nCould you please send me a photo or short video of the issue? This helps me give you an accurate quote right away.\n\nThank you!`,
         },
         {
-            label: '🔄 Follow-Up Message',
+            icon: RefreshCw,
+            label: 'Follow-Up Message',
             tag: 'Use if a customer goes silent after first contact',
             color: 'bg-indigo-50 border-indigo-200',
             tagColor: 'bg-indigo-100 text-indigo-700',
-            body: `Hi! This is ${name} again - just checking if you still need help with the issue you mentioned. 🙏\n\nI'm available and can come by at a time that suits you. No pressure at all - just want to make sure you get it sorted!\n\nFeel free to reply anytime.`,
+            body: `Hi! This is ${name} again - just checking if you still need help with the issue you mentioned.\n\nI'm available and can come by at a time that suits you. No pressure at all - just want to make sure you get it sorted!\n\nFeel free to reply anytime.`,
         },
         {
-            label: '✅ Job Completed',
+            icon: CheckCircle2,
+            label: 'Job Completed',
             tag: 'Send after finishing a job to collect a review',
             color: 'bg-emerald-50 border-emerald-200',
             tagColor: 'bg-emerald-100 text-emerald-700',
-            body: `Hi! It was a pleasure working for you today. I hope you're happy with the job! 😊\n\nIf you have a moment, it would mean the world to me if you could leave a quick review on my Grab Me profile - it only takes 30 seconds and helps me grow.\n\nHere's the link: ${profileUrl}\n\nThank you so much! 🙏`,
+            body: `Hi! It was a pleasure working for you today. I hope you're happy with the job!\n\nIf you have a moment, it would mean the world to me if you could leave a quick review on my Grab Me profile - it only takes 30 seconds and helps me grow.\n\nHere's the link: ${profileUrl}\n\nThank you so much!`,
         },
         {
-            label: '💰 Pricing Enquiry',
+            icon: Coins,
+            label: 'Pricing Enquiry',
             tag: 'When a customer asks for a quote',
             color: 'bg-amber-50 border-amber-200',
             tagColor: 'bg-amber-100 text-amber-700',
-            body: `Hi! Great question. Here's how my pricing works:\n\n🔹 My base visiting fee is Rs. [YOUR FEE] - this covers my travel and initial inspection.\n🔹 After I see the issue in person, I'll give you a full transparent quote with no hidden charges.\n🔹 All my work comes with a [WARRANTY PERIOD] guarantee.\n\nWould you like to book a visit?`,
+            body: `Hi! Great question. Here's how my pricing works:\n\n- My base visiting fee is Rs. [YOUR FEE] - this covers my travel and initial inspection.\n- After I see the issue in person, I'll give you a full transparent quote with no hidden charges.\n- All my work comes with a [WARRANTY PERIOD] guarantee.\n\nWould you like to book a visit?`,
         },
     ]
 
@@ -123,54 +134,40 @@ export default function ToolsPage() {
         setTimeout(() => setCopiedIdx(null), 2500)
     }
 
+    const handleDownloadCard = async () => {
+        if (!cardRef.current) return
+        try {
+            setDownloadingCard(true)
+            // Small delay to ensure any fonts/images are fully rendered
+            await new Promise(res => setTimeout(res, 300))
+            
+            const dataUrl = await toJpeg(cardRef.current, {
+                quality: 1,
+                pixelRatio: 3, // High quality
+                cacheBust: true,
+                style: { margin: '0' }
+            })
+
+            const link = document.createElement('a')
+            link.download = `grabme-card-${user?.slug || user?.id || 'profile'}.jpg`
+            link.href = dataUrl
+            link.click()
+            toast.success('Card downloaded successfully!')
+        } catch (err) {
+            console.error('Failed to download card:', err)
+            toast.error('Failed to download card. Please try again.')
+        } finally {
+            setDownloadingCard(false)
+        }
+    }
+
     if (loading) return (
-        <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+        <main className="flex-1 overflow-y-auto flex items-center justify-center pb-24 lg:pb-0">
             <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin" />
-        </div>
+        </main>
     )
-
     return (
-        <div className="h-screen overflow-hidden font-sans flex bg-[#f1f5f9] text-[#0f172a]">
-
-            {/* ── Sidebar ── */}
-            <aside className="w-64 border-r border-[#e2e8f0] bg-white shadow-sm flex flex-col hidden lg:flex z-30">
-                <div className="p-8">
-                    <Link href="/dashboard" className="flex items-center gap-3 mb-2">
-                        <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#e2e8f0] shadow-md">
-                            <Image src="/grabme.png" alt="Grab Me" fill sizes="32px" className="object-cover" />
-                        </div>
-                        <span className="text-[#0f172a] text-lg font-bold tracking-tight">Portal</span>
-                    </Link>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-2">
-                    {[
-                        { icon: LayoutDashboard, label: 'Overview', href: '/dashboard', active: false },
-                        { icon: User, label: 'Profile', href: '/dashboard/profile', active: false },
-                        { icon: Wrench, label: 'Tools', href: '/dashboard/tools', active: true },
-                    ].map((item, i) => (
-                        <Link
-                            key={i}
-                            href={item.href}
-                            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${item.active ? 'bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/20' : 'text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]'}`}
-                        >
-                            <item.icon className="w-5 h-5" /> {item.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div className="p-4 border-t border-[#e2e8f0]">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
-                    >
-                        <LogOut className="w-5 h-5" /> Logout
-                    </button>
-                </div>
-            </aside>
-
-            {/* ── Main Content ── */}
-            <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
+        <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
                 {/* Header */}
                 <header className="h-20 border-b border-[#e2e8f0] flex items-center justify-between px-8 lg:px-12 bg-white/95 sticky top-0 z-20 shadow-sm">
                     <div className="flex items-center gap-3">
@@ -194,7 +191,161 @@ export default function ToolsPage() {
                 <div className="p-6 lg:p-12 max-w-6xl mx-auto space-y-12">
 
                     {/* ══════════════════════════════════
-                        SECTION 1: DIGITAL BUSINESS CARD
+                        SECTION 1: PRO INVOICE GENERATOR
+                    ══════════════════════════════════ */}
+                    <section>
+                        <m.div
+                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
+                            className="flex items-center gap-3 mb-6"
+                        >
+                            <div className="w-10 h-10 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-indigo-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-[#0f172a]">Invoice Generator</h2>
+                                <p className="text-sm text-[#64748b]">Create professional branded invoices for your clients instantly.</p>
+                            </div>
+                        </m.div>
+
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => {
+                                    if (user?.subscription_tier === 'pro') {
+                                        router.push('/dashboard/tools/invoice')
+                                    } else {
+                                        router.push('/dashboard/billing')
+                                    }
+                                }}
+                                className={`w-full relative overflow-hidden rounded-[2rem] border-2 p-8 text-left transition-all group ${
+                                    user?.subscription_tier === 'pro' 
+                                        ? 'border-indigo-200 bg-white hover:border-indigo-400 hover:shadow-xl hover:-translate-y-1' 
+                                        : 'border-slate-200 bg-slate-50 opacity-90'
+                                }`}
+                            >
+                                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                                    <div className={`w-20 h-20 rounded-3xl flex items-center justify-center flex-shrink-0 ${
+                                        user?.subscription_tier === 'pro' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-slate-200 text-slate-400'
+                                    }`}>
+                                        {user?.subscription_tier === 'pro' ? <FileText className="w-8 h-8" /> : <Lock className="w-8 h-8" />}
+                                    </div>
+                                    <div className="flex-1 text-center md:text-left">
+                                        <div className="flex flex-col md:flex-row items-center gap-3 mb-2">
+                                            <h3 className={`text-xl font-black ${user?.subscription_tier === 'pro' ? 'text-indigo-950' : 'text-slate-700'}`}>Professional Invoice Maker</h3>
+                                            <span className="bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">PRO FEATURE</span>
+                                        </div>
+                                        <p className="text-sm text-slate-500 max-w-lg">
+                                            Stop using paper receipt books. Generate beautiful, calculated PDF invoices with your name, trade, and GrabMe verified badge to send directly to your clients via WhatsApp.
+                                        </p>
+                                    </div>
+                                    <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                        <ChevronRight className={`w-5 h-5 ${user?.subscription_tier === 'pro' ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                    </div>
+                                </div>
+
+                                {/* Background pattern */}
+                                <div className="absolute right-0 top-0 opacity-[0.03] pointer-events-none w-64 h-64 -translate-y-1/4 translate-x-1/4">
+                                    <FileText className="w-full h-full" />
+                                </div>
+                            </button>
+
+                            {/* Secondary Action - Native Mobile Style Pill */}
+                            <button 
+                                onClick={() => router.push('/dashboard/invoices')}
+                                className="flex items-center justify-between w-full bg-white border border-indigo-100 p-4 rounded-2xl shadow-sm hover:bg-indigo-50 hover:border-indigo-200 transition-colors group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+                                        <ReceiptText className="w-6 h-6 text-indigo-600" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h4 className="text-sm font-black text-[#0f172a]">View Invoice History</h4>
+                                        <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest">Track payments & add to wallet</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+                    </section>
+
+                    {/* ══════════════════════════════════
+                        SECTION 1.5: PRO ESTIMATE GENERATOR
+                    ══════════════════════════════════ */}
+                    <section>
+                        <m.div
+                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }}
+                            className="flex items-center gap-3 mb-6"
+                        >
+                            <div className="w-10 h-10 bg-teal-50 rounded-2xl flex items-center justify-center">
+                                <FileText className="w-5 h-5 text-teal-600" />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-black text-[#0f172a]">Estimate Builder</h2>
+                                <p className="text-sm text-[#64748b]">Send professional quotations to win the job before you even start.</p>
+                            </div>
+                        </m.div>
+
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => {
+                                    if (user?.subscription_tier === 'pro') {
+                                        router.push('/dashboard/tools/estimate')
+                                    } else {
+                                        router.push('/dashboard/billing')
+                                    }
+                                }}
+                                className={`w-full relative overflow-hidden rounded-[2rem] border-2 p-8 text-left transition-all group ${
+                                    user?.subscription_tier === 'pro' 
+                                        ? 'border-teal-200 bg-white hover:border-teal-400 hover:shadow-xl hover:-translate-y-1' 
+                                        : 'border-slate-200 bg-slate-50 opacity-90'
+                                }`}
+                            >
+                                <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+                                    <div className={`w-20 h-20 rounded-3xl flex items-center justify-center flex-shrink-0 ${
+                                        user?.subscription_tier === 'pro' ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/30' : 'bg-slate-200 text-slate-400'
+                                    }`}>
+                                        {user?.subscription_tier === 'pro' ? <FileText className="w-8 h-8" /> : <Lock className="w-8 h-8" />}
+                                    </div>
+                                    <div className="flex-1 text-center md:text-left">
+                                        <div className="flex flex-col md:flex-row items-center gap-3 mb-2">
+                                            <h3 className={`text-xl font-black ${user?.subscription_tier === 'pro' ? 'text-teal-950' : 'text-slate-700'}`}>Estimate / Quotation Builder</h3>
+                                            <span className="bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-sm">PRO FEATURE</span>
+                                        </div>
+                                        <p className="text-sm text-slate-500 max-w-lg">
+                                            Send a beautiful, structured quote to your client before you begin work. Estimates establish trust and show that you are a highly professional tradesman.
+                                        </p>
+                                    </div>
+                                    <div className="hidden md:flex items-center justify-center w-12 h-12 rounded-full bg-white shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                        <ChevronRight className={`w-5 h-5 ${user?.subscription_tier === 'pro' ? 'text-teal-600' : 'text-slate-400'}`} />
+                                    </div>
+                                </div>
+
+                                {/* Background pattern */}
+                                <div className="absolute right-0 top-0 opacity-[0.03] pointer-events-none w-64 h-64 -translate-y-1/4 translate-x-1/4">
+                                    <FileText className="w-full h-full" />
+                                </div>
+                            </button>
+
+                            {/* Secondary Action - Native Mobile Style Pill */}
+                            <button 
+                                onClick={() => router.push('/dashboard/estimates')}
+                                className="flex items-center justify-between w-full bg-white border border-teal-100 p-4 rounded-2xl shadow-sm hover:bg-teal-50 hover:border-teal-200 transition-colors group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-teal-50 rounded-xl flex items-center justify-center">
+                                        <FileText className="w-6 h-6 text-teal-600" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h4 className="text-sm font-black text-[#0f172a]">View Estimate History</h4>
+                                        <p className="text-[10px] font-bold text-[#64748b] uppercase tracking-widest">Accept, reject, or convert to invoice</p>
+                                    </div>
+                                </div>
+                                <ChevronRight className="w-5 h-5 text-teal-400 group-hover:translate-x-1 transition-transform" />
+                            </button>
+                        </div>
+                    </section>
+
+                    {/* ══════════════════════════════════
+                        SECTION 2: DIGITAL BUSINESS CARD
                     ══════════════════════════════════ */}
                     <section>
                         <m.div
@@ -244,7 +395,7 @@ export default function ToolsPage() {
                                         {/* Profile photo */}
                                         <div className="w-28 h-28 rounded-full border-4 border-white/20 overflow-hidden shadow-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
                                             {user?.profile_photo_url ? (
-                                                <img src={user.profile_photo_url} alt={name} className="w-full h-full object-cover" />
+                                                <img src={user.profile_photo_url} alt={name} className="w-full h-full object-cover" crossOrigin="anonymous" />
                                             ) : (
                                                 <User className="w-12 h-12 text-white/40" />
                                             )}
@@ -302,6 +453,23 @@ export default function ToolsPage() {
                                         <ChevronRight className="w-4 h-4 text-slate-400 group-hover:translate-x-1 transition-transform" />
                                     </button>
 
+                                    {/* Download Card */}
+                                    <button
+                                        onClick={handleDownloadCard}
+                                        disabled={downloadingCard}
+                                        className="flex items-center justify-between w-full bg-[#f8fafc] hover:bg-[#f1f5f9] text-[#1d4ed8] font-bold text-sm px-5 py-4 rounded-2xl transition-colors group border border-[#bfdbfe]"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {downloadingCard ? (
+                                                <div className="w-5 h-5 border-2 border-[#1d4ed8] border-t-transparent rounded-full animate-spin" />
+                                            ) : (
+                                                <Download className="w-5 h-5" />
+                                            )}
+                                            <span>Download Card as Image</span>
+                                        </div>
+                                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </button>
+
                                     {/* Web Share API */}
                                     <button
                                         onClick={() => {
@@ -333,7 +501,7 @@ export default function ToolsPage() {
                     </section>
 
                     {/* ══════════════════════════════════
-                        SECTION 2: QUICK REPLY TEMPLATES
+                        SECTION 3: QUICK REPLY TEMPLATES
                     ══════════════════════════════════ */}
                     <section>
                         <m.div
@@ -357,11 +525,16 @@ export default function ToolsPage() {
                                     className={`border rounded-3xl p-6 flex flex-col gap-4 ${t.color}`}
                                 >
                                     <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h4 className="text-base font-black text-[#0f172a]">{t.label}</h4>
-                                            <span className={`inline-block mt-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${t.tagColor}`}>
-                                                {t.tag}
-                                            </span>
+                                        <div className="flex items-start gap-3">
+                                            <div className="mt-0.5">
+                                                <t.icon className="w-5 h-5 text-slate-700" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-base font-black text-[#0f172a]">{t.label}</h4>
+                                                <span className={`inline-block mt-1 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${t.tagColor}`}>
+                                                    {t.tag}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -405,8 +578,9 @@ export default function ToolsPage() {
                         </m.div>
                     </section>
 
+
+
                 </div>
             </main>
-        </div>
     )
 }

@@ -19,7 +19,8 @@ import {
     Home,
     BookOpen,
     Wrench,
-    User
+    User,
+    Zap
 } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -42,6 +43,7 @@ type Worker = {
     years_experience: number;
     sub_skills?: string[];
     slug?: string;
+    is_available_now?: boolean;
 };
 
 interface BrowsePageClientProps {
@@ -57,6 +59,7 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
     const [selectedTrade, setSelectedTrade] = useState(searchParams.get('service') || 'All Services');
     const [selectedSkill, setSelectedSkill] = useState(searchParams.get('skill') || 'All Skills');
     const [selectedDistrict, setSelectedDistrict] = useState(searchParams.get('district') || 'All Districts');
+    const [showAvailableOnly, setShowAvailableOnly] = useState(false);
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
     const [detecting, setDetecting] = useState(false);
@@ -109,6 +112,7 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
     };
 
     const filteredWorkers = initialWorkers.filter(w => {
+        if (showAvailableOnly && !w.is_available_now) return false;
         if (selectedTrade !== 'All Services' && w.trade_category !== selectedTrade) return false;
         if (selectedSkill !== 'All Skills' && !(w.sub_skills && w.sub_skills.includes(selectedSkill))) return false;
         if (selectedDistrict !== 'All Districts' && w.home_district !== selectedDistrict) return false;
@@ -150,8 +154,14 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
                 )}
             </div>
             {w.is_identity_verified && (
-                <div className="absolute -bottom-1.5 -right-1.5 bg-[#1d4ed8] p-1.5 rounded-lg border-2 border-white shadow-lg">
+                <div className="absolute -bottom-1.5 -right-1.5 bg-[#1d4ed8] p-1.5 rounded-lg border-2 border-white shadow-lg z-10">
                     <ShieldCheck className="w-2.5 h-2.5 text-white" />
+                </div>
+            )}
+            {w.is_available_now && (
+                <div className="absolute -top-1.5 -right-1.5 flex h-4 w-4 z-10" title="Available NOW">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
                 </div>
             )}
         </div>
@@ -256,6 +266,14 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
                                 title="Auto-detect my district"
                             >
                                 {detecting ? <Loader2 className="w-4 h-4 animate-spin text-blue-600" /> : <Navigation className="w-4 h-4" />}
+                            </button>
+
+                            <button
+                                onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+                                className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 border rounded-full text-[10px] font-black uppercase tracking-widest transition-all snap-start ${showAvailableOnly ? 'bg-emerald-500 text-white border-emerald-500 shadow-md shadow-emerald-500/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                            >
+                                <Zap className={`w-3.5 h-3.5 ${showAvailableOnly ? 'animate-pulse' : ''}`} />
+                                Available Now
                             </button>
                         </div>
                     </div>
@@ -373,6 +391,13 @@ export default function BrowsePageClient({ initialWorkers, taxonomy }: BrowsePag
                                     className="w-16 bg-[#f8fafc] border border-[#e2e8f0] rounded-2xl p-4 flex items-center justify-center text-[#64748b] hover:text-[#1d4ed8] hover:border-[#1d4ed8]/50 transition-all disabled:opacity-30 group flex-shrink-0 shadow-sm"
                                     title="Auto-detect my district" aria-label="Detect my location">
                                     {detecting ? <Loader2 className="w-5 h-5 animate-spin text-[#1d4ed8]" /> : <Navigation className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+                                </button>
+                                <button
+                                    onClick={() => setShowAvailableOnly(!showAvailableOnly)}
+                                    className={`flex items-center gap-2 px-5 rounded-2xl border text-xs font-black uppercase tracking-widest transition-all shadow-sm ${showAvailableOnly ? 'bg-emerald-500 text-white border-emerald-500 shadow-emerald-500/20' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`}
+                                >
+                                    <Zap className={`w-4 h-4 ${showAvailableOnly ? 'animate-pulse' : ''}`} />
+                                    Available Now
                                 </button>
                             </div>
                         </div>

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+import { DashboardSidebar } from './components/DashboardSidebar'
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter()
     const [authorized, setAuthorized] = useState(false)
@@ -25,5 +27,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         )
     }
 
-    return <>{children}</>
+    return (
+        <div className="h-screen overflow-hidden font-sans flex bg-[#f1f5f9] text-[#0f172a]">
+            <DashboardSidebar />
+            {children}
+        </div>
+    )
 }

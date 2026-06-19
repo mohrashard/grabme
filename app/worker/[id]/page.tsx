@@ -227,6 +227,8 @@ export async function generateMetadata({ params }: WorkerPageProps): Promise<Met
     }
 }
 
+import TrackProfileView from './TrackProfileView';
+
 // ─────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────
@@ -245,7 +247,8 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
             account_status, video_pitch_url, facebook_url, instagram_url,
             tiktok_url, created_at, base_visiting_fee, price_estimates,
             languages_spoken, service_warranty, education_history,
-            certificate_url, certificate_name, likes_count, visits_count, slug
+            certificate_name, likes_count, visits_count, slug,
+            is_available_now, secondary_trade, subscription_tier
         `);
 
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
@@ -258,7 +261,10 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
     if (!isAdmin) query = query.eq('account_status', 'active');
 
     const { data: worker, error } = await query.single();
-    if (error || !worker) notFound();
+    if (error || !worker) {
+        console.error("Worker Query Error:", error, "Worker Data:", worker, "ID/Slug:", id);
+        notFound();
+    }
 
     // Fetch reviews server-side for SEO and initial render
     const { reviews, avgRating, totalReviews } = await getWorkerReviewsAction(worker.id);
@@ -298,6 +304,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
     return (
         <WorkerProfileClientWrapper>
+            <TrackProfileView workerId={worker.id} />
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
             {/* ── Global ambient glow (Hidden on mobile for performance) ── */}
@@ -367,10 +374,27 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
 
                         {/* Hero Text */}
                         <div className="flex-1 text-center md:text-left space-y-4 md:pb-2">
-                            {/* Trade pill */}
-                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">
-                                <Briefcase className="w-3 h-3" />
-                                {worker.trade_category}
+                            {/* Trade & Availability */}
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">
+                                    <Briefcase className="w-3 h-3" />
+                                    {worker.trade_category}
+                                </div>
+                                {worker.secondary_trade && (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/20 bg-blue-50/50 dark:bg-blue-900/10 text-blue-600 dark:text-blue-300 text-[10px] font-black uppercase tracking-[0.2em]">
+                                        <Briefcase className="w-3 h-3 opacity-70" />
+                                        {worker.secondary_trade}
+                                    </div>
+                                )}
+                                {worker.is_available_now && (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+                                        <div className="relative flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                        </div>
+                                        Available NOW
+                                    </div>
+                                )}
                             </div>
 
                             <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-[#0f172a] dark:text-white tracking-tight leading-[1.05]">
@@ -578,6 +602,7 @@ export default async function WorkerProfilePage({ params }: WorkerPageProps) {
                             <ReviewsSection
                                 workerId={worker.id}
                                 workerName={worker.full_name}
+                                subscriptionTier={worker.subscription_tier || 'free'}
                                 reviews={reviews}
                                 avgRating={avgRating}
                                 totalReviews={totalReviews}

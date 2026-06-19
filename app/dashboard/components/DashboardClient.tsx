@@ -23,7 +23,9 @@ import {
     Flame,
     MapPin,
     Activity,
-    Eye
+    Eye,
+    CreditCard,
+    Lock
 } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -31,12 +33,17 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import { getAdminContactAction } from '../../actions/getAdminContactAction'
 import { getWorkerStatusAction } from '../actions/getWorkerStatusAction'
+import { toggleAvailableNowAction } from '../actions/toggleAvailableNowAction'
+import { toast } from 'sonner'
+import { DashboardSidebar } from './DashboardSidebar'
 
 export default function DashboardClient() {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [reviewCount, setReviewCount] = useState(0);
+    const [isAvailableNow, setIsAvailableNow] = useState(false);
+    const [isToggling, setIsToggling] = useState(false);
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -55,6 +62,7 @@ export default function DashboardClient() {
                     const data = res.data;
                     const updatedUser = { ...localUser, ...data };
                     setUser(updatedUser);
+                    setIsAvailableNow(data.is_available_now || false);
                     localStorage.setItem('grabme_user', JSON.stringify(updatedUser));
                 } else {
                     setUser(localUser);
@@ -77,10 +85,21 @@ export default function DashboardClient() {
         checkAuth();
     }, [router]);
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        localStorage.removeItem('grabme_user');
-        router.push('/login');
+    const handleToggleAvailable = async () => {
+        if (isToggling || user?.subscription_tier !== 'pro') return;
+        setIsToggling(true);
+        const newState = !isAvailableNow;
+        
+        setIsAvailableNow(newState); // Optimistic update
+        
+        const res = await toggleAvailableNowAction(user.id, newState);
+        if (res.success) {
+            toast.success(newState ? 'You are now LIVE for emergency dispatch!' : 'Emergency mode disabled.');
+        } else {
+            toast.error(res.error || 'Failed to update status.');
+            setIsAvailableNow(!newState); // revert
+        }
+        setIsToggling(false);
     };
 
     // Calculate Profile Strength
@@ -208,53 +227,14 @@ export default function DashboardClient() {
     }, [user?.trade_category, user?.home_district, user?.role, user?.id]);
 
     if (loading) return (
-        <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+        <main className="flex-1 overflow-y-auto flex items-center justify-center pb-24 lg:pb-0">
             <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin" />
-        </div>
+        </main>
     );
 
     return (
-        <div className="h-screen overflow-hidden font-sans flex bg-[#f1f5f9] text-[#0f172a]">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-[#e2e8f0] bg-white shadow-sm flex flex-col hidden lg:flex z-30">
-                <div className="p-8">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#e2e8f0] shadow-md">
-                            <Image src="/grabme.png" alt="Grab Me" fill sizes="32px" className="object-cover" />
-                        </div>
-                        <span className="text-[#0f172a] text-lg font-bold tracking-tight">Portal</span>
-                    </Link>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-2">
-                    {[
-                        { icon: LayoutDashboard, label: 'Overview', href: '/dashboard', active: true },
-                        { icon: User, label: 'Profile', href: '/dashboard/profile', active: false },
-                        { icon: Wrench, label: 'Tools', href: '/dashboard/tools', active: false },
-                    ].map((item, i) => (
-                        <Link 
-                            key={i} 
-                            href={item.href}
-                            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${item.active ? 'bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/20' : 'text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]'}`}
-                        >
-                            <item.icon className="w-5 h-5" /> {item.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div className="p-4 border-t border-[#e2e8f0]">
-                    <button 
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
-                    >
-                        <LogOut className="w-5 h-5" /> Logout
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
-                {/* Header */}
+        <main className="flex-1 overflow-y-auto pb-24 lg:pb-0">
+            {/* Header */}
                 <header className="h-20 border-b border-[#e2e8f0] flex items-center justify-between px-8 lg:px-12 bg-white/95 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-full bg-[#dbeafe] border border-[#bfdbfe] flex items-center justify-center text-[#1d4ed8] font-black text-xs">
@@ -304,6 +284,63 @@ export default function DashboardClient() {
                             </div>
                         </div>
                     </m.div>
+
+                    {/* Available NOW Emergency Switch */}
+                    {user?.role === 'worker' && user?.account_status === 'active' && (
+                        <m.div
+                            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                            className={`p-6 lg:p-8 rounded-3xl shadow-sm border transition-all duration-500 relative overflow-hidden ${isAvailableNow ? 'bg-emerald-500 border-emerald-400' : 'bg-white border-[#e2e8f0]'}`}
+                        >
+                            {isAvailableNow && (
+                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/20 blur-3xl rounded-full pointer-events-none" />
+                            )}
+                            
+                            {user?.subscription_tier !== 'pro' && (
+                                <div className="absolute inset-0 z-20 backdrop-blur-[2px] bg-white/80 flex flex-col items-center justify-center rounded-3xl">
+                                    <div className="flex items-center gap-2 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-sm mb-2">
+                                        <Lock className="w-3.5 h-3.5" /> Pro Feature
+                                    </div>
+                                    <p className="text-[#475569] text-xs font-bold px-4 text-center">Upgrade your plan to unlock Emergency Dispatch ranking.</p>
+                                    <Link href="/dashboard/billing" className="mt-3 bg-[#1d4ed8] text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm">
+                                        View Plans
+                                    </Link>
+                                </div>
+                            )}
+
+                            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className={`w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-500 ${isAvailableNow ? 'bg-white text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                                        <Zap className={`w-7 h-7 ${isAvailableNow ? 'animate-pulse' : ''}`} />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-3">
+                                            <h3 className={`text-xl font-black transition-colors ${isAvailableNow ? 'text-white' : 'text-[#0f172a]'}`}>
+                                                Emergency Dispatch
+                                            </h3>
+                                            {isAvailableNow && (
+                                                <span className="relative flex h-3 w-3">
+                                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                                  <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className={`text-sm font-medium mt-1 transition-colors ${isAvailableNow ? 'text-emerald-50' : 'text-[#64748b]'}`}>
+                                            {isAvailableNow 
+                                                ? "You are pinned to the top of customer searches right now."
+                                                : "Turn this on when you are available immediately for emergency jobs."}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={handleToggleAvailable}
+                                    disabled={isToggling}
+                                    className={`relative w-20 h-10 rounded-full transition-colors duration-300 focus:outline-none flex-shrink-0 border-2 ${isAvailableNow ? 'bg-white border-white' : 'bg-slate-200 border-slate-300'}`}
+                                >
+                                    <span className={`absolute top-1 left-1 w-7 h-7 bg-white rounded-full transition-transform duration-300 shadow-sm ${isAvailableNow ? 'translate-x-10 bg-emerald-500' : 'translate-x-0 bg-white'}`} />
+                                </button>
+                            </div>
+                        </m.div>
+                    )}
 
                     {/* FOMO Engine: Hot Leads Feed */}
                     {user?.role === 'worker' && user?.account_status === 'active' && (
@@ -663,22 +700,5 @@ export default function DashboardClient() {
                     <span>v1.0.4 - Alpha</span>
                 </div>
             </main>
-
-            {/* Mobile Bottom Navigation Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-[#e2e8f0] flex justify-around items-center h-20 z-50 px-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-                <Link href="/dashboard" className="flex flex-col items-center gap-1.5 p-3 text-[#1d4ed8] transition-all">
-                    <LayoutDashboard className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
-                </Link>
-                <Link href="/dashboard/profile" className="flex flex-col items-center gap-1.5 p-3 text-[#64748b] hover:text-[#0f172a] transition-all">
-                    <User className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Profile</span>
-                </Link>
-                <button onClick={handleLogout} className="flex flex-col items-center gap-1.5 p-3 text-red-500/80 hover:text-red-600 transition-all">
-                    <LogOut className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
-                </button>
-            </nav>
-        </div>
     );
 }

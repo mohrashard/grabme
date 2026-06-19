@@ -107,7 +107,7 @@ export async function submitReviewAction({ workerId, customerPhone, rating, revi
 export async function getWorkerReviewsAction(workerId: string) {
     const { data: reviews, error } = await supabaseAdmin
         .from('reviews')
-        .select('id, rating, review_text, reviewer_name, created_at')
+        .select('id, rating, review_text, reviewer_name, created_at, worker_reply, worker_reply_created_at, is_pinned')
         .eq('worker_id', workerId)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -123,4 +123,25 @@ export async function getWorkerReviewsAction(workerId: string) {
         avgRating: Math.round(avgRating * 10) / 10,
         totalReviews: reviews.length,
     };
+}
+
+export async function pinReviewAction(workerId: string, reviewId: string) {
+    // 1. Unpin all other reviews for this worker
+    await supabaseAdmin
+        .from('reviews')
+        .update({ is_pinned: false })
+        .eq('worker_id', workerId);
+
+    // 2. Pin the selected review
+    const { error } = await supabaseAdmin
+        .from('reviews')
+        .update({ is_pinned: true })
+        .eq('id', reviewId)
+        .eq('worker_id', workerId);
+
+    if (error) {
+        console.error('[pinReviewAction]', error);
+        return { success: false, error: 'Failed to pin review' };
+    }
+    return { success: true };
 }

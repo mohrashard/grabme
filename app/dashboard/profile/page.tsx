@@ -31,7 +31,13 @@ import {
     Tag,
     X,
     Edit2,
-    Wrench
+    Wrench,
+    CreditCard,
+    Lock,
+    Clipboard,
+    ClipboardCheck,
+    Sparkles,
+    ExternalLink
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { updateWorkerSocialsAction } from '../actions/updateWorkerSocialsAction'
@@ -72,12 +78,18 @@ export default function WorkerProfilePage() {
     const [savingPricing, setSavingPricing] = useState(false);
     const [baseVisitingFee, setBaseVisitingFee] = useState<string>('');
     const [priceEstimates, setPriceEstimates] = useState<{ label: string; min: string; max: string }[]>([]);
+    const [allTrades, setAllTrades] = useState<string[]>([]);
 
     // ── Skills state ──
     const [savingSkills, setSavingSkills] = useState(false);
     const [editingSkills, setEditingSkills] = useState(false);
     const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
     const [availableSkills, setAvailableSkills] = useState<string[]>([]);
+    const [skillsByService, setSkillsByService] = useState<any>({});
+
+    // ── Bio Generator state ──
+    const [showBioGenerator, setShowBioGenerator] = useState(false);
+    const [bioPromptCopied, setBioPromptCopied] = useState(false);
 
     // ── Main Details state ──
     const [savingMainDetails, setSavingMainDetails] = useState(false);
@@ -91,7 +103,8 @@ export default function WorkerProfilePage() {
         languages_spoken: [] as string[],
         service_warranty: '',
         education_history: [] as string[],
-        certificate_name: ''
+        certificate_name: '',
+        secondary_trade: ''
     });
 
     useEffect(() => {
@@ -149,7 +162,9 @@ export default function WorkerProfilePage() {
   service_warranty,
   education_history,
   certificate_url,
-  certificate_name
+  certificate_name,
+  secondary_trade,
+  subscription_tier
 `)
                 .eq('id', localUser.id)
                 .maybeSingle();
@@ -173,7 +188,14 @@ export default function WorkerProfilePage() {
 
                 // Fetch taxonomy to get available skills
                 const taxonomy = await fetchTaxonomyAction();
-                const tradeSkills = taxonomy.skillsByService[data.trade_category]?.map((s: any) => s.name) || [];
+                setSkillsByService(taxonomy.skillsByService || {});
+                setAllTrades(Object.keys(taxonomy.skillsByService || {}));
+                
+                let tradeSkills = taxonomy.skillsByService[data.trade_category]?.map((s: any) => s.name) || [];
+                if (data.secondary_trade && taxonomy.skillsByService[data.secondary_trade]) {
+                    tradeSkills = [...tradeSkills, ...taxonomy.skillsByService[data.secondary_trade].map((s: any) => s.name)];
+                }
+                
                 setAvailableSkills(tradeSkills);
                 setSelectedSkills(data.sub_skills || []);
                 
@@ -186,7 +208,8 @@ export default function WorkerProfilePage() {
                     languages_spoken: data.languages_spoken || [],
                     service_warranty: data.service_warranty || '',
                     education_history: data.education_history || [],
-                    certificate_name: data.certificate_name || ''
+                    certificate_name: data.certificate_name || '',
+                    secondary_trade: data.secondary_trade || ''
                 });
             }
 
@@ -194,6 +217,21 @@ export default function WorkerProfilePage() {
         };
         fetchProfile();
     }, [router]);
+
+    useEffect(() => {
+        if (!fullProfile?.trade_category || !skillsByService || Object.keys(skillsByService).length === 0) return;
+        
+        let tradeSkills = skillsByService[fullProfile.trade_category]?.map((s: any) => s.name) || [];
+        
+        // If they are currently editing, use the draft secondary trade, otherwise use the saved one
+        const currentSecondary = editingMainDetails ? mainDetails.secondary_trade : fullProfile.secondary_trade;
+        
+        if (currentSecondary && skillsByService[currentSecondary]) {
+            tradeSkills = [...tradeSkills, ...skillsByService[currentSecondary].map((s: any) => s.name)];
+        }
+        
+        setAvailableSkills(tradeSkills);
+    }, [mainDetails.secondary_trade, fullProfile?.secondary_trade, fullProfile?.trade_category, skillsByService, editingMainDetails]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -298,7 +336,8 @@ export default function WorkerProfilePage() {
                 languages_spoken: mainDetails.languages_spoken,
                 service_warranty: mainDetails.service_warranty,
                 education_history: mainDetails.education_history,
-                certificate_name: mainDetails.certificate_name
+                certificate_name: mainDetails.certificate_name,
+                secondary_trade: mainDetails.secondary_trade
             });
 
             if (res.success) {
@@ -476,6 +515,46 @@ export default function WorkerProfilePage() {
         setPriceEstimates(prev => prev.map((row, idx) => idx === i ? { ...row, [field]: val } : row));
     };
 
+    const generateBioPrompt = () => {
+        const name = fullProfile?.full_name || 'the worker';
+        const trade = fullProfile?.trade_category || 'a skilled trade';
+        const secondary = fullProfile?.secondary_trade ? ` and ${fullProfile.secondary_trade}` : '';
+        const experience = fullProfile?.years_experience ? `${fullProfile.years_experience} years` : 'several years';
+        const district = fullProfile?.home_district || 'Sri Lanka';
+        const skills = fullProfile?.sub_skills?.slice(0, 5).join(', ') || 'various specialized skills';
+        const languages = fullProfile?.languages_spoken?.join(', ') || 'local languages';
+        const warranty = fullProfile?.service_warranty ? `\n- Service guarantee: ${fullProfile.service_warranty}` : '';
+
+        return `Please write a short, professional, and trustworthy "About Me" bio for a skilled tradesperson. Keep it warm, confident, and customer-focused.
+
+STRICT RULES:
+- MAXIMUM 350 CHARACTERS TOTAL. It must be extremely short.
+- DO NOT use any em dashes (—) or en dashes (–). Use commas or periods instead.
+- Write in the first person ("I").
+- 2 sentences maximum.
+
+Here are their details:
+- Name: ${name}
+- Profession: ${trade}${secondary}
+- Years of experience: ${experience}
+- Based in: ${district}, Sri Lanka
+- Key skills: ${skills}
+- Languages spoken: ${languages}${warranty}
+
+The bio should:
+1. Highlight their experience and reliability
+2. Mention their trade and key skills naturally
+3. Sound human and trustworthy, not robotic
+4. End with a call to action like inviting customers to get in touch`;
+    };
+
+    const handleCopyBioPrompt = () => {
+        navigator.clipboard.writeText(generateBioPrompt());
+        setBioPromptCopied(true);
+        toast.success('Prompt copied! Paste it into ChatGPT.');
+        setTimeout(() => setBioPromptCopied(false), 3000);
+    };
+
     const getStatusStyles = (status: string) => {
         switch (status) {
             case 'active': return { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', label: 'Verified Active' };
@@ -486,54 +565,15 @@ export default function WorkerProfilePage() {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-[#f1f5f9] flex items-center justify-center">
+        <main className="flex-1 overflow-y-auto flex items-center justify-center pb-32 lg:pb-12">
             <div className="w-8 h-8 border-4 border-[#1d4ed8] border-t-transparent rounded-full animate-spin" />
-        </div>
+        </main>
     );
 
     const statusVis = getStatusStyles(fullProfile?.account_status || 'pending');
 
     return (
-        <div className="h-screen overflow-hidden font-sans flex bg-[#f1f5f9] text-[#0f172a]">
-            {/* Sidebar */}
-            <aside className="w-64 border-r border-[#e2e8f0] bg-white shadow-sm flex flex-col hidden lg:flex z-30">
-                <div className="p-8">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative w-8 h-8 rounded-xl overflow-hidden border border-[#e2e8f0] shadow-md">
-                            <Image src="/grabme.png" alt="Grab Me" fill className="object-cover" />
-                        </div>
-                        <span className="text-[#0f172a] text-lg font-bold tracking-tight">Portal</span>
-                    </Link>
-                </div>
-
-                <nav className="flex-1 px-4 space-y-2">
-                    {[
-                        { icon: LayoutDashboard, label: 'Overview', href: '/dashboard', active: false },
-                        { icon: User, label: 'Profile', href: '/dashboard/profile', active: true },
-                        { icon: Wrench, label: 'Tools', href: '/dashboard/tools', active: false },
-                    ].map((item, i) => (
-                        <Link
-                            key={i}
-                            href={item.href}
-                            className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${item.active ? 'bg-[#1d4ed8] text-white shadow-lg shadow-blue-500/20' : 'text-[#475569] hover:bg-[#f1f5f9] hover:text-[#0f172a]'}`}
-                        >
-                            <item.icon className="w-5 h-5" /> {item.label}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div className="p-4 border-t border-[#e2e8f0]">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-4 px-6 py-4 rounded-2xl text-sm font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all"
-                    >
-                        <LogOut className="w-5 h-5" /> Logout
-                    </button>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto pb-32 lg:pb-12">
+        <main className="flex-1 overflow-y-auto pb-32 lg:pb-12">
                 <header className="h-20 border-b border-[#e2e8f0] flex items-center justify-between px-8 lg:px-12 bg-white/95 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
                     <div className="flex items-center gap-4">
                         <Link href="/dashboard" className="w-10 h-10 rounded-full bg-[#f1f5f9] border border-[#e2e8f0] flex items-center justify-center text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] transition-all">
@@ -670,8 +710,15 @@ export default function WorkerProfilePage() {
                                     </div>
                                 )}
 
-                                <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-6">
-                                    <p className="flex items-center gap-2 text-[#475569] text-sm font-bold uppercase tracking-widest"><BriefcaseIcon className="w-4 h-4" /> {fullProfile?.trade_category}</p>
+                                <div className="flex flex-wrap justify-center md:justify-start gap-y-2 gap-x-6 mt-4">
+                                    <div className="flex flex-col items-center md:items-start gap-1 text-[#475569] text-sm font-bold uppercase tracking-widest">
+                                        <p className="flex items-center gap-2"><BriefcaseIcon className="w-4 h-4" /> {fullProfile?.trade_category}</p>
+                                        {fullProfile?.secondary_trade && fullProfile?.subscription_tier === 'pro' && (
+                                            <p className="flex items-center gap-2 text-[#1d4ed8] text-[10px] mt-1 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
+                                                <BriefcaseIcon className="w-3 h-3" /> + {fullProfile.secondary_trade}
+                                            </p>
+                                        )}
+                                    </div>
                                     <p className="flex items-center gap-2 text-[#475569] text-sm font-bold uppercase tracking-widest"><MapPin className="w-4 h-4" /> {fullProfile?.home_district}, {fullProfile?.town}</p>
                                 </div>
                             </div>
@@ -806,13 +853,130 @@ export default function WorkerProfilePage() {
                                             "{fullProfile?.short_bio || 'No bio provided.'}"
                                         </p>
                                     ) : (
-                                        <textarea 
-                                            value={mainDetails.short_bio} 
-                                            onChange={(e) => setMainDetails({ ...mainDetails, short_bio: e.target.value })}
-                                            rows={4}
-                                            placeholder="Tell customers about your expertise..."
-                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-400 text-sm font-medium text-[#0f172a] resize-none"
-                                        />
+                                        <div className="space-y-3">
+                                            <textarea 
+                                                value={mainDetails.short_bio} 
+                                                onChange={(e) => setMainDetails({ ...mainDetails, short_bio: e.target.value })}
+                                                rows={4}
+                                                placeholder="Tell customers about your expertise..."
+                                                className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:border-blue-400 text-sm font-medium text-[#0f172a] resize-none no-scrollbar"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowBioGenerator(true)}
+                                                className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[#7c3aed] bg-purple-50 hover:bg-purple-100 border border-purple-200 px-4 py-2.5 rounded-xl transition-all"
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5" /> Generate Bio with ChatGPT
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Bio Generator Modal */}
+                                    {showBioGenerator && (
+                                        <div className="fixed inset-0 z-[200] flex items-end md:items-center justify-center">
+                                            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowBioGenerator(false)} />
+                                            <div className="relative bg-white rounded-t-[2rem] md:rounded-[2rem] shadow-2xl w-full max-w-2xl flex flex-col max-h-[90dvh]">
+                                                {/* Sticky Header */}
+                                                <div className="flex items-start justify-between p-6 md:p-8 pb-4 border-b border-slate-100 flex-shrink-0">
+                                                    <div>
+                                                        <h3 className="text-lg font-black text-[#0f172a] flex items-center gap-2">
+                                                            <Sparkles className="w-5 h-5 text-[#7c3aed]" /> AI Bio Generator
+                                                        </h3>
+                                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Copy prompt → Paste in ChatGPT → Copy result back</p>
+                                                    </div>
+                                                    <button onClick={() => setShowBioGenerator(false)} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors flex-shrink-0">
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+
+                                                {/* Scrollable Content */}
+                                                <div className="overflow-y-auto flex-1 p-6 md:p-8 pt-5 space-y-5">
+                                                    {/* Steps */}
+                                                    <div className="bg-[#f0fdf4] border border-[#bbf7d0] rounded-2xl p-4">
+                                                        <div className="flex flex-wrap gap-3 text-xs font-black text-[#166534] uppercase tracking-wider">
+                                                            <span className="flex items-center gap-1.5">
+                                                                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">1</span>
+                                                                Copy the prompt
+                                                            </span>
+                                                            <ChevronLeft className="w-3 h-3 text-emerald-400 rotate-180 self-center" />
+                                                            <span className="flex items-center gap-1.5">
+                                                                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">2</span>
+                                                                Open ChatGPT
+                                                            </span>
+                                                            <ChevronLeft className="w-3 h-3 text-emerald-400 rotate-180 self-center" />
+                                                            <span className="flex items-center gap-1.5">
+                                                                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">3</span>
+                                                                Paste &amp; get your bio!
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* The Prompt */}
+                                                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">
+                                                        {generateBioPrompt()}
+                                                    </div>
+                                                </div>
+
+                                                {/* Sticky Footer Actions */}
+                                                <div className="flex gap-3 p-6 md:p-8 pt-4 border-t border-slate-100 flex-shrink-0">
+                                                    <button
+                                                        onClick={handleCopyBioPrompt}
+                                                        className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${bioPromptCopied ? 'bg-emerald-500 text-white' : 'bg-[#1d4ed8] text-white hover:bg-blue-700'}`}
+                                                    >
+                                                        {bioPromptCopied ? <ClipboardCheck className="w-4 h-4" /> : <Clipboard className="w-4 h-4" />}
+                                                        {bioPromptCopied ? 'Copied!' : 'Copy Prompt'}
+                                                    </button>
+                                                    <a
+                                                        href="https://chatgpt.com/"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-sm font-black uppercase tracking-widest bg-[#10a37f] text-white hover:bg-emerald-700 transition-all"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                        Open ChatGPT
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Secondary Trade Section */}
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.25em] text-[#64748b] border-l-2 border-[#1d4ed8] pl-4 py-1 flex items-center justify-between">
+                                        <span>Secondary Trade</span>
+                                        {fullProfile?.subscription_tier === 'pro' && (
+                                            <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded text-[9px] flex items-center gap-1"><Star className="w-3 h-3" /> Pro Feature</span>
+                                        )}
+                                    </h3>
+                                    
+                                    {fullProfile?.subscription_tier !== 'pro' ? (
+                                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center">
+                                            <Lock className="w-8 h-8 text-slate-400 mx-auto mb-3" />
+                                            <h4 className="text-sm font-bold text-slate-700">Multi-Trade is a Pro Feature</h4>
+                                            <p className="text-xs text-slate-500 mt-1 mb-4">Upgrade your plan to appear in customer searches for a second trade category.</p>
+                                            <Link href="/dashboard/billing" className="inline-flex items-center gap-2 bg-[#1d4ed8] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-sm hover:bg-blue-700 transition-colors">
+                                                Upgrade to Pro
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {!editingMainDetails ? (
+                                                <p className="text-lg text-[#0f172a] leading-relaxed font-medium italic">
+                                                    {fullProfile?.secondary_trade || 'No secondary trade selected. Edit Basic Info to add one.'}
+                                                </p>
+                                            ) : (
+                                                <CustomSelect
+                                                    options={[
+                                                        { value: '', label: 'None' },
+                                                        ...allTrades.filter(t => t !== fullProfile?.trade_category).map(t => ({ value: t, label: t }))
+                                                    ]}
+                                                    value={mainDetails.secondary_trade || ''}
+                                                    onChange={(val: string) => setMainDetails({ ...mainDetails, secondary_trade: val })}
+                                                    placeholder="Select a secondary trade"
+                                                />
+                                            )}
+                                        </>
                                     )}
                                 </div>
 
@@ -1237,22 +1401,5 @@ export default function WorkerProfilePage() {
                     <span className="text-[#334155]">Powered by Mr² Labs</span>
                 </div>
             </main>
-
-            {/* Mobile Bottom Navigation Bar */}
-            <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-2xl border-t border-[#e2e8f0] flex justify-around items-center h-20 z-50 px-4 pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-                <Link href="/dashboard" className="flex flex-col items-center gap-1.5 p-3 text-[#64748b] hover:text-[#0f172a] transition-all">
-                    <LayoutDashboard className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Overview</span>
-                </Link>
-                <Link href="/dashboard/profile" className="flex flex-col items-center gap-1.5 p-3 text-[#1d4ed8] transition-all">
-                    <User className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Profile</span>
-                </Link>
-                <button onClick={handleLogout} className="flex flex-col items-center gap-1.5 p-3 text-red-500/80 hover:text-red-600 transition-all">
-                    <LogOut className="w-6 h-6" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Logout</span>
-                </button>
-            </nav>
-        </div>
     );
 }

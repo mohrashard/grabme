@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Star, MessageSquare, ChevronDown, ChevronUp, Lock, Send, CornerDownRight, Pin } from 'lucide-react';
 import ReviewForm from './ReviewForm';
+import { replyToReviewAction } from '../actions/replyToReviewAction';
+import Link from 'next/link';
 
 interface Review {
     id: string;
@@ -11,11 +13,15 @@ interface Review {
     review_text: string;
     reviewer_name: string;
     created_at: string;
+    worker_reply?: string;
+    worker_reply_created_at?: string;
+    is_pinned?: boolean;
 }
 
 interface ReviewsSectionProps {
     workerId: string;
     workerName: string;
+    subscriptionTier?: string;
     reviews: Review[];
     avgRating: number;
     totalReviews: number;
@@ -49,14 +55,36 @@ function timeAgo(dateStr: string): string {
     return `${Math.floor(days / 365)} years ago`;
 }
 
-export default function ReviewsSection({ workerId, workerName, reviews, avgRating, totalReviews }: ReviewsSectionProps) {
+export default function ReviewsSection({ workerId, workerName, subscriptionTier = 'free', reviews, avgRating, totalReviews }: ReviewsSectionProps) {
     const router = useRouter();
     const [showForm, setShowForm] = useState(false);
     const [showAll, setShowAll] = useState(false);
+    const [isOwner, setIsOwner] = useState(false);
+    const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-    const displayedReviews = showAll ? reviews : reviews.slice(0, 3);
+    useEffect(() => {
+        try {
+            const userStr = localStorage.getItem('grabme_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                if (user.id === workerId) setIsOwner(true);
+            }
+        } catch (e) {}
+    }, [workerId]);
 
-    // Rating distribution
+    const showToast = (msg: string) => {
+        setToastMessage(msg);
+        setTimeout(() => setToastMessage(null), 3000);
+    };
+
+    const sortedReviews = [...reviews].sort((a, b) => {
+        if (a.is_pinned && !b.is_pinned) return -1;
+        if (!a.is_pinned && b.is_pinned) return 1;
+        return 0;
+    });
+
+    const displayedReviews = showAll ? sortedReviews : sortedReviews.slice(0, 3);
+
     const distribution = [5, 4, 3, 2, 1].map(star => ({
         star,
         count: reviews.filter(r => r.rating === star).length,
@@ -67,13 +95,29 @@ export default function ReviewsSection({ workerId, workerName, reviews, avgRatin
         <div className="relative rounded-2xl border border-amber-200/50 dark:border-amber-500/15 bg-white dark:bg-white/[0.03] backdrop-blur-sm overflow-hidden p-6 md:p-8 transition-colors">
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent" />
 
+            {/* Custom Toast Notification */}
+            {toastMessage && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl bg-[#0f172a] text-white shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 border border-slate-700">
+                    <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/50 flex-shrink-0">
+                        <MessageSquare className="w-3 h-3" />
+                    </div>
+                    <span className="text-[11px] font-black uppercase tracking-widest">{toastMessage}</span>
+                </div>
+            )}
+
             {/* Header */}
             <div className="flex items-start justify-between mb-6">
                 <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600 dark:text-amber-400 flex items-center gap-2">
                     <Star className="w-4 h-4 fill-amber-400 text-amber-400" /> Customer Reviews
                 </h3>
                 <button
-                    onClick={() => setShowForm(f => !f)}
+                    onClick={() => {
+                        if (isOwner) {
+                            showToast("You cannot review your own profile. This button works for your customers!");
+                            return;
+                        }
+                        setShowForm(f => !f);
+                    }}
                     className="text-[10px] font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-800/50 px-3 py-1.5 rounded-lg transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20 flex items-center gap-1.5"
                 >
                     <MessageSquare className="w-3 h-3" />
@@ -82,14 +126,14 @@ export default function ReviewsSection({ workerId, workerName, reviews, avgRatin
             </div>
 
             {/* Review Form (slide in) */}
-            {showForm && (
+            {showForm && !isOwner && (
                 <div className="mb-8 p-5 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
                     <ReviewForm
                         workerId={workerId}
                         workerName={workerName}
                         onSuccess={() => {
                             setShowForm(false);
-                            router.refresh(); // Refresh page to fetch the new review
+                            router.refresh();
                         }}
                     />
                 </div>
@@ -130,10 +174,20 @@ export default function ReviewsSection({ workerId, workerName, reviews, avgRatin
                     {/* Individual Reviews */}
                     <div className="space-y-4">
                         {displayedReviews.map((review) => (
-                            <div key={review.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/8 space-y-2 transition-colors">
-                                <div className="flex items-center justify-between gap-2">
+                            <div key={review.id} className={`p-4 rounded-xl border space-y-3 transition-colors ${
+                                review.is_pinned 
+                                ? 'bg-amber-50/30 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50' 
+                                : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/8'
+                            }`}>
+                                {review.is_pinned && (
+                                    <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 mb-2">
+                                        <Pin className="w-3 h-3 fill-amber-600 dark:fill-amber-400" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Featured Review</span>
+                                    </div>
+                                )}
+                                <div className="flex items-start justify-between gap-2">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-[10px] font-black text-blue-600 dark:text-blue-400">
+                                        <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-[10px] font-black text-blue-600 dark:text-blue-400 flex-shrink-0">
                                             {review.reviewer_name[0]}
                                         </div>
                                         <div>
@@ -146,12 +200,28 @@ export default function ReviewsSection({ workerId, workerName, reviews, avgRatin
                                             </div>
                                         </div>
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex-shrink-0">{timeAgo(review.created_at)}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 flex-shrink-0 whitespace-nowrap">{timeAgo(review.created_at)}</span>
                                 </div>
                                 {review.review_text && (
                                     <p className="text-[13px] font-bold text-slate-600 dark:text-slate-300 leading-relaxed pl-9">
                                         "{review.review_text}"
                                     </p>
+                                )}
+
+                                {/* Worker Reply Display */}
+                                {review.worker_reply && (
+                                    <div className="ml-9 mt-3 p-3.5 bg-blue-50/50 dark:bg-blue-900/10 border-l-2 border-blue-500 rounded-r-xl rounded-bl-xl">
+                                        <div className="flex items-center gap-1.5 mb-1.5">
+                                            <CornerDownRight className="w-3.5 h-3.5 text-blue-500" />
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-700 dark:text-blue-400">Response from {workerName}</span>
+                                            {review.worker_reply_created_at && (
+                                                <span className="text-[9px] font-bold text-slate-400 ml-auto">{timeAgo(review.worker_reply_created_at)}</span>
+                                            )}
+                                        </div>
+                                        <p className="text-[12px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                            "{review.worker_reply}"
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                         ))}

@@ -70,3 +70,13 @@ export async function toggleLikeAction(workerId: string, isLiked: boolean) {
         return { success: false, newCount: 0 };
     }
 }
+
+export async function trackProfileViewAction(workerId: string) {
+    try {
+        await supabaseAdmin.from('profile_views').insert([{ worker_id: workerId }]);
+        return { success: true };
+    } catch (err) {
+        console.error('[trackProfileViewAction] error:', err);
+        return { success: false };
+    }
+}

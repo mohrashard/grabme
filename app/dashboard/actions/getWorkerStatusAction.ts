@@ -12,7 +12,7 @@ export async function getWorkerStatusAction(workerId: string) {
     try {
         const { data, error } = await supabaseAdmin
             .from('workers')
-            .select('account_status, is_featured, is_identity_verified, is_reference_checked, visits_count, likes_count, slug')
+            .select('account_status, is_featured, is_identity_verified, is_reference_checked, visits_count, likes_count, slug, subscription_tier, pro_expires_at, is_available_now, profile_photo_url, full_name, trade_category')
             .eq('id', workerId)
             .single();
 
