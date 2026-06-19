@@ -1137,3 +1137,55 @@ NOTIFY pgrst, 'reload schema';
 ALTER TABLE public.estimates 
 ADD COLUMN generated_invoice_id UUID REFERENCES public.invoices(id) ON DELETE SET NULL;
 
+
+
+-- ================================================================
+-- PHASE 1: SYSTEM SETTINGS & RUNWAY CALCULATOR SQL
+-- ================================================================
+
+-- 1. Create the system_settings table to hold the Master Switch
+CREATE TABLE IF NOT EXISTS system_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  is_monetized BOOLEAN DEFAULT FALSE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Seed the initial row (so it defaults to FALSE / Free Platform)
+INSERT INTO system_settings (id, is_monetized) 
+VALUES (1, FALSE)
+ON CONFLICT (id) DO NOTHING;
+
+-- Lock it down (Only Admin service_role can touch this)
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+-- No public policies created.
+
+-- 2. Add Billing Tracking columns to workers table
+ALTER TABLE workers 
+ADD COLUMN IF NOT EXISTS trial_expires_at TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS next_billing_date TIMESTAMP WITH TIME ZONE;
+
+-- Update the documentation for the subscription_tier column
+-- New Statuses: 'trial' (for new users after switch), 'legacy_grant' (for existing free users)
+COMMENT ON COLUMN workers.subscription_tier IS 'Current SaaS plan: free, basic, pro, trial, legacy_grant';
+
+-- 3. Create RPC Function to calculate Database Size (in bytes)
+CREATE OR REPLACE FUNCTION get_database_size()
+RETURNS BIGINT
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT pg_database_size(current_database())::BIGINT;
+$$;
+
+-- 4. Create RPC Function to calculate total Storage Bucket Size (in bytes)
+CREATE OR REPLACE FUNCTION get_storage_size()
+RETURNS BIGINT
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT COALESCE(SUM((metadata->>'size')::BIGINT), 0)
+  FROM storage.objects;
+$$;
+
+-- Force Schema Refresh
+NOTIFY pgrst, 'reload schema';

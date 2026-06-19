@@ -1,0 +1,63 @@
+# Grab Me: Platform Monetization & Scale Plan
+
+This document outlines the strategic plan to transition Grab Me from a free "Founding Member Grant" phase into a fully monetized SaaS platform, triggered by a master switch in the Admin Panel once Supabase free-tier limits are approached.
+
+## 1. The Goal
+To grow the platform rapidly using a 100% free model until infrastructure limits (Supabase Free Tier) are reached. At that critical mass, the admin can flip a "Monetization Switch" that implements the PayHere payment gateway, transitioning new users to a 14-day trial model and transitioning existing users to a paid model starting the 1st of the following month.
+
+---
+
+## 2. Admin Dashboard UI (`/app/admin`)
+
+The Admin Panel will be the command center for monitoring platform scale.
+
+### A. The "Runway" Estimator (Supabase Limits)
+Supabase Free Tier limits are:
+*   **Database Size:** 500 MB
+*   **Storage (Buckets):** 1 GB
+
+**What we will build:**
+*   A widget showing **Total Active Workers**.
+*   A real-time calculation of **Average DB/Storage Size per Worker**.
+*   A **Runway Predictor**: "You are currently using 150MB of 500MB. Based on an average of 1.5MB per worker, you can safely onboard ~230 more workers before hitting the limit."
+
+### B. The Master Switch
+*   A highly secure toggle component: **[ Enable Platform Monetization ]**
+*   This toggle will flip a boolean value (e.g., `is_monetized: true`) in a new secure database table called `system_settings`.
+
+---
+
+## 3. The Logic Transition (When the Switch turns ON)
+
+When the monetization switch is activated, the platform logic automatically adapts without needing to redeploy the app.
+
+### A. For Existing "Founding Members"
+*   They receive a notification: *"Grab Me is transitioning to a premium model. As a founding member, your billing will begin on the 1st of the next month."*
+*   Their `subscription_tier` updates, and `next_billing_date` is programmatically set to the upcoming 1st of the month.
+*   If they do not pay via PayHere by that date, their premium features (Analytics, Invoice Generator, etc.) are locked.
+
+### B. For New Users (Joining after Switch is ON)
+*   The registration flow checks the `system_settings` table.
+*   Since `is_monetized` is `true`, new sign-ups are automatically granted a **14-Day Free Trial**.
+*   Their database profile will have `subscription_tier = 'trial'` and `trial_expires_at = NOW() + 14 days`.
+*   After 14 days, they hit a hard paywall requiring a PayHere checkout to continue receiving leads.
+
+---
+
+## 4. Technical Implementation Steps
+
+### Phase 1: Infrastructure & Admin Dashboard (Current Priority)
+1.  **Create `system_settings` table**: To store the master switch state securely.
+2.  **Create Supabase RPC functions**: Write backend SQL functions to calculate raw Database size and Storage bucket size safely.
+3.  **Build `/app/admin`**: Construct the admin dashboard UI with the gauges, user counts, runway calculator, and the Master Switch.
+
+### Phase 2: PayHere & Billing Logic (When Ready to Monetize)
+1.  **PayHere Integration**: Setup the Next.js API routes for PayHere Checkout (MD5 hash generation, merchant ID, etc.).
+2.  **PayHere Webhooks**: Create an endpoint (`/api/webhooks/payhere`) to automatically upgrade a worker's tier to 'pro' when a payment succeeds.
+3.  **Paywall UI**: Implement the checkout UI inside the `/dashboard/billing` page.
+4.  **Cron Jobs (Edge Functions)**: Set up daily checks to downgrade users if their 14-day trial or monthly subscription expires.
+
+---
+
+## 5. What to do right now?
+Before writing code for PayHere (which isn't needed until the limit is reached), we should **only build Phase 1**. This gives you full visibility into your server costs and user growth right immediately.

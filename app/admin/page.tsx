@@ -16,25 +16,25 @@ import {
 } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import { supabase } from '../lib/supabase'
-import { 
-    updateWorkerStatusAction, 
-    getSignedUrlAction, 
-    toggleFeaturedAction, 
+import {
+    updateWorkerStatusAction,
+    getSignedUrlAction,
+    toggleFeaturedAction,
     insertVerificationLogAction,
     fetchAdminDataAction,
     updateStatusWithLogAction,
     resetWorkerPasswordAction,
     logoutAdminAction
 } from './actions/authActions'
-import { 
-    deleteWorkerAction, 
-    updateWorkerAction, 
-    deleteCustomerAction, 
-    deleteClickAction 
+import {
+    deleteWorkerAction,
+    updateWorkerAction,
+    deleteCustomerAction,
+    deleteClickAction
 } from './actions/workerActions'
 import { Toaster, toast } from 'sonner'
 import { DISTRICTS } from '../register/constants'
-import { 
+import {
     addServiceAction, deleteServiceAction, addSkillAction, deleteSkillAction,
     addKeywordAction, deleteKeywordAction, fetchTaxonomyAdminAction,
     bulkImportTaxonomyAction
@@ -75,14 +75,14 @@ type Worker = {
 const ImageModal = ({ isOpen, onClose, imageUrl, label }: { isOpen: boolean, onClose: () => void, imageUrl: string, label: string }) => (
     <AnimatePresence>
         {isOpen && (
-            <m.div 
-                initial={{ opacity: 0 }} 
-                animate={{ opacity: 1 }} 
+            <m.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm"
                 onClick={onClose}
             >
-                <m.div 
+                <m.div
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
@@ -90,7 +90,7 @@ const ImageModal = ({ isOpen, onClose, imageUrl, label }: { isOpen: boolean, onC
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="absolute top-0 right-0 -mt-12 group">
-                        <button 
+                        <button
                             onClick={onClose}
                             className="p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all border border-white/10 group-hover:rotate-90"
                         >
@@ -98,9 +98,9 @@ const ImageModal = ({ isOpen, onClose, imageUrl, label }: { isOpen: boolean, onC
                         </button>
                     </div>
                     <div className="w-full h-full rounded-2xl border border-white/10 overflow-hidden shadow-2xl bg-[#18181B] flex items-center justify-center">
-                        <img 
-                            src={imageUrl} 
-                            alt={label} 
+                        <img
+                            src={imageUrl}
+                            alt={label}
                             className="max-w-full max-h-[80vh] object-contain"
                         />
                     </div>
@@ -151,18 +151,18 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, workerName, isDel
                         </div>
                         <h3 className="text-xl font-black text-white uppercase tracking-wider">Permenant Deletion</h3>
                         <p className="text-white/60 text-sm leading-relaxed">
-                            Are you absolutely sure you want to delete <span className="text-white font-bold">{workerName}</span>? 
+                            Are you absolutely sure you want to delete <span className="text-white font-bold">{workerName}</span>?
                             This will instantly remove their profile, verification logs, click history, and all stored media files. **This cannot be undone.**
                         </p>
                         <div className="flex flex-col w-full gap-3 mt-4">
-                            <button 
+                            <button
                                 onClick={onConfirm}
                                 disabled={isDeleting}
                                 className="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-red-600/20 disabled:opacity-50"
                             >
                                 {isDeleting ? 'Nuking Data...' : 'Yes, Delete Everything'}
                             </button>
-                            <button 
+                            <button
                                 onClick={onClose}
                                 disabled={isDeleting}
                                 className="w-full py-4 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all disabled:opacity-50"
@@ -188,11 +188,11 @@ const DeleteTaxonomyModal = ({ isOpen, onClose, onConfirm, itemName, itemType, i
                         </div>
                         <h3 className="text-xl font-black text-white uppercase tracking-wider">Delete {itemType}</h3>
                         <p className="text-white/60 text-sm leading-relaxed">
-                            Are you sure you want to remove <span className="text-red-400 font-bold">{itemName}</span>? 
+                            Are you sure you want to remove <span className="text-red-400 font-bold">{itemName}</span>?
                             {itemType === 'Service' && " This will also delete all skills and keywords associated with it."}
                         </p>
                         <div className="flex flex-col w-full gap-3 mt-4">
-                            <button 
+                            <button
                                 onClick={onConfirm}
                                 disabled={isDeleting}
                                 className="w-full py-4 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 flex items-center justify-center gap-2"
@@ -200,7 +200,7 @@ const DeleteTaxonomyModal = ({ isOpen, onClose, onConfirm, itemName, itemType, i
                                 {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
                                 {isDeleting ? 'Removing...' : `Delete ${itemType}`}
                             </button>
-                            <button 
+                            <button
                                 onClick={onClose}
                                 disabled={isDeleting}
                                 className="w-full py-4 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-2xl font-black uppercase tracking-widest transition-all disabled:opacity-50"
@@ -217,7 +217,7 @@ const DeleteTaxonomyModal = ({ isOpen, onClose, onConfirm, itemName, itemType, i
 
 const BulkImportModal = ({ isOpen, onClose, onImport, isImporting }: any) => {
     const [jsonInput, setJsonInput] = useState('');
-    
+
     const handleStart = () => {
         try {
             const parsed = JSON.parse(jsonInput);
@@ -239,7 +239,7 @@ const BulkImportModal = ({ isOpen, onClose, onImport, isImporting }: any) => {
                                 <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-1">Paste your JSON data below</p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <button 
+                                <button
                                     onClick={() => {
                                         const template = `[
   {
@@ -273,7 +273,7 @@ const BulkImportModal = ({ isOpen, onClose, onImport, isImporting }: any) => {
                         />
 
                         <div className="flex flex-col gap-3">
-                            <button 
+                            <button
                                 onClick={handleStart}
                                 disabled={isImporting || !jsonInput.trim()}
                                 className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-600/20 disabled:opacity-50 flex items-center justify-center gap-3"
@@ -356,32 +356,32 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Full Name</label>
-                                        <input 
-                                            value={formData.full_name} 
+                                        <input
+                                            value={formData.full_name}
                                             onChange={e => handleFieldChange('full_name', e.target.value)}
                                             className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Phone Number</label>
-                                        <input 
-                                            value={formData.phone} 
+                                        <input
+                                            value={formData.phone}
                                             onChange={e => handleFieldChange('phone', e.target.value)}
                                             className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
                                         />
                                     </div>
                                     <div className="md:col-span-2 space-y-2">
                                         <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Short Bio</label>
-                                        <textarea 
-                                            value={formData.short_bio} 
+                                        <textarea
+                                            value={formData.short_bio}
                                             onChange={e => handleFieldChange('short_bio', e.target.value)}
                                             className="w-full h-24 bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all resize-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Home District</label>
-                                        <select 
-                                            value={formData.home_district} 
+                                        <select
+                                            value={formData.home_district}
                                             onChange={e => handleFieldChange('home_district', e.target.value)}
                                             className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all appearance-none"
                                         >
@@ -390,8 +390,8 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Email (Optional)</label>
-                                        <input 
-                                            value={formData.email || ''} 
+                                        <input
+                                            value={formData.email || ''}
                                             onChange={e => handleFieldChange('email', e.target.value)}
                                             className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
                                         />
@@ -404,8 +404,8 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Main Trade</label>
-                                            <select 
-                                                value={formData.trade_category} 
+                                            <select
+                                                value={formData.trade_category}
                                                 onChange={e => {
                                                     handleFieldChange('trade_category', e.target.value);
                                                     handleFieldChange('sub_skills', []); // Clear sub skills when trade changes
@@ -420,9 +420,9 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1">Years of Experience</label>
-                                            <input 
+                                            <input
                                                 type="number"
-                                                value={formData.years_experience || 0} 
+                                                value={formData.years_experience || 0}
                                                 onChange={e => handleFieldChange('years_experience', parseInt(e.target.value))}
                                                 className="w-full bg-white/5 border border-white/5 rounded-2xl p-4 text-sm text-white focus:border-indigo-500/50 outline-none transition-all"
                                             />
@@ -437,8 +437,8 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                                 return sk.service_id === svc?.id;
                                             }) || []).map((skill: any) => (
                                                 <label key={skill.id} className={`flex items-center gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${formData.sub_skills?.includes(skill.name) ? 'bg-indigo-500/10 border-indigo-500/30 text-white' : 'bg-white/5 border-white/5 text-white/30 hover:border-white/10'}`}>
-                                                    <input 
-                                                        type="checkbox" 
+                                                    <input
+                                                        type="checkbox"
                                                         checked={formData.sub_skills?.includes(skill.name)}
                                                         onChange={() => {
                                                             const current = formData.sub_skills || [];
@@ -578,10 +578,10 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
                                         <label className="text-[9px] font-black text-white/30 uppercase tracking-widest ml-1 text-red-400">Security: Manual Password Override</label>
                                         <div className="relative">
                                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                                            <input 
+                                            <input
                                                 type="password"
                                                 placeholder="Enter new password to override..."
-                                                value={formData.password || ''} 
+                                                value={formData.password || ''}
                                                 onChange={e => handleFieldChange('password', e.target.value)}
                                                 className="w-full bg-white/5 border border-red-500/10 rounded-2xl p-4 pl-12 text-sm text-white focus:border-red-500/50 outline-none transition-all"
                                             />
@@ -596,13 +596,13 @@ const EditWorkerModal = ({ isOpen, onClose, worker, onSave, isSaving, handleFile
 
                         {/* Footer */}
                         <div className="p-8 border-t border-white/5 flex items-center justify-end gap-3 bg-white/[0.02]">
-                            <button 
+                            <button
                                 onClick={onClose}
                                 className="px-8 py-4 bg-white/5 hover:bg-white/10 text-white/40 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all"
                             >
                                 Cancel
                             </button>
-                            <button 
+                            <button
                                 onClick={handleSave}
                                 disabled={isSaving || !!uploadingField}
                                 className="px-10 py-4 bg-indigo-500 hover:bg-indigo-400 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 flex items-center gap-2"
@@ -634,22 +634,22 @@ export default function AdminPage() {
     const [selectedImage, setSelectedImage] = useState<{ url: string; label: string; isLocked: boolean } | null>(null);
     const [auditNote, setAuditNote] = useState('');
     const [auditOutcome, setAuditOutcome] = useState('pass');
-    const [stats, setStats] = useState({ 
-        total: 0, pending: 0, active: 0, suspended: 0, 
+    const [stats, setStats] = useState({
+        total: 0, pending: 0, active: 0, suspended: 0,
         clicksToday: 0, clicksThisWeek: 0,
         mostClickedTrade: 'N/A', mostClickedDistrict: 'N/A',
-        totalClicks: 0, topClicks: [] as { label: string, count: number }[] 
+        totalClicks: 0, topClicks: [] as { label: string, count: number }[]
     });
     const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
     const [checklists, setChecklists] = useState<Record<string, { nic: boolean, ref: boolean, cert: boolean, exp: boolean, notes: string }>>({});
-    
+
     // NEW: Edit & Delete & Leads State
     const [editingWorker, setEditingWorker] = useState<Worker | null>(null);
     const [deletingWorker, setDeletingWorker] = useState<Worker | null>(null);
     const [leadsSubTab, setLeadsSubTab] = useState<'future' | 'matrices'>('future');
     const [clicks, setClicks] = useState<any[]>([]);
     const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
-    
+
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [uploadingField, setUploadingField] = useState<string | null>(null);
@@ -699,7 +699,7 @@ export default function AdminPage() {
     const fetchWorkers = useCallback(async () => {
         setLoading(true);
         const { success, workers: data, leads: leadData, clicks: clickData, stats: newStats, error } = await fetchAdminDataAction();
-        
+
         if (success && data && newStats) {
             const workerList = data as Worker[];
             setWorkers(workerList);
@@ -753,7 +753,7 @@ export default function AdminPage() {
         }
 
         const isLocked = path.includes('worker-documents') || !path.startsWith('http');
-        
+
         if (isLocked && !signedUrls[path]) {
             const toastId = toast.loading('Unlocking secure document...');
             const signed = await getSignedUrl(path);
@@ -764,10 +764,10 @@ export default function AdminPage() {
                 toast.error('Failed to access secure document. It may be corrupted or deleted.', { id: toastId });
             }
         } else {
-            setSelectedImage({ 
-                url: signedUrls[path] || path, 
-                label, 
-                isLocked 
+            setSelectedImage({
+                url: signedUrls[path] || path,
+                label,
+                isLocked
             });
         }
     };
@@ -789,7 +789,7 @@ export default function AdminPage() {
         const toastId = toast.loading(`${forceZap ? 'Ultra-Quick' : 'Updating'} ${worker?.full_name || 'Worker'} to ${status.toUpperCase()}...`);
         try {
             const checklist = checklists[id] || { nic: false, ref: false, cert: false, exp: false, notes: '' };
-            
+
             // Persist the status AND all checklist fields into the 'workers' table
             const updates: any = {
                 is_identity_verified: forceZap ? true : !!checklist.nic,
@@ -798,7 +798,7 @@ export default function AdminPage() {
                 is_experience_verified: forceZap ? true : !!checklist.exp,
                 admin_notes: checklist.notes
             };
-            
+
             // "Quick Activate" logic: Auto-verify Identity, Cert, and Exp ONLY when zapping or first activating
             if (forceZap) {
                 status = 'active'; // Force status if zapping
@@ -820,20 +820,20 @@ export default function AdminPage() {
             if (!success) throw new Error(error);
 
             await fetchWorkers();
-            
+
             if (status === 'active' && worker) {
                 toast.success(
                     <div className="flex flex-col gap-2 w-full">
                         <span>Success: {worker.full_name} is now ACTIVE</span>
-                        <a 
-                            href={`https://wa.me/${worker.phone}?text=${ADMIN_WHATSAPP_ACTIVATION_MSG(worker.full_name)}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
+                        <a
+                            href={`https://wa.me/${worker.phone}?text=${ADMIN_WHATSAPP_ACTIVATION_MSG(worker.full_name)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
                             className="mt-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#25D366] text-white rounded-lg text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-lg"
                         >
                             Ping on WhatsApp
                         </a>
-                    </div>, 
+                    </div>,
                     { id: toastId }
                 );
             } else {
@@ -862,7 +862,7 @@ export default function AdminPage() {
         if (!selectedWorker || !auditNote) return;
         setActionLoading('audit');
         const toastId = toast.loading('Saving audit record...');
-        
+
         const { success, error } = await insertVerificationLogAction({
             worker_id: selectedWorker.id,
             action: 'reference_called',
@@ -933,7 +933,7 @@ export default function AdminPage() {
         try {
             const options = { maxSizeMB: 0.3, maxWidthOrHeight: 1024, useWebWorker: false };
             const processedFile = file.size > 0.3 * 1024 * 1024 ? await imageCompression(file, options) : file;
-            
+
             const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
             const fileName = `admin_edit_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
             const filePath = `workers/${fileName}`;
@@ -943,7 +943,7 @@ export default function AdminPage() {
                 .upload(filePath, processedFile, { upsert: true });
 
             if (error) throw error;
-            
+
             // Generate the full public URL
             const { data: { publicUrl } } = supabase.storage.from(type).getPublicUrl(filePath);
             return publicUrl;
@@ -964,7 +964,7 @@ export default function AdminPage() {
 
         const toastId = toast.loading('Hashing & Syncing New Password...');
         const { success, error } = await resetWorkerPasswordAction(workerId, newPass);
-        
+
         if (success) {
             toast.success('Password successfully reset!', { id: toastId });
         } else {
@@ -1109,11 +1109,11 @@ export default function AdminPage() {
     return (
         <div className="min-h-screen bg-[#090A0F] text-white font-sans flex">
             {/* ══ MODALS ══ */}
-            <ImageModal 
-                isOpen={!!selectedImage} 
-                onClose={() => setSelectedImage(null)} 
-                imageUrl={selectedImage?.url || ''} 
-                label={selectedImage?.label || ''} 
+            <ImageModal
+                isOpen={!!selectedImage}
+                onClose={() => setSelectedImage(null)}
+                imageUrl={selectedImage?.url || ''}
+                label={selectedImage?.label || ''}
             />
 
             <DeleteConfirmationModal
@@ -1145,7 +1145,7 @@ export default function AdminPage() {
                     if (taxDeleting.type === 'Service') res = await deleteServiceAction(taxDeleting.id);
                     else if (taxDeleting.type === 'Skill') res = await deleteSkillAction(taxDeleting.id);
                     else if (taxDeleting.type === 'Keyword') res = await deleteKeywordAction(taxDeleting.id);
-                    
+
                     if (res?.success) {
                         toast.success(`${taxDeleting.type} removed successfully`);
                         fetchTaxonomy();
@@ -1216,6 +1216,11 @@ export default function AdminPage() {
                             {t.count !== null && <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${tab === t.id ? 'bg-red-500/20 text-red-300' : 'bg-white/5 text-white/30'}`}>{t.count}</span>}
                         </button>
                     ))}
+                    <div className="pt-2 mt-2 border-t border-white/5">
+                        <Link href="/admin/monetization" className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl text-sm font-bold transition-all text-amber-400/80 hover:text-amber-400 hover:bg-amber-500/10">
+                            <span className="flex items-center gap-3"><Activity className="w-4 h-4" />Monetization & Scale</span>
+                        </Link>
+                    </div>
                 </nav>
 
                 {/* Stats */}
@@ -1256,6 +1261,10 @@ export default function AdminPage() {
                             )}
                         </button>
                     ))}
+                    <Link href="/admin/monetization" className="flex flex-col items-center gap-1 p-2 rounded-xl text-amber-500/50 hover:text-amber-400 transition-all">
+                        <Activity className="w-5 h-5" />
+                        <span className="text-[8px] font-black uppercase tracking-widest">Scale</span>
+                    </Link>
                     <button onClick={logout} className="flex flex-col items-center gap-1 p-2 rounded-xl text-red-500/50 hover:text-red-400 transition-all">
                         <LogOut className="w-5 h-5" />
                         <span className="text-[8px] font-black uppercase tracking-widest">Exit</span>
@@ -1303,7 +1312,7 @@ export default function AdminPage() {
                                         <p className="text-white/20 text-xs font-bold tracking-widest uppercase">Loading Pipeline</p>
                                     </div>
                                 ) : pipeline.length === 0 ? (
-                                    <m.div 
+                                    <m.div
                                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
                                         className="text-center py-32 bg-[#18181B] border border-white/5 rounded-[2.5rem] space-y-6"
                                     >
@@ -1316,8 +1325,8 @@ export default function AdminPage() {
                                         </div>
                                     </m.div>
                                 ) : pipeline.map(w => (
-                                    <m.div 
-                                        key={w.id} 
+                                    <m.div
+                                        key={w.id}
                                         layout
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
@@ -1332,7 +1341,7 @@ export default function AdminPage() {
                                                     { url: w.nic_front_url, label: 'NIC Front', bucket: 'worker-documents' },
                                                     { url: w.nic_back_url, label: 'NIC Back', bucket: 'worker-documents' },
                                                     { url: w.selfie_url, label: 'Selfie+NIC', bucket: 'worker-documents' },
-                                                    { 
+                                                    {
                                                         // Certificate is always in the public avatars bucket.
                                                         // Old rows may have stored a relative path — resolve to full public URL.
                                                         url: w.certificate_url && !w.certificate_url.startsWith('http')
@@ -1345,7 +1354,7 @@ export default function AdminPage() {
                                                 ].map((img, i) => (
                                                     <div key={i} className="space-y-1">
                                                         <p className="text-[8px] font-black uppercase tracking-widest text-white/20">{img.label}</p>
-                                                        <div 
+                                                        <div
                                                             className="relative group cursor-pointer overflow-hidden rounded-xl border border-white/10 hover:border-indigo-500/50 transition-all font-bold"
                                                             onClick={() => openLightbox(img.url, img.label)}
                                                         >
@@ -1355,11 +1364,11 @@ export default function AdminPage() {
                                                                 </div>
                                                             ) : (
                                                                 <>
-                                                                    <img 
-                                                                        src={signedUrls[img.url] || img.url} 
+                                                                    <img
+                                                                        src={signedUrls[img.url] || img.url}
                                                                         alt={img.label}
                                                                         onError={() => setImageErrors(prev => ({ ...prev, [img.url]: true }))}
-                                                                        className="w-20 h-20 object-cover" 
+                                                                        className="w-20 h-20 object-cover"
                                                                     />
                                                                     <div className="absolute inset-0 bg-indigo-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                                         <Eye className="w-5 h-5 text-white" />
@@ -1422,31 +1431,31 @@ export default function AdminPage() {
                                                         { id: 'exp', label: 'Exp Verified', val: w.is_experience_verified },
                                                     ].map((item) => (
                                                         <label key={item.id} className="flex items-center gap-2 cursor-pointer group">
-                                                            <input 
-                                                                type="checkbox" 
+                                                            <input
+                                                                type="checkbox"
                                                                 checked={!!(checklists[w.id]?.[item.id as keyof typeof checklists[string]] ?? item.val ?? false)}
-                                                                onChange={(e) => setChecklists(prev => ({ 
-                                                                    ...prev, 
-                                                                    [w.id]: { 
-                                                                        ...(prev[w.id] || { nic: !!w.is_identity_verified, ref: !!w.is_reference_checked, cert: !!w.is_certificate_verified, exp: !!w.is_experience_verified, notes: w.admin_notes || '' }), 
-                                                                        [item.id]: e.target.checked 
-                                                                    } 
+                                                                onChange={(e) => setChecklists(prev => ({
+                                                                    ...prev,
+                                                                    [w.id]: {
+                                                                        ...(prev[w.id] || { nic: !!w.is_identity_verified, ref: !!w.is_reference_checked, cert: !!w.is_certificate_verified, exp: !!w.is_experience_verified, notes: w.admin_notes || '' }),
+                                                                        [item.id]: e.target.checked
+                                                                    }
                                                                 }))}
-                                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-offset-0 focus:ring-0" 
+                                                                className="w-4 h-4 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-offset-0 focus:ring-0"
                                                             />
                                                             <span className="text-[10px] font-bold text-white/40 group-hover:text-white/60 transition-colors uppercase tracking-widest">{item.label}</span>
                                                         </label>
                                                     ))}
                                                 </div>
-                                                <textarea 
+                                                <textarea
                                                     placeholder="Admin notes..."
                                                     value={checklists[w.id]?.notes ?? w.admin_notes ?? ''}
-                                                    onChange={(e) => setChecklists(prev => ({ 
-                                                        ...prev, 
-                                                        [w.id]: { 
-                                                            ...(prev[w.id] || { nic: w.is_identity_verified, ref: w.is_reference_checked, cert: w.is_certificate_verified, exp: w.is_experience_verified, notes: w.admin_notes || '' }), 
-                                                            notes: e.target.value 
-                                                        } 
+                                                    onChange={(e) => setChecklists(prev => ({
+                                                        ...prev,
+                                                        [w.id]: {
+                                                            ...(prev[w.id] || { nic: w.is_identity_verified, ref: w.is_reference_checked, cert: w.is_certificate_verified, exp: w.is_experience_verified, notes: w.admin_notes || '' }),
+                                                            notes: e.target.value
+                                                        }
                                                     }))}
                                                     className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-[11px] text-white outline-none focus:border-white/10 transition-all resize-none h-16"
                                                 />
@@ -1538,22 +1547,22 @@ export default function AdminPage() {
                                                     { id: 'exp', label: 'Exp', val: w.is_experience_verified },
                                                 ].map((item) => (
                                                     <label key={item.id} className="flex items-center gap-1.5 cursor-pointer group">
-                                                        <input 
-                                                            type="checkbox" 
+                                                        <input
+                                                            type="checkbox"
                                                             checked={!!(checklists[w.id]?.[item.id as keyof typeof checklists[string]] ?? item.val ?? false)}
-                                                            onChange={(e) => setChecklists(prev => ({ 
-                                                                ...prev, 
-                                                                [w.id]: { 
-                                                                    ...(prev[w.id] || { nic: !!w.is_identity_verified, ref: !!w.is_reference_checked, cert: !!w.is_certificate_verified, exp: !!w.is_experience_verified, notes: w.admin_notes || '' }), 
-                                                                    [item.id]: e.target.checked 
-                                                                } 
+                                                            onChange={(e) => setChecklists(prev => ({
+                                                                ...prev,
+                                                                [w.id]: {
+                                                                    ...(prev[w.id] || { nic: !!w.is_identity_verified, ref: !!w.is_reference_checked, cert: !!w.is_certificate_verified, exp: !!w.is_experience_verified, notes: w.admin_notes || '' }),
+                                                                    [item.id]: e.target.checked
+                                                                }
                                                             }))}
-                                                            className="w-3.5 h-3.5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-offset-0 focus:ring-0" 
+                                                            className="w-3.5 h-3.5 rounded border-white/10 bg-white/5 text-indigo-500 focus:ring-offset-0 focus:ring-0"
                                                         />
                                                         <span className="text-[9px] font-bold text-white/30 group-hover:text-white/50 transition-colors uppercase">{item.label}</span>
                                                     </label>
                                                 ))}
-                                                <button 
+                                                <button
                                                     onClick={() => updateStatus(w.id, w.account_status, w)}
                                                     className="ml-2 text-[9px] font-black uppercase text-indigo-400 hover:text-white px-2 py-1 bg-indigo-500/10 rounded-md transition-all active:scale-95 font-bold"
                                                 >
@@ -1562,21 +1571,21 @@ export default function AdminPage() {
                                             </div>
 
                                             <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                                                <button 
+                                                <button
                                                     onClick={() => updateStatus(w.id, 'active', w, true)}
                                                     className="p-2 lg:p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all font-bold group"
                                                     title="Thunderbolt: Quick Verify ALL & Activate"
                                                 >
                                                     <Zap className="w-4 h-4 font-bold fill-indigo-400 group-hover:fill-white" />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => setEditingWorker(w)}
                                                     className="p-2 lg:p-2.5 rounded-xl bg-white/5 border border-white/5 text-white/20 hover:text-amber-400 hover:border-amber-500/20 transition-all font-bold"
                                                     title="Edit Worker Profile"
                                                 >
                                                     <Edit3 className="w-4 h-4 font-bold" />
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={() => setDeletingWorker(w)}
                                                     className="p-2 lg:p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all font-bold"
                                                     title="Delete Worker"
@@ -1660,19 +1669,19 @@ export default function AdminPage() {
                                             {topDistricts.length === 0
                                                 ? <p className="text-white/20 text-xs text-center py-8">No data yet</p>
                                                 : topDistricts.map(([district, count]) => (
-                                                <div key={district} className="space-y-1">
-                                                    <div className="flex justify-between text-[11px] font-bold">
-                                                        <span className="text-white/60">{district}</span>
-                                                        <span className="text-white/40">{count}</span>
+                                                    <div key={district} className="space-y-1">
+                                                        <div className="flex justify-between text-[11px] font-bold">
+                                                            <span className="text-white/60">{district}</span>
+                                                            <span className="text-white/40">{count}</span>
+                                                        </div>
+                                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-indigo-500 rounded-full transition-all"
+                                                                style={{ width: `${(count / (topDistricts[0]?.[1] || 1)) * 100}%` }}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-indigo-500 rounded-full transition-all"
-                                                            style={{ width: `${(count / (topDistricts[0]?.[1] || 1)) * 100}%` }}
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                ))}
                                         </div>
                                     </div>
 
@@ -1686,71 +1695,71 @@ export default function AdminPage() {
                                             {topTrades.length === 0
                                                 ? <p className="text-white/20 text-xs text-center py-8">No data yet</p>
                                                 : topTrades.map(([trade, count]) => (
-                                                <div key={trade} className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-bold text-white/50">{trade}</span>
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="flex gap-0.5">
-                                                            {Array.from({ length: Math.min(count, 10) }).map((_, i) => (
-                                                                <div key={i} className="w-1.5 h-5 bg-indigo-500/40 rounded-sm" />
-                                                            ))}
+                                                    <div key={trade} className="flex items-center justify-between">
+                                                        <span className="text-[11px] font-bold text-white/50">{trade}</span>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="flex gap-0.5">
+                                                                {Array.from({ length: Math.min(count, 10) }).map((_, i) => (
+                                                                    <div key={i} className="w-1.5 h-5 bg-indigo-500/40 rounded-sm" />
+                                                                ))}
+                                                            </div>
+                                                            <span className="text-[11px] font-black text-white/40 w-5 text-right">{count}</span>
                                                         </div>
-                                                        <span className="text-[11px] font-black text-white/40 w-5 text-right">{count}</span>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Activation Rate */}
-                                    <div className="bg-[#18181B] border border-white/5 rounded-2xl p-6">
-                                        <h3 className="text-xs font-black uppercase tracking-widest text-white/40 mb-6">Activation Rate</h3>
-                                        <div className="flex items-center gap-6">
-                                            <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
-                                                <div
-                                                    className="h-full bg-gradient-to-r from-indigo-500 to-green-500 rounded-full transition-all"
-                                                    style={{ width: stats.total > 0 ? `${(stats.active / stats.total) * 100}%` : '0%' }}
-                                                />
-                                            </div>
-                                            <span className="text-xl font-black text-white">
-                                                {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}%
-                                            </span>
+                                <div className="bg-[#18181B] border border-white/5 rounded-2xl p-6">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-white/40 mb-6">Activation Rate</h3>
+                                    <div className="flex items-center gap-6">
+                                        <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-indigo-500 to-green-500 rounded-full transition-all"
+                                                style={{ width: stats.total > 0 ? `${(stats.active / stats.total) * 100}%` : '0%' }}
+                                            />
                                         </div>
-                                        <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest mt-3">
-                                            {stats.active} of {stats.total} workers approved and live on directory
-                                        </p>
+                                        <span className="text-xl font-black text-white">
+                                            {stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0}%
+                                        </span>
+                                    </div>
+                                    <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest mt-3">
+                                        {stats.active} of {stats.total} workers approved and live on directory
+                                    </p>
+                                </div>
+
+                                {/* DEMAND HOTSPOTS (Clicks by Trade & District) */}
+                                <div className="bg-[#18181B] border border-white/5 rounded-[2rem] p-8 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Demand Hotspots — WhatsApp Click Throughs</h3>
+                                        <TrendingUp className="w-4 h-4 text-white/20" />
                                     </div>
 
-                                    {/* DEMAND HOTSPOTS (Clicks by Trade & District) */}
-                                    <div className="bg-[#18181B] border border-white/5 rounded-[2rem] p-8 space-y-6">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Demand Hotspots — WhatsApp Click Throughs</h3>
-                                            <TrendingUp className="w-4 h-4 text-white/20" />
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                                            {stats.topClicks?.length === 0 ? (
-                                                <p className="text-white/20 text-[10px] font-bold uppercase py-10 text-center col-span-full italic">No clicks tracked yet.</p>
-                                            ) : (
-                                                stats.topClicks?.map((hotspot, idx) => (
-                                                    <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col justify-between group hover:bg-indigo-500/5 transition-all">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center justify-between">
-                                                                <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400/60">Rank #{idx+1}</span>
-                                                                <span className="text-sm font-black text-white">{hotspot.count} <span className="text-[10px] text-white/20">Clicks</span></span>
-                                                            </div>
-                                                            <p className="text-[11px] font-bold text-white/60 group-hover:text-white leading-tight transition-colors">
-                                                                {hotspot.label.split('|')[0].trim()}
-                                                            </p>
-                                                            <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
-                                                                {hotspot.label.split('|')[1]?.trim()}
-                                                            </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {stats.topClicks?.length === 0 ? (
+                                            <p className="text-white/20 text-[10px] font-bold uppercase py-10 text-center col-span-full italic">No clicks tracked yet.</p>
+                                        ) : (
+                                            stats.topClicks?.map((hotspot, idx) => (
+                                                <div key={idx} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex flex-col justify-between group hover:bg-indigo-500/5 transition-all">
+                                                    <div className="space-y-1">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-indigo-400/60">Rank #{idx + 1}</span>
+                                                            <span className="text-sm font-black text-white">{hotspot.count} <span className="text-[10px] text-white/20">Clicks</span></span>
                                                         </div>
+                                                        <p className="text-[11px] font-bold text-white/60 group-hover:text-white leading-tight transition-colors">
+                                                            {hotspot.label.split('|')[0].trim()}
+                                                        </p>
+                                                        <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest">
+                                                            {hotspot.label.split('|')[1]?.trim()}
+                                                        </p>
                                                     </div>
-                                                ))
-                                            )}
-                                        </div>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
+                                </div>
                             </m.div>
                         )}
 
@@ -1785,11 +1794,11 @@ export default function AdminPage() {
                                         <div className="bg-white/5 border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                                             <div className="flex items-center gap-4 w-full sm:w-auto flex-1 max-w-full">
                                                 {selectedWorker.profile_photo_url && !imageErrors[selectedWorker.profile_photo_url] ? (
-                                                    <img 
-                                                        src={signedUrls[selectedWorker.profile_photo_url] || selectedWorker.profile_photo_url} 
-                                                        alt="" 
+                                                    <img
+                                                        src={signedUrls[selectedWorker.profile_photo_url] || selectedWorker.profile_photo_url}
+                                                        alt=""
                                                         onError={() => setImageErrors(prev => ({ ...prev, [selectedWorker.profile_photo_url]: true }))}
-                                                        className="w-12 h-12 rounded-xl object-cover border border-white/10 flex-shrink-0" 
+                                                        className="w-12 h-12 rounded-xl object-cover border border-white/10 flex-shrink-0"
                                                     />
                                                 ) : (
                                                     <div className="w-12 h-12 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center flex-shrink-0">
@@ -1822,14 +1831,13 @@ export default function AdminPage() {
                                                 <button
                                                     key={o.val}
                                                     onClick={() => setAuditOutcome(o.val)}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                                        auditOutcome === o.val
-                                                            ? o.color === 'green' ? 'bg-green-500/20 border-green-500/30 text-green-400'
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${auditOutcome === o.val
+                                                        ? o.color === 'green' ? 'bg-green-500/20 border-green-500/30 text-green-400'
                                                             : o.color === 'red' ? 'bg-red-500/20 border-red-500/30 text-red-400'
-                                                            : o.color === 'amber' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
-                                                            : 'bg-purple-500/20 border-purple-500/30 text-purple-400'
-                                                            : 'bg-white/5 border-white/5 text-white/30'
-                                                    }`}
+                                                                : o.color === 'amber' ? 'bg-amber-500/20 border-amber-500/30 text-amber-400'
+                                                                    : 'bg-purple-500/20 border-purple-500/30 text-purple-400'
+                                                        : 'bg-white/5 border-white/5 text-white/30'
+                                                        }`}
                                                 >
                                                     {o.label}
                                                 </button>
@@ -1871,13 +1879,13 @@ export default function AdminPage() {
                                         </p>
                                     </div>
                                     <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                                        <button 
+                                        <button
                                             onClick={() => setLeadsSubTab('future')}
                                             className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${leadsSubTab === 'future' ? 'bg-indigo-500 text-white shadow-xl shadow-indigo-500/20' : 'text-white/30 hover:text-white'}`}
                                         >
                                             Future Leads
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={() => setLeadsSubTab('matrices')}
                                             className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${leadsSubTab === 'matrices' ? 'bg-indigo-500 text-white shadow-xl shadow-indigo-500/20' : 'text-white/30 hover:text-white'}`}
                                         >
@@ -1906,7 +1914,7 @@ export default function AdminPage() {
                                                                 <span className="text-[11px] font-black text-white/60">{l.phone}</span>
                                                             </div>
                                                             {l.lat && l.lng ? (
-                                                                <a 
+                                                                <a
                                                                     href={`https://www.google.com/maps?q=${l.lat},${l.lng}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
@@ -1935,7 +1943,7 @@ export default function AdminPage() {
                                                         </div>
 
                                                         {/* Notify Button */}
-                                                        <a 
+                                                        <a
                                                             href={`https://wa.me/${l.phone.replace(/^0/, '94')}?text=${encodeURIComponent(`Hi ${l.full_name}, we added your ${l.service_needed || 'requested'} service on Grab Me! Please visit here to hire the right worker: ${window.location.protocol}//${window.location.host}/browse?service=${encodeURIComponent(l.service_needed || '')}`)}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
@@ -1985,7 +1993,7 @@ export default function AdminPage() {
                                         ) : filteredClicks.map(c => (
                                             <m.div key={c.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-[#18181B] border border-white/10 rounded-[1.5rem] md:rounded-[2rem] p-5 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 md:gap-6 relative overflow-hidden group hover:border-green-500/30 transition-all shadow-xl text-left">
                                                 <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.3)]" />
-                                                
+
                                                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 w-full md:w-auto overflow-hidden">
                                                     <div className="hidden sm:flex w-14 h-14 bg-green-500/10 rounded-2xl items-center justify-center border border-green-500/20 shadow-inner shrink-0">
                                                         <Zap className="w-7 h-7 text-green-400 fill-green-400/20" />
@@ -1999,7 +2007,7 @@ export default function AdminPage() {
                                                             </div>
                                                             <div className="flex items-center gap-2 min-w-0 mt-1 sm:mt-0">
                                                                 <span className="text-[10px] font-black text-white/30 uppercase tracking-widest hidden sm:inline shrink-0">Clicked On:</span>
-                                                                <button 
+                                                                <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         window.open(`/worker/${c.worker_id}`, '_blank');
@@ -2020,7 +2028,7 @@ export default function AdminPage() {
                                                         <p className="text-[9px] font-black text-white/20 uppercase tracking-widest hidden md:block">Customer Origin</p>
                                                         <div className="flex items-center justify-start md:justify-end gap-2 text-[10px] md:text-xs font-bold text-white/60 truncate w-full md:w-auto">
                                                             {c.customer?.lat && c.customer?.lng ? (
-                                                                <a 
+                                                                <a
                                                                     href={`https://www.google.com/maps?q=${c.customer.lat},${c.customer.lng}`}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
@@ -2122,10 +2130,10 @@ export default function AdminPage() {
                                                 onKeyPress={async e => {
                                                     if (e.key === 'Enter' && newServiceName.trim()) {
                                                         const res = await addServiceAction(newServiceName.trim());
-                                                        if (res && res.success) { 
-                                                            setNewServiceName(''); 
-                                                            fetchTaxonomy(); 
-                                                            toast.success('Service synced/added!'); 
+                                                        if (res && res.success) {
+                                                            setNewServiceName('');
+                                                            fetchTaxonomy();
+                                                            toast.success('Service synced/added!');
                                                         } else {
                                                             toast.error(res?.error || 'Failed to add service');
                                                         }
@@ -2137,10 +2145,10 @@ export default function AdminPage() {
                                                 onClick={async () => {
                                                     if (!newServiceName.trim()) return;
                                                     const res = await addServiceAction(newServiceName.trim());
-                                                    if (res && res.success) { 
-                                                        setNewServiceName(''); 
-                                                        fetchTaxonomy(); 
-                                                        toast.success('Service synced/added!'); 
+                                                    if (res && res.success) {
+                                                        setNewServiceName('');
+                                                        fetchTaxonomy();
+                                                        toast.success('Service synced/added!');
                                                     } else {
                                                         toast.error(res?.error || 'Failed to add service');
                                                     }
